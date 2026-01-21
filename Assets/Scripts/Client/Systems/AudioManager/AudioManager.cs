@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
-using WCC.Pocker.Instance;
+using WCC.Poker.Shared.Exposed;
 
 namespace WCC.Poker.Client.Audio
 {
-    public class AudioManager : Exposed<AudioManager>
+    public class AudioManager : Exposing<AudioManager>
     {
         #region FIELDS
         [SerializeField] AudioMixerGroup _audioMixerGroup;

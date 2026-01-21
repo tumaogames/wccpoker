@@ -5,6 +5,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using static WCC.Poker.Shared.GlobalHawk;
 
 
 namespace WCC.Poker.Client

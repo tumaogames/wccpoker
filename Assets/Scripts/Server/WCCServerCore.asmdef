@@ -1,7 +1,9 @@
 {
     "name": "WCCServerCore",
     "rootNamespace": "WCC.Poker.Server",
-    "references": [],
+    "references": [
+        "GUID:19ac3952911838e4b958c4aaef2db0ba"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

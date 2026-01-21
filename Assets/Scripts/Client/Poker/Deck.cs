@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static WCC.Poker.Shared.GlobalHawk;
 
 
 namespace WCC.Poker.Client

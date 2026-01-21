@@ -5,16 +5,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using WCC.Poker.Shared.Exposed;
+using static WCC.Poker.Shared.GlobalHawk;
 
 namespace WCC.Poker.Client
 {
-    public class PokerGameManager : MonoBehaviour
+    public class PokerGameManager : Exposing<PokerGameManager>
     {
         public List<PokerPlayer> players = new();
         public List<Card> community = new();
 
-        Deck deck = new Deck();
-        BettingSystem betting = new BettingSystem();
+        readonly Deck deck = new();
+        readonly BettingSystem betting = new();
 
         PokerPhase phase;
 
@@ -31,7 +33,7 @@ namespace WCC.Poker.Client
             StartRound();
         }
 
-        void StartRound()
+        public void StartRound()
         {
             community.Clear();
             betting.Reset();
@@ -163,6 +165,35 @@ namespace WCC.Poker.Client
 
             Debug.Log($"{p.name} bets {amount}");
         }
+
+
+
+        //////////
+        //SERVER//
+        //////////
+        ///
+        public void ServerHandleAction(int index, PlayerAction action, int amount)
+        {
+            var p = players[index];
+
+            if (p.folded || p.allIn) return;
+
+            if (action == PlayerAction.Fold)
+                p.folded = true;
+
+            if (action == PlayerAction.Call)
+                Bet(p, highestBet - p.currentBet);
+
+            if (action == PlayerAction.Raise)
+                Bet(p, amount);
+
+            if (action == PlayerAction.AllIn)
+                Bet(p, p.chips);
+
+            // broadcast to all clients
+            NetworkPokerManager.main.SyncStateClientRpc();
+        }
+
     }
 
 }

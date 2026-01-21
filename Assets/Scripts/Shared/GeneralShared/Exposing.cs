@@ -4,9 +4,9 @@
 
 using UnityEngine;
 
-namespace WCC.Pocker.Instance
+namespace WCC.Poker.Shared.Exposed
 {
-    public abstract class Exposed<T> : MonoBehaviour where T : MonoBehaviour
+    public abstract class Exposing<T> : MonoBehaviour where T : MonoBehaviour
     {
         public static T main;
 
