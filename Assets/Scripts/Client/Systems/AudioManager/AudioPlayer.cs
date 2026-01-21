@@ -4,16 +4,19 @@
 
 using UnityEngine;
 
-public class AudioPlayer : MonoBehaviour
+namespace WCC.Poker.Client.Audio
 {
-    
-    [SerializeField] string _clipKey;
-    [SerializeField] AudioManager.AudioSettings _settings;
+    public class AudioPlayer : MonoBehaviour
+    {
 
-    #region 
-    AudioManager _audioManager;
-    private void Start() => _audioManager = AudioManager.main;
-    #endregion
+        [SerializeField] string _clipKey;
+        [SerializeField] AudioManager.AudioSettings _settings;
 
-    public void PlayAudio(int i) { if(_audioManager != null) _audioManager.PlayAudio(_clipKey, i, transform.position, _settings); }
+        #region 
+        AudioManager _audioManager;
+        private void Start() => _audioManager = AudioManager.main;
+        #endregion
+
+        public void PlayAudio(int i) { if (_audioManager != null) _audioManager.PlayAudio(_clipKey, i, transform.position, _settings); }
+    }
 }

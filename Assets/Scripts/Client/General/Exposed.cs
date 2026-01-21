@@ -8,8 +8,8 @@ namespace WCC.Pocker.Instance
 {
     public abstract class Exposed<T> : MonoBehaviour where T : MonoBehaviour
     {
-        public static T Main;
+        public static T main;
 
-        protected virtual void OnAwake() => Main = this as T;
+        protected virtual void Awake() => main = this as T;
     }
 }
