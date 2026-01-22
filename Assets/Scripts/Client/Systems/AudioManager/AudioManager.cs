@@ -101,6 +101,12 @@ namespace WCC.Poker.Client.Audio
                 );
             }
         }
+
+        private void Reset()
+        {
+            if (_libraryInfo == null)
+                _libraryInfo = Resources.Load<AudioData>("AudioLibrary");
+        }
         #endregion
 
         #region PUBLIC API
