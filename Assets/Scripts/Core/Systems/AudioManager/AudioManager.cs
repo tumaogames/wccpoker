@@ -102,6 +102,9 @@ namespace WCC.Core.Audio
             }
         }
 
+        /// <summary>
+        /// Para ito sa pag load automatically galing sa Resources folders
+        /// </summary>
         private void Reset()
         {
             if (_libraryInfo == null)
@@ -110,6 +113,15 @@ namespace WCC.Core.Audio
         #endregion
 
         #region PUBLIC API
+        /// <summary>
+        /// This function ay para sa pag Play ng Audio
+        /// Itong function na ito ay yung need gamitin sa ibang scripts
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="element"></param>
+        /// <param name="position"></param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
         public (GameObject, AudioSource) PlayAudio(
             string key,
             int element,
@@ -148,6 +160,14 @@ namespace WCC.Core.Audio
             return PlayIndependent(key, element, clip, position, settings);
         }
 
+        /// <summary>
+        /// This function ay para mag play ng random audio
+        /// Itong function ang ng ibang scripts para maka pag play
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="position"></param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
         public (GameObject, AudioSource) PlayRandomAudio(
             string key,
             Vector3 position,
@@ -162,6 +182,13 @@ namespace WCC.Core.Audio
         #endregion
 
         #region CORE
+        /// <summary>
+        /// This function ay para try ng get na audio clip at may return na bool
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="element"></param>
+        /// <param name="clip"></param>
+        /// <returns></returns>
         bool TryGetClip(string key, int element, out AudioClip clip)
         {
             clip = null;
@@ -171,6 +198,11 @@ namespace WCC.Core.Audio
             return clip != null;
         }
 
+        /// <summary>
+        /// This function ay para lang mag setup ng audioclips ang position
+        /// </summary>
+        /// <param name="clip"></param>
+        /// <param name="pos"></param>
         void PlayShared(AudioClip clip, Vector3 pos)
         {
             SetPosition(_sharedSource.transform, pos);
@@ -178,6 +210,15 @@ namespace WCC.Core.Audio
             _sharedSource.Play();
         }
 
+        /// <summary>
+        /// This function ay para sa pag play ng independent na audio
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="element"></param>
+        /// <param name="clip"></param>
+        /// <param name="pos"></param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
         (GameObject, AudioSource) PlayIndependent(
             string key,
             int element,
@@ -207,6 +248,11 @@ namespace WCC.Core.Audio
         #endregion
 
         #region POOL
+        /// <summary>
+        /// This function ay para mag get galing sa pool
+        /// Then return as audioSource component
+        /// </summary>
+        /// <returns></returns>
         AudioSource GetFromPool()
         {
             AudioSource src;
@@ -225,6 +271,10 @@ namespace WCC.Core.Audio
             return src;
         }
 
+        /// <summary>
+        /// This function ay para mag return to pool
+        /// </summary>
+        /// <param name="src"></param>
         void ReturnToPool(AudioSource src)
         {
             src.Stop();
@@ -234,6 +284,11 @@ namespace WCC.Core.Audio
         #endregion
 
         #region UTILS
+        /// <summary>
+        /// This function ay para mag apply ng settings audio
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="s"></param>
         void ApplySettings(AudioSource a, AudioSettings s)
         {
             a.loop = s.Loop;
@@ -248,15 +303,23 @@ namespace WCC.Core.Audio
                 : AudioRolloffMode.Logarithmic;
         }
 
-        void SetPosition(Transform t, Vector3 pos)
-        {
-            t.position = pos + _positionOffset;
-        }
+        /// <summary>
+        /// This function ay para mag set ng position para sa audio
+        /// </summary>
+        /// <param name="t"></param>
+        /// <param name="pos"></param>
+        void SetPosition(Transform t, Vector3 pos) => t.position = pos + _positionOffset;
 
+        /// <summary>
+        /// This function ay para mag set enable ng background music using the parameter bool
+        /// If the parameter is TRUE then it will play the background music
+        /// Else then it will stop the background music
+        /// </summary>
+        /// <param name="play"></param>
         public void SetEnableBackgroundMusic(bool play)
         {
-            if (play) _backgroundMusic.Play();
-            else _backgroundMusic.Stop();
+            Action act = play ? _backgroundMusic.Play : _backgroundMusic.Stop;
+            act();
         }
         #endregion
     }
