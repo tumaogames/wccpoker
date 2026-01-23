@@ -55,7 +55,7 @@ namespace WCC.Poker.Client
             _playersHUDList.Add(p);
             p.transform.localPosition = i == 0 ? _playersTablePositions[0].localPosition : _playersTablePositions[i].localPosition;
 
-            p.InititalizePlayerHUDUI("ID3423", "SampleName", i == 0, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], UnityEngine.Random.Range(100, 999));
+            p.InititalizePlayerHUDUI("ID3423", i == 0 ? "You" : $"Name-{Random.Range(111,9999)}", i == 0, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], UnityEngine.Random.Range(100, 999));
             
             if(i == 0 && _currentPlayerHUD == null) _currentPlayerHUD = p;
         }
