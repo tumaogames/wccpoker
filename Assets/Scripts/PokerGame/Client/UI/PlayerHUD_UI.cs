@@ -19,12 +19,9 @@ namespace WCC.Poker.Client
         [SerializeField] TMP_Text _amountText;
         [SerializeField] TMP_Text _levelText;
 
-        [Space]
-
-        [SerializeField] GameObject _turnHightlightGO;
-
-        [Header("[OP]")]
+        [Header("[Effects]")]
         [SerializeField] Color _ownPlayerNameTextColor;
+        [SerializeField] GameObject _turnHightlightGO;
 
         [Header("[EVENTS]")]
         [SerializeField] UnityEvent _isMineEvent;
@@ -33,7 +30,15 @@ namespace WCC.Poker.Client
 
         string _playerID;
 
-        //
+        /// <summary>
+        /// This function ay para sa initialize ng player
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="playerName"></param>
+        /// <param name="isMine"></param>
+        /// <param name="level"></param>
+        /// <param name="profile"></param>
+        /// <param name="amount"></param>
         public void InititalizePlayerHUDUI(string id, string playerName, bool isMine, int level, Sprite profile, int amount)
         {
             _playerID = id;
@@ -44,6 +49,10 @@ namespace WCC.Poker.Client
             CheckOwner(isMine);
         }
 
+        /// <summary>
+        /// This function ay para mag check kung sino owner HUD
+        /// </summary>
+        /// <param name="isMine"></param>
         void CheckOwner(bool isMine)
         {
             if (isMine)
@@ -52,24 +61,33 @@ namespace WCC.Poker.Client
                 _playerNameText.color = _ownPlayerNameTextColor;
             }
             else _isNotMineEvent?.Invoke();
+
             _isOwnerBoolEvent?.Invoke(isMine);
 
             transform.localScale = isMine ? new(0.8f, 0.8f, 0.8f) : new(0.6f, 0.6f, 0.6f);
         }
 
+        /// <summary>
+        /// This function ay para sa set kung sa kanya na yung TURN
+        /// </summary>
         [NaughtyAttributes.Button]
         public void SetTurn()
         {
             _turnHightlightGO.SetActive(true);
         }
 
+        /// <summary>
+        /// This function ay para sa effects lamang
+        /// </summary>
         [NaughtyAttributes.Button]
         public void SetEffect()
         {
 
         }
 
+        #region DEBUG-ONLY
         [NaughtyAttributes.Button] public void Debug_SetOwner() => CheckOwner(true);
         [NaughtyAttributes.Button] public void Debug_SetNotOwner() => CheckOwner(false);
+        #endregion DEBUG-ONLY
     }
 }

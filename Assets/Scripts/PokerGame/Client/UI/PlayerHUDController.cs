@@ -18,6 +18,12 @@ namespace WCC.Poker.Client
 
         [SerializeField] Sprite[] _sampleAvatars;
 
+        #region EDITOR
+        private void OnValidate()
+        {
+            if(_maxPlayers > _playersTablePositions.Length) _maxPlayers = _playersTablePositions.Length;
+        }
+        #endregion EDITOR
 
         private void Start()
         {
@@ -27,7 +33,10 @@ namespace WCC.Poker.Client
             }
         }
 
-
+        /// <summary>
+        /// This function ay para mag instantiate ng player UIs
+        /// </summary>
+        /// <param name="i"></param>
         void SummonPlayerHUDUI(int i)
         {
             var p = Instantiate(_playerHUDPrefab, _playersContainer);
