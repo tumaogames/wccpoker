@@ -978,7 +978,7 @@ GameObject:
   - component: {fileID: 132786528}
   - component: {fileID: 132786529}
   m_Layer: 5
-  m_Name: ButtonList
+  m_Name: ActionButtons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1003,7 +1003,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 66.1575}
+  m_AnchoredPosition: {x: 0, y: -80}
   m_SizeDelta: {x: 1353.8, y: 132.315}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &132786529
@@ -1747,6 +1747,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cc4b0a278f22ed94e97c703d51dc84f6, type: 3}
   - {fileID: 21300000, guid: fe8b319c78e7ca14fad26b95dbc521e0, type: 3}
   - {fileID: 21300000, guid: 1a7f92f97e1af0f47b54fddfae3bb51f, type: 3}
+  _userButtonActions: {fileID: 973892209}
 --- !u!1 &377045461
 GameObject:
   m_ObjectHideFlags: 0
@@ -2969,6 +2970,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 973892208}
+  - component: {fileID: 973892209}
   m_Layer: 5
   m_Name: UserGroup
   m_TagString: Untagged
@@ -2997,6 +2999,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &973892209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973892207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2b9a3d9dbcf6064da8c19ce443c76d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRect: {fileID: 132786528}
+  upValue: 155
+  duration: 0.3
 --- !u!1 &988570373
 GameObject:
   m_ObjectHideFlags: 0

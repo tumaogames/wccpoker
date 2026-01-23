@@ -3,7 +3,9 @@
 ////////////////////
 
 
+using System;
 using System.Collections;
+using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -24,6 +26,7 @@ namespace WCC.Poker.Client
         [SerializeField] GameObject _turnGroupGO;
         [SerializeField] Image _turnLoadingImgFill;
         [SerializeField] TMP_Text _countdownTimeText;
+        [SerializeField] Image _turnWarningImage;
 
         [Header("[Effects]")]
         [SerializeField] Color _ownPlayerNameTextColor;
@@ -34,9 +37,16 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent _isNotMineEvent;
         [SerializeField] UnityEvent<bool> _isOwnerBoolEvent;
         [SerializeField] UnityEvent<bool> _onTurnWarningBoolEvent;
+        [SerializeField] UnityEvent _onTurnCountdownEndEvent;
 
+        bool _isOwner;
         string _playerID;
         readonly static WaitForSeconds _waitForSeconds1 = new(1f);
+
+        public bool IsOwner => _isOwner;
+
+
+
 
         /// <summary>
         /// This function ay para sa initialize ng player
@@ -51,6 +61,7 @@ namespace WCC.Poker.Client
         {
             _playerID = id;
             _playerNameText.text = playerName;
+            _isOwner = isMine;
             _levelText.text = $"{level}";
             _playerProfileImage.sprite = profile;
             _amountText.text = $"${amount}";
@@ -79,13 +90,27 @@ namespace WCC.Poker.Client
         /// This function ay para sa set kung sa kanya na yung TURN
         /// </summary>
         [NaughtyAttributes.Button]
-        public void SetTurn()
+        public void SetTurn([Optional] Action callback)
         {
             _turnHightlightGO.SetActive(true);
             StartCoroutine(TurnTime(() =>
             {
                 _turnHightlightGO.SetActive(false);
+                ChangeTheWarningImageAlpha(0f);
+                _onTurnCountdownEndEvent?.Invoke();
+                callback?.Invoke();
             }));
+        }
+
+        /// <summary>
+        /// On this function ay para mag change lang ng alpha value para sa _turnWarningImage
+        /// </summary>
+        /// <param name="alphaValue"></param>
+        void ChangeTheWarningImageAlpha(float alphaValue)
+        {
+            var c = _turnWarningImage.color;
+            c.a = alphaValue;
+            _turnWarningImage.color = c;
         }
 
         /// <summary>
@@ -109,6 +134,7 @@ namespace WCC.Poker.Client
             float duration = 10f;
             float timeLeft = duration;
             var triggered30 = false;
+            var triggered50 = false;
 
             _turnLoadingImgFill.color = Color.green;
 
@@ -122,7 +148,12 @@ namespace WCC.Poker.Client
                 _countdownTimeText.text = Mathf.Ceil(timeLeft).ToString();
 
                
-                if (!triggered30 && percent <= 0.3f)
+                if (!triggered50 && percent <= 0.5f)
+                {
+                    triggered50 = true;
+                    _turnLoadingImgFill.color = Color.yellow;
+                }
+                else if (!triggered30 && percent <= 0.3f)
                 {
                     triggered30 = true;
                     _turnLoadingImgFill.color = Color.red;

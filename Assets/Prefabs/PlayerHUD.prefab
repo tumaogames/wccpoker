@@ -1670,6 +1670,7 @@ MonoBehaviour:
   _turnGroupGO: {fileID: 5283821537002198470}
   _turnLoadingImgFill: {fileID: 3706459998778083457}
   _countdownTimeText: {fileID: 906646532727824109}
+  _turnWarningImage: {fileID: 166704901154946166}
   _ownPlayerNameTextColor: {r: 0.44531184, g: 1, b: 0.390566, a: 1}
   _turnHightlightGO: {fileID: 5110176939082200186}
   _isMineEvent:
@@ -1732,6 +1733,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  _onTurnCountdownEndEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &4012968987314411152
 MonoBehaviour:
   m_ObjectHideFlags: 0
