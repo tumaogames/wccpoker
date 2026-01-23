@@ -3,6 +3,7 @@
 ////////////////////
 
 
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -19,6 +20,11 @@ namespace WCC.Poker.Client
         [SerializeField] TMP_Text _amountText;
         [SerializeField] TMP_Text _levelText;
 
+        [Header("[TURN]")]
+        [SerializeField] GameObject _turnGroupGO;
+        [SerializeField] Image _turnLoadingImgFill;
+        [SerializeField] TMP_Text _countdownTimeText;
+
         [Header("[Effects]")]
         [SerializeField] Color _ownPlayerNameTextColor;
         [SerializeField] GameObject _turnHightlightGO;
@@ -27,8 +33,10 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent _isMineEvent;
         [SerializeField] UnityEvent _isNotMineEvent;
         [SerializeField] UnityEvent<bool> _isOwnerBoolEvent;
+        [SerializeField] UnityEvent<bool> _onTurnWarningBoolEvent;
 
         string _playerID;
+        readonly static WaitForSeconds _waitForSeconds1 = new(1f);
 
         /// <summary>
         /// This function ay para sa initialize ng player
@@ -74,6 +82,10 @@ namespace WCC.Poker.Client
         public void SetTurn()
         {
             _turnHightlightGO.SetActive(true);
+            StartCoroutine(TurnTime(() =>
+            {
+                _turnHightlightGO.SetActive(false);
+            }));
         }
 
         /// <summary>
@@ -89,5 +101,44 @@ namespace WCC.Poker.Client
         [NaughtyAttributes.Button] public void Debug_SetOwner() => CheckOwner(true);
         [NaughtyAttributes.Button] public void Debug_SetNotOwner() => CheckOwner(false);
         #endregion DEBUG-ONLY
+
+        IEnumerator TurnTime(UnityAction callback)
+        {
+            _turnGroupGO.SetActive(true);
+
+            float duration = 10f;
+            float timeLeft = duration;
+            var triggered30 = false;
+
+            _turnLoadingImgFill.color = Color.green;
+
+            while (timeLeft > 0f)
+            {
+                timeLeft -= Time.deltaTime;
+
+                float percent = timeLeft / duration;
+
+                _turnLoadingImgFill.fillAmount = percent;
+                _countdownTimeText.text = Mathf.Ceil(timeLeft).ToString();
+
+               
+                if (!triggered30 && percent <= 0.3f)
+                {
+                    triggered30 = true;
+                    _turnLoadingImgFill.color = Color.red;
+                    _onTurnWarningBoolEvent?.Invoke(true);
+                }
+
+                yield return null;
+            }
+
+            _turnLoadingImgFill.fillAmount = 0f;
+            _countdownTimeText.text = "0";
+
+            _turnGroupGO.SetActive(false);
+            _onTurnWarningBoolEvent?.Invoke(false);
+            callback();
+        }
+
     }
 }
