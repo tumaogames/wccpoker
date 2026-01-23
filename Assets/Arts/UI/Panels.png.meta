@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 4a272365605fbba4c948ee112ac9c12a
+guid: 38d5d099080f4c7418f4c881c76cb36d
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -69,7 +69,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: ProfileFrameDesign_0
+      name: Panels_0
       rect:
         serializedVersion: 2
-        x: 12
-        y: 8
-        width: 302
-        height: 330
+        x: 56
+        y: 4286
+        width: 150
+        height: 149
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -111,20 +111,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8546c4074ab42cb40b200ef8f36a2446
-      internalID: 503475667
+      spriteID: f9a2bae1fa225264e8d7fe0856846400
+      internalID: 2060262399
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ProfileFrameDesign_1
+      name: Panels_1
       rect:
         serializedVersion: 2
-        x: 341
-        y: 8
-        width: 302
-        height: 330
+        x: 282
+        y: 3056
+        width: 1250
+        height: 1414
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -132,20 +132,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fae93fdb2473d874a83e2c0d3773a609
-      internalID: -1103196280
+      spriteID: a2eb50ae39109e144b84c9a02b20113f
+      internalID: 1564351751
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ProfileFrameDesign_2
+      name: Panels_2
       rect:
         serializedVersion: 2
-        x: 675
-        y: 7
-        width: 302
-        height: 330
+        x: 1659
+        y: 3112
+        width: 2623
+        height: 1341
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,20 +153,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 20c052fef1c0a5f4f9376b9dbc8281b1
-      internalID: 1296634381
+      spriteID: c2a5b2eddb7242543809174274a41a2d
+      internalID: -278190223
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ProfileFrameDesign_3
+      name: Panels_3
       rect:
         serializedVersion: 2
-        x: 1076
-        y: 69
-        width: 170
-        height: 188
+        x: 113
+        y: 136
+        width: 1810
+        height: 2780
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -174,8 +174,50 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 665f875d8bc65d540832689cb44ef863
-      internalID: 48525005
+      spriteID: 04a2fb76f0fa8884b916402c93389f01
+      internalID: -477823743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Panels_4
+      rect:
+        serializedVersion: 2
+        x: 2055
+        y: 1244
+        width: 2220
+        height: 1661
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ccc39c6a845e5c741bf9bded2bb2f4fa
+      internalID: 657590275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Panels_5
+      rect:
+        serializedVersion: 2
+        x: 2004
+        y: 124
+        width: 2322
+        height: 982
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd4ee15af4f57484ca4ae27100b1aaed
+      internalID: -903586646
       vertices: []
       indices: 
       edges: []
@@ -191,10 +233,12 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      ProfileFrameDesign_0: 503475667
-      ProfileFrameDesign_1: -1103196280
-      ProfileFrameDesign_2: 1296634381
-      ProfileFrameDesign_3: 48525005
+      Panels_0: 2060262399
+      Panels_1: 1564351751
+      Panels_2: -278190223
+      Panels_3: -477823743
+      Panels_4: 657590275
+      Panels_5: -903586646
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
