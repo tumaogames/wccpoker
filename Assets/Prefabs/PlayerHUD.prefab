@@ -1557,7 +1557,19 @@ MonoBehaviour:
   _ownPlayerNameTextColor: {r: 0.44531184, g: 1, b: 0.390566, a: 1}
   _isMineEvent:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 5808221874509149584}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   _isNotMineEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1565,6 +1577,18 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
         m_MethodName: SetActive
         m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 4012968987314411152}
+        m_TargetAssemblyTypeName: WCC.Poker.Client.PlayerHUD_DesignsHandler, WCCPokerClientCore
+        m_MethodName: SetupAvatarFrame
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -1590,8 +1614,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _frameImage: {fileID: 1393242364273751721}
   _frameDesigns:
-  - _sprite: {fileID: 1296634381, guid: 4a272365605fbba4c948ee112ac9c12a, type: 3}
-    _spriteColor: {r: 1, g: 1, b: 1, a: 1}
   - _sprite: {fileID: 1296634381, guid: 4a272365605fbba4c948ee112ac9c12a, type: 3}
     _spriteColor: {r: 0.5554732, g: 1, b: 0.48867923, a: 1}
   - _sprite: {fileID: -1103196280, guid: 4a272365605fbba4c948ee112ac9c12a, type: 3}

@@ -23,7 +23,7 @@ namespace WCC.Poker.Client
             [SerializeField] internal Color _spriteColor = Color.white;
         }
 
-        private void Start()
+        public void SetupAvatarFrame()
         {
             var item = _frameDesigns[UnityEngine.Random.Range(0, _frameDesigns.Length)];
             _frameImage.sprite = item._sprite;

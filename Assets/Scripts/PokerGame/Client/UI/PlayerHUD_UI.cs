@@ -53,16 +53,23 @@ namespace WCC.Poker.Client
             }
             else _isNotMineEvent?.Invoke();
             _isOwnerBoolEvent?.Invoke(isMine);
+
+            transform.localScale = isMine ? new(0.8f, 0.8f, 0.8f) : new(0.6f, 0.6f, 0.6f);
         }
 
+        [NaughtyAttributes.Button]
         public void SetTurn()
         {
             _turnHightlightGO.SetActive(true);
         }
 
-        public void SetGlowEffect()
+        [NaughtyAttributes.Button]
+        public void SetEffect()
         {
 
         }
+
+        [NaughtyAttributes.Button] public void Debug_SetOwner() => CheckOwner(true);
+        [NaughtyAttributes.Button] public void Debug_SetNotOwner() => CheckOwner(false);
     }
 }
