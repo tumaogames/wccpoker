@@ -1,0 +1,307 @@
+syntax = "proto3";
+package Com.poker.Core;
+option csharp_namespace = "Com.poker.Core";
+
+message Packet {
+  uint32 protocol_version = 1;
+  uint32 msg_type = 2;
+  uint64 seq = 3;
+  string session_id = 4;
+  uint64 timestamp = 5;
+  bytes payload = 6;
+}
+
+enum MsgType {
+  MSG_TYPE_UNSPECIFIED = 0;
+  MSG_TYPE_CONNECT_REQUEST = 1;
+  MSG_TYPE_CONNECT_RESPONSE = 2;
+  MSG_TYPE_RESUME_REQUEST = 3;
+  MSG_TYPE_RESUME_RESPONSE = 4;
+  MSG_TYPE_PING = 5;
+  MSG_TYPE_PONG = 6;
+  MSG_TYPE_JOIN_TABLE_REQUEST = 7;
+  MSG_TYPE_JOIN_TABLE_RESPONSE = 8;
+  MSG_TYPE_LEAVE_TABLE_REQUEST = 9;
+  MSG_TYPE_LEAVE_TABLE_RESPONSE = 10;
+  MSG_TYPE_TABLE_SNAPSHOT = 11;
+  MSG_TYPE_DEAL_HOLE_CARDS = 12;
+  MSG_TYPE_COMMUNITY_CARDS = 13;
+  MSG_TYPE_ACTION_REQUEST = 14;
+  MSG_TYPE_ACTION_RESULT = 15;
+  MSG_TYPE_ACTION_BROADCAST = 16;
+  MSG_TYPE_TURN_UPDATE = 17;
+  MSG_TYPE_POT_UPDATE = 18;
+  MSG_TYPE_HAND_RESULT = 19;
+  MSG_TYPE_STACK_UPDATE = 20;
+  MSG_TYPE_KICK = 21;
+  MSG_TYPE_ERROR = 22;
+  MSG_TYPE_TABLE_LIST = 23;
+  MSG_TYPE_BUYIN_REQUEST = 24;
+  MSG_TYPE_BUYIN_RESPONSE = 25;
+}
+
+message ConnectRequest {
+  string game_ticket = 1;
+  string access_token = 2;
+  string client_version = 3;
+  string device_id = 4;
+  string operator_public_id = 5;
+}
+
+message ConnectResponse {
+  string player_id = 1;
+  string session_id = 2;
+  int64 credits = 3;
+  uint32 protocol_version = 4;
+  uint32 resume_window_sec = 5;
+}
+
+message ResumeRequest {
+  uint64 last_seq = 1;
+}
+
+message ResumeResponse {
+  bool success = 1;
+  string message = 2;
+  TableSnapshot snapshot = 3;
+}
+
+message Ping {
+  uint64 timestamp_unix_ms = 1;
+}
+
+message Pong {
+  uint64 timestamp_unix_ms = 1;
+}
+
+message JoinTableRequest {
+  string table_id = 1;
+}
+
+message JoinTableResponse {
+  bool success = 1;
+  string table_id = 2;
+  int32 seat = 3;
+  int32 max_players = 4;
+  int32 small_blind = 5;
+  int32 big_blind = 6;
+  string message = 7;
+}
+
+message BuyInRequest {
+  string table_id = 1;
+  int64 amount = 2;
+}
+
+message BuyInResponse {
+  bool success = 1;
+  string table_id = 2;
+  int64 amount = 3;
+  int64 balance = 4;
+  string message = 5;
+  string transaction_id = 6;
+}
+
+message LeaveTableRequest {
+  string reason = 1;
+}
+
+message LeaveTableResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message TableSnapshot {
+  string table_id = 1;
+  TableState state = 2;
+  int32 max_players = 3;
+  repeated PlayerState players = 4;
+  repeated Card community_cards = 5;
+  int32 dealer_seat = 6;
+  int32 small_blind_seat = 7;
+  int32 big_blind_seat = 8;
+  int64 pot_total = 9;
+  int64 current_bet = 10;
+  int64 min_raise = 11;
+  int32 current_turn_seat = 12;
+  uint64 action_deadline_unix_ms = 13;
+}
+
+message PokerTableInfo {
+  string table_code = 1;
+  string table_name = 2;
+  int32 variant = 3;
+  int32 limit_type = 4;
+  string currency_code = 5;
+  int64 small_blind = 6;
+  int64 big_blind = 7;
+  int64 ante = 8;
+  int64 min_buy_in = 9;
+  int64 max_buy_in = 10;
+  int32 max_players = 11;
+  int32 min_players_to_start = 12;
+  int32 turn_time_seconds = 13;
+  int32 time_bank_seconds = 14;
+  double rake_percent = 15;
+  double rake_cap = 16;
+  bool allow_straddle = 17;
+  int64 straddle_amount = 18;
+  bool allow_rebuy = 19;
+  int32 rebuy_time_seconds = 20;
+  bool is_active = 21;
+  string table_id = 22;
+}
+
+message PokerTableList {
+  repeated PokerTableInfo tables = 1;
+}
+
+message PlayerState {
+  string player_id = 1;
+  int32 seat = 2;
+  int64 stack = 3;
+  int64 bet_this_round = 4;
+  int64 total_bet = 5;
+  PlayerStatus status = 6;
+}
+
+enum PlayerStatus {
+  PLAYER_STATUS_UNKNOWN = 0;
+  PLAYER_STATUS_ACTIVE = 1;
+  PLAYER_STATUS_FOLDED = 2;
+  PLAYER_STATUS_ALL_IN = 3;
+  PLAYER_STATUS_SITTING_OUT = 4;
+  PLAYER_STATUS_DISCONNECTED = 5;
+}
+
+message DealHoleCards {
+  string table_id = 1;
+  repeated Card cards = 2;
+}
+
+message CommunityCards {
+  string table_id = 1;
+  TableState street = 2;
+  repeated Card cards = 3;
+}
+
+enum PokerActionType {
+  POKER_ACTION_UNSPECIFIED = 0;
+  FOLD = 1;
+  CHECK = 2;
+  CALL = 3;
+  BET = 4;
+  RAISE = 5;
+  ALL_IN = 6;
+}
+
+message ActionRequest {
+  string table_id = 1;
+  PokerActionType action = 2;
+  int64 amount = 3;
+}
+
+message ActionResult {
+  bool success = 1;
+  string message = 2;
+  PokerActionType action = 3;
+  int64 amount = 4;
+  int64 current_bet = 5;
+  int64 min_raise = 6;
+  int64 stack = 7;
+}
+
+message ActionBroadcast {
+  string table_id = 1;
+  string player_id = 2;
+  PokerActionType action = 3;
+  int64 amount = 4;
+  int64 current_bet = 5;
+  int64 pot_total = 6;
+}
+
+message TurnUpdate {
+  string table_id = 1;
+  string player_id = 2;
+  int32 seat = 3;
+  uint64 deadline_unix_ms = 4;
+  repeated PokerActionType allowed_actions = 5;
+  int64 call_amount = 6;
+  int64 min_raise = 7;
+  int64 max_raise = 8;
+  int64 stack = 9;
+}
+
+message SidePot {
+  int64 amount = 1;
+  repeated string eligible_player_ids = 2;
+}
+
+message PotUpdate {
+  string table_id = 1;
+  int64 pot_total = 2;
+  repeated SidePot pots = 3;
+}
+
+message StackUpdate {
+  string table_id = 1;
+  string player_id = 2;
+  int64 stack = 3;
+}
+
+message HandResult {
+  string table_id = 1;
+  repeated Winner winners = 2;
+  repeated RevealedHand revealed_hands = 3;
+  repeated SidePot pots = 4;
+}
+
+message Winner {
+  string player_id = 1;
+  int64 amount = 2;
+  HandRank rank = 3;
+  repeated Card best_five = 4;
+}
+
+message RevealedHand {
+  string player_id = 1;
+  repeated Card hole_cards = 2;
+}
+
+enum HandRank {
+  HAND_RANK_UNSPECIFIED = 0;
+  HAND_RANK_FOUR_OF_A_KIND = 1;
+  HAND_RANK_FLUSH = 2;
+  HAND_RANK_STRAIGHT = 3;
+  HAND_RANK_THREE_OF_A_KIND = 4;
+  HAND_RANK_TWO_PAIR = 5;
+  HAND_RANK_ONE_PAIR = 6;
+  HAND_RANK_HIGH_CARD = 7;
+  HAND_RANK_FULL_HOUSE = 8;
+  HAND_RANK_STRAIGHT_FLUSH = 9;
+}
+
+message Kick {
+  string reason = 1;
+}
+
+message Error {
+  string code = 1;
+  string message = 2;
+}
+
+message Card {
+  int32 rank = 1; // 2-14 (A=14)
+  int32 suit = 2; // 0=Clubs, 1=Diamonds, 2=Hearts, 3=Spades
+}
+
+enum TableState {
+  TABLE_STATE_UNSPECIFIED = 0;
+  TABLE_STATE_WAITING = 1;
+  TABLE_STATE_PRE_FLOP = 2;
+  TABLE_STATE_FLOP = 3;
+  TABLE_STATE_TURN = 4;
+  TABLE_STATE_RIVER = 5;
+  TABLE_STATE_SHOWDOWN = 6;
+  TABLE_STATE_RESET = 7;
+}
