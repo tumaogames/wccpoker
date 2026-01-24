@@ -12,13 +12,20 @@ namespace WCC.Poker.Client
 {
     public class PlayerHUDController : MonoBehaviour
     {
-
+       
         [SerializeField] PlayerHUD_UI _playerHUDPrefab;
         [SerializeField] Transform[] _playersTablePositions;
         [SerializeField] Transform _playersContainer;
+
+        [Space]
+
         [SerializeField] int _maxPlayers = 3;
 
+        [Space]
+
         [SerializeField] Sprite[] _sampleAvatars;
+
+        [Space]
 
         [SerializeField] BaseAnimation _userButtonActions;
 
