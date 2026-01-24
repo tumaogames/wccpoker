@@ -440,7 +440,7 @@ public sealed class GameServerClient : MonoBehaviour
                         Debug.Log("Recieved table list with " + tableList.Tables.Count + " tables.");
                         foreach (var item in tableList.Tables)
                         {
-                            Debug.Log(item.TableName);
+                            Debug.Log(item.);
                         }
                     });
                 break;
