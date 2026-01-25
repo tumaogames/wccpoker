@@ -2158,6 +2158,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _betValueUITextPrefab: {fileID: 6804039993619814764, guid: 5d645e06c908cb4438815a8abfeeed5d, type: 3}
+  _betValuePlusEffectPrefab: {fileID: 2859015380303229072, guid: ade8a161220a1b940a1517b8285d15a8, type: 3}
   _betGroupContainer: {fileID: 839448297}
   _playersBetHolderPositions:
   - {fileID: 1093417027322027909}
@@ -4113,13 +4114,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1093417027322027909}
-  - {fileID: 1093417027395157241}
-  - {fileID: 1093417028215685110}
-  - {fileID: 645062183704064524}
-  - {fileID: 1093417027130906406}
-  - {fileID: 1093417027433151097}
-  - {fileID: 1093417028289651877}
+  - {fileID: 1232898397}
   m_Father: {fileID: 91585094}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5196,6 +5191,48 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1155555166}
   m_CullTransparentMesh: 1
+--- !u!1 &1232898396
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1232898397}
+  m_Layer: 5
+  m_Name: BetPositions
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1232898397
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232898396}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1093417027322027909}
+  - {fileID: 1093417027395157241}
+  - {fileID: 1093417028215685110}
+  - {fileID: 645062183704064524}
+  - {fileID: 1093417027130906406}
+  - {fileID: 1093417027433151097}
+  - {fileID: 1093417028289651877}
+  m_Father: {fileID: 839448297}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1261355297
 GameObject:
   m_ObjectHideFlags: 0
@@ -7787,7 +7824,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 839448297}
+  m_Father: {fileID: 1232898397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7806,7 +7843,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 839448297}
+  m_Father: {fileID: 1232898397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7825,7 +7862,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 839448297}
+  m_Father: {fileID: 1232898397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7844,7 +7881,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 839448297}
+  m_Father: {fileID: 1232898397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7863,7 +7900,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 839448297}
+  m_Father: {fileID: 1232898397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7882,7 +7919,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 839448297}
+  m_Father: {fileID: 1232898397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7901,7 +7938,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 839448297}
+  m_Father: {fileID: 1232898397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7918,7 +7955,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1093417027130906406}
   - component: {fileID: 3578350846818869711}
-  - component: {fileID: 6804039994926789549}
   m_Layer: 5
   m_Name: BetValuePosition (4)
   m_TagString: Untagged
@@ -7936,7 +7972,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1093417027322027909}
   - component: {fileID: 3578350845558761836}
-  - component: {fileID: 6804039992966232846}
   m_Layer: 5
   m_Name: BetValuePosition (0)
   m_TagString: Untagged
@@ -7954,7 +7989,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1093417027433151097}
   - component: {fileID: 3578350845443378320}
-  - component: {fileID: 6804039993014427378}
   m_Layer: 5
   m_Name: BetValuePosition (5)
   m_TagString: Untagged
@@ -7972,7 +8006,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1093417027395157241}
   - component: {fileID: 3578350845480880656}
-  - component: {fileID: 6804039993060317298}
   m_Layer: 5
   m_Name: BetValuePosition (1)
   m_TagString: Untagged
@@ -7990,9 +8023,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1093417028289651877}
   - component: {fileID: 3578350845928559180}
-  - component: {fileID: 6804039993870794798}
   m_Layer: 5
-  m_Name: BetValueUIHolder (6)
+  m_Name: BetValuePosition (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8008,7 +8040,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1093417028215685110}
   - component: {fileID: 3578350845738322207}
-  - component: {fileID: 6804039993808493437}
   m_Layer: 5
   m_Name: BetValuePosition (2)
   m_TagString: Untagged
@@ -8026,7 +8057,6 @@ GameObject:
   m_Component:
   - component: {fileID: 645062183704064524}
   - component: {fileID: 3924882126283785445}
-  - component: {fileID: 6463771634894296711}
   m_Layer: 5
   m_Name: BetValuePosition (3)
   m_TagString: Untagged
@@ -8090,181 +8120,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2652623032242396337}
   m_CullTransparentMesh: 1
---- !u!114 &6463771634894296711
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2652623032242396337}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34793ecdb2808b94d96a3cdde2c8ce68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _betValueText: {fileID: 0}
-  _chipImage: {fileID: 0}
-  _betHolderImage: {fileID: 0}
-  _betColors:
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  _chipsSprites:
-  - {fileID: 21300000, guid: c03539488f026b64a99b555d837baa99, type: 3}
-  - {fileID: 21300000, guid: 0914db128dcef3e4aabea96da4f4e9af, type: 3}
-  - {fileID: 21300000, guid: 55349d4631c1dfa418e86235379d213d, type: 3}
-  - {fileID: 21300000, guid: 481b5c796dc29b846bf9753ce9d5a6fc, type: 3}
---- !u!114 &6804039992966232846
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2526276170622742840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34793ecdb2808b94d96a3cdde2c8ce68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _betValueText: {fileID: 0}
-  _chipImage: {fileID: 0}
-  _betHolderImage: {fileID: 0}
-  _betColors:
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  _chipsSprites:
-  - {fileID: 21300000, guid: c03539488f026b64a99b555d837baa99, type: 3}
-  - {fileID: 21300000, guid: 0914db128dcef3e4aabea96da4f4e9af, type: 3}
-  - {fileID: 21300000, guid: 55349d4631c1dfa418e86235379d213d, type: 3}
-  - {fileID: 21300000, guid: 481b5c796dc29b846bf9753ce9d5a6fc, type: 3}
---- !u!114 &6804039993014427378
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2526276170679325892}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34793ecdb2808b94d96a3cdde2c8ce68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _betValueText: {fileID: 0}
-  _chipImage: {fileID: 0}
-  _betHolderImage: {fileID: 0}
-  _betColors:
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  _chipsSprites:
-  - {fileID: 21300000, guid: c03539488f026b64a99b555d837baa99, type: 3}
-  - {fileID: 21300000, guid: 0914db128dcef3e4aabea96da4f4e9af, type: 3}
-  - {fileID: 21300000, guid: 55349d4631c1dfa418e86235379d213d, type: 3}
-  - {fileID: 21300000, guid: 481b5c796dc29b846bf9753ce9d5a6fc, type: 3}
---- !u!114 &6804039993060317298
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2526276170700575300}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34793ecdb2808b94d96a3cdde2c8ce68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _betValueText: {fileID: 0}
-  _chipImage: {fileID: 0}
-  _betHolderImage: {fileID: 0}
-  _betColors:
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  _chipsSprites:
-  - {fileID: 21300000, guid: c03539488f026b64a99b555d837baa99, type: 3}
-  - {fileID: 21300000, guid: 0914db128dcef3e4aabea96da4f4e9af, type: 3}
-  - {fileID: 21300000, guid: 55349d4631c1dfa418e86235379d213d, type: 3}
-  - {fileID: 21300000, guid: 481b5c796dc29b846bf9753ce9d5a6fc, type: 3}
---- !u!114 &6804039993808493437
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2526276170921316683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34793ecdb2808b94d96a3cdde2c8ce68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _betValueText: {fileID: 0}
-  _chipImage: {fileID: 0}
-  _betHolderImage: {fileID: 0}
-  _betColors:
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  _chipsSprites:
-  - {fileID: 21300000, guid: c03539488f026b64a99b555d837baa99, type: 3}
-  - {fileID: 21300000, guid: 0914db128dcef3e4aabea96da4f4e9af, type: 3}
-  - {fileID: 21300000, guid: 55349d4631c1dfa418e86235379d213d, type: 3}
-  - {fileID: 21300000, guid: 481b5c796dc29b846bf9753ce9d5a6fc, type: 3}
---- !u!114 &6804039993870794798
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2526276170731047448}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34793ecdb2808b94d96a3cdde2c8ce68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _betValueText: {fileID: 0}
-  _chipImage: {fileID: 0}
-  _betHolderImage: {fileID: 0}
-  _betColors:
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  _chipsSprites:
-  - {fileID: 21300000, guid: c03539488f026b64a99b555d837baa99, type: 3}
-  - {fileID: 21300000, guid: 0914db128dcef3e4aabea96da4f4e9af, type: 3}
-  - {fileID: 21300000, guid: 55349d4631c1dfa418e86235379d213d, type: 3}
-  - {fileID: 21300000, guid: 481b5c796dc29b846bf9753ce9d5a6fc, type: 3}
---- !u!114 &6804039994926789549
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2526276169907861915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34793ecdb2808b94d96a3cdde2c8ce68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _betValueText: {fileID: 0}
-  _chipImage: {fileID: 0}
-  _betHolderImage: {fileID: 0}
-  _betColors:
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0, a: 0}
-  _chipsSprites:
-  - {fileID: 21300000, guid: c03539488f026b64a99b555d837baa99, type: 3}
-  - {fileID: 21300000, guid: 0914db128dcef3e4aabea96da4f4e9af, type: 3}
-  - {fileID: 21300000, guid: 55349d4631c1dfa418e86235379d213d, type: 3}
-  - {fileID: 21300000, guid: 481b5c796dc29b846bf9753ce9d5a6fc, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -4,8 +4,10 @@
 
 
 using DG.Tweening;
+using Google.Protobuf.WellKnownTypes;
 using NaughtyAttributes;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Events;
 using WCC.Poker.Shared;
@@ -16,6 +18,7 @@ namespace WCC.Poker.Client
     public class TableBetController : MonoBehaviour
     {
         [SerializeField] BetValueUIText _betValueUITextPrefab;
+        [SerializeField] GameObject _betValuePlusEffectPrefab;
         [SerializeField] Transform _betGroupContainer;
         [SerializeField] Transform[] _playersBetHolderPositions;
         List<PlayerHUD_UI> _playerHUDList = new();
@@ -44,25 +47,31 @@ namespace WCC.Poker.Client
         {
             if (_playerBetDictionary.ContainsKey(playerID))
             {
-                EditTableBet(betValue, _playerBetDictionary[playerID]);
+                InstantiateBet(_betValuePlusEffectPrefab, _playerHUDList[playerID].transform.position, _playersBetHolderPositions[playerID].position, instance =>
+                {
+                    instance.transform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.InBack).OnComplete(() =>
+                    {
+                        EditTableBet(betValue, _playerBetDictionary[playerID]);
+                        Destroy(instance);
+                    });
+                });
+
                 return;
             }
 
-            InstantiateCard(playerID, betValue, _playerHUDList[playerID].transform.position, _playersBetHolderPositions[playerID].position, out var betText, () =>
+            InstantiateBet(_betValueUITextPrefab.gameObject, _playerHUDList[playerID].transform.position, _playersBetHolderPositions[playerID].position, instance =>
             {
-                Debug.Log("Is Player Set Bet DONE!");
+                var bvuiT = instance.GetComponent<BetValueUIText>();
+                _playerBetDictionary.Add(playerID, bvuiT);
+                bvuiT.SetBetValue(betValue);
             });
+         
         }
 
         //
-        void InstantiateCard(int playerID, int betValue, Vector2 startPosition, Vector2 destination, out BetValueUIText betValUIT, UnityAction isReachedCallback)
+        void InstantiateBet(GameObject prefab, Vector2 startPosition, Vector2 destination, [Optional] UnityAction<GameObject> isReachedCallback)
         {
-            var betHolder = Instantiate(_betValueUITextPrefab, _betGroupContainer);
-            _playerBetDictionary.Add(playerID, betHolder);
-            betValUIT = betHolder;
-
-            betHolder.SetBetValue(betValue);
-
+            var betHolder = Instantiate(prefab, _betGroupContainer);
             betHolder.transform.position = startPosition;
             betHolder.transform.DOMove(destination, 0.3f)
             .SetEase(Ease.InOutSine)
@@ -70,7 +79,7 @@ namespace WCC.Poker.Client
             {
                 betHolder.transform.localScale = Vector2.one;
                 betHolder.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                isReachedCallback();
+                isReachedCallback?.Invoke(betHolder);
             });
         }
 
