@@ -24,7 +24,6 @@ public sealed class GameServerClient : MonoBehaviour
 
     [Header("State (read-only)")]
     [SerializeField] string playerId;
-    [SerializeField] long credit;
     [SerializeField] string sessionId;
     [SerializeField] string tableId;
     [SerializeField] bool isConnected;
@@ -64,6 +63,9 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<StackUpdate> StackUpdateReceived;
     public event Action<JoinTableResponse> JoinTableResponseReceived;
     public event Action<LeaveTableResponse> LeaveTableResponseReceived;
+    public event Action<BuyInResponse> BuyInResponseReceived;
+    public event Action<SpectateResponse> SpectateResponseReceived;
+    public event Action<SpectatorHoleCards> SpectatorHoleCardsReceived;
     public event Action<Kick> KickReceived;
     public event Action<PokerError> ErrorReceived;
 
@@ -91,6 +93,24 @@ public sealed class GameServerClient : MonoBehaviour
         remove => Instance.JoinTableResponseReceived -= value;
     }
 
+    public static event Action<BuyInResponse> BuyInResponseReceivedStatic
+    {
+        add => Instance.BuyInResponseReceived += value;
+        remove => Instance.BuyInResponseReceived -= value;
+    }
+
+    public static event Action<SpectateResponse> SpectateResponseReceivedStatic
+    {
+        add => Instance.SpectateResponseReceived += value;
+        remove => Instance.SpectateResponseReceived -= value;
+    }
+
+    public static event Action<SpectatorHoleCards> SpectatorHoleCardsReceivedStatic
+    {
+        add => Instance.SpectatorHoleCardsReceived += value;
+        remove => Instance.SpectatorHoleCardsReceived -= value;
+    }
+
     static GameServerClient CreateSingleton()
     {
         var go = new GameObject("GameServerClient");
@@ -109,13 +129,21 @@ public sealed class GameServerClient : MonoBehaviour
 
         _instance = this;
         DontDestroyOnLoad(gameObject);
+#if !UNITY_WEBGL || UNITY_EDITOR
         _recvSignal = new AutoResetEvent(false);
         StartReceiver();
+#else
+        _recvSignal = null;
+#endif
     }
 
     void Update()
     {
         DrainMainThreadQueue();
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        ProcessRecvQueue();
+#endif
 
         if (!isConnected || _socket == null || !_socket.IsOpen)
             return;
@@ -154,6 +182,14 @@ public sealed class GameServerClient : MonoBehaviour
             return;
         }
 
+        // reset local session state before a fresh connect
+        playerId = string.Empty;
+        sessionId = string.Empty;
+        tableId = string.Empty;
+        lastReceivedSeq = 0;
+        _seq = 0;
+        resumeWindowSec = 0;
+
         _pendingLaunchToken = launchToken;
         _pendingOperatorPublicId = operatorPublicId;
         Open();
@@ -178,6 +214,16 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendJoinTable(tableIdValue);
     }
 
+    public static void SendBuyInStatic(string tableIdValue, long amount)
+    {
+        Instance.SendBuyIn(tableIdValue, amount);
+    }
+
+    public static void SendSpectateStatic(string tableIdValue)
+    {
+        Instance.SendSpectate(tableIdValue);
+    }
+
     public static void SendLeaveTableStatic(string reason)
     {
         Instance.SendLeaveTable(reason);
@@ -187,6 +233,14 @@ public sealed class GameServerClient : MonoBehaviour
     {
         Instance.SendAction(action, amount);
     }
+
+    // Convenience static wrappers (use these in UI button handlers)
+    public static void SendFoldStatic() => Instance.SendFold();
+    public static void SendCheckStatic() => Instance.SendCheck();
+    public static void SendCallStatic(long callAmount) => Instance.SendCall(callAmount);
+    public static void SendBetStatic(long amount) => Instance.SendBet(amount);
+    public static void SendRaiseStatic(long raiseAmount) => Instance.SendRaise(raiseAmount);
+    public static void SendAllInStatic(long amount) => Instance.SendAllIn(amount);
 
     public static void SendResumeStatic(ulong lastSeq)
     {
@@ -209,6 +263,22 @@ public sealed class GameServerClient : MonoBehaviour
         SendPacket(MsgType.JoinTableRequest, req);
     }
 
+    public void SendBuyIn(string tableIdValue, long amount)
+    {
+        var req = new BuyInRequest
+        {
+            TableId = tableIdValue ?? "",
+            Amount = amount
+        };
+        SendPacket(MsgType.BuyinRequest, req);
+    }
+
+    public void SendSpectate(string tableIdValue)
+    {
+        var req = new SpectateRequest { TableId = tableIdValue ?? "" };
+        SendPacket(MsgType.SpectateRequest, req);
+    }
+
     public void SendLeaveTable(string reason)
     {
         var req = new LeaveTableRequest { Reason = reason ?? "" };
@@ -225,6 +295,14 @@ public sealed class GameServerClient : MonoBehaviour
         };
         SendPacket(MsgType.ActionRequest, req);
     }
+
+    // Convenience instance methods
+    public void SendFold() => SendAction(PokerActionType.Fold, 0);
+    public void SendCheck() => SendAction(PokerActionType.Check, 0);
+    public void SendCall(long callAmount) => SendAction(PokerActionType.Call, callAmount);
+    public void SendBet(long amount) => SendAction(PokerActionType.Bet, amount);
+    public void SendRaise(long raiseAmount) => SendAction(PokerActionType.Raise, raiseAmount);
+    public void SendAllIn(long amount) => SendAction(PokerActionType.AllIn, amount);
 
     public void SendResume(ulong lastSeq)
     {
@@ -270,7 +348,7 @@ public sealed class GameServerClient : MonoBehaviour
         var copy = new byte[data.Length];
         Buffer.BlockCopy(data, 0, copy, 0, data.Length);
         _recvQueue.Enqueue(copy);
-        _recvSignal.Set();
+        _recvSignal?.Set();
     }
 
     void OnClosed(WebSocket ws, ushort code, string message)
@@ -286,6 +364,9 @@ public sealed class GameServerClient : MonoBehaviour
 
     void StartReceiver()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return;
+#else
         if (_running)
             return;
 
@@ -296,10 +377,14 @@ public sealed class GameServerClient : MonoBehaviour
             Name = "GameServerClientRecv"
         };
         _recvThread.Start();
+#endif
     }
 
     void StopReceiver()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return;
+#else
         if (!_running)
             return;
 
@@ -307,6 +392,7 @@ public sealed class GameServerClient : MonoBehaviour
         _recvSignal?.Set();
         _recvThread?.Join(200);
         _recvThread = null;
+#endif
     }
 
     void ReceiveLoop()
@@ -314,16 +400,21 @@ public sealed class GameServerClient : MonoBehaviour
         while (_running)
         {
             _recvSignal?.WaitOne(200);
-            while (_recvQueue.TryDequeue(out var data))
-            {
-                if (!TryParsePacket(data, out var packet))
-                    continue;
+            ProcessRecvQueue();
+        }
+    }
 
-                if (!ValidatePacket(packet))
-                    continue;
+    void ProcessRecvQueue()
+    {
+        while (_recvQueue.TryDequeue(out var data))
+        {
+            if (!TryParsePacket(data, out var packet))
+                continue;
 
-                HandlePacket(packet);
-            }
+            if (!ValidatePacket(packet))
+                continue;
+
+            HandlePacket(packet);
         }
     }
 
@@ -415,11 +506,15 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         playerId = connectResponse.PlayerId;
                         sessionId = connectResponse.SessionId;
-                        credit = connectResponse.Credits;
                         resumeWindowSec = connectResponse.ResumeWindowSec;
                         ConnectResponseReceived?.Invoke(connectResponse);
                         MessageReceived?.Invoke(msgType, connectResponse);
-                        Debug.Log(playerId + " Credit: " + credit);
+
+                        // RENDER: update player HUD (player id, session, credits, protocol).
+                        // Example:
+                        // - show connect success toast
+                        // - store playerId/sessionId for UI
+                        // - update credits display: connectResponse.Credits
                     });
                 }
                 break;
@@ -429,6 +524,11 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         ResumeResponseReceived?.Invoke(resumeResponse);
                         MessageReceived?.Invoke(msgType, resumeResponse);
+
+                        // RENDER: show resume result and restore table UI from snapshot.
+                        // Example:
+                        // - if resumeResponse.Success, render resumeResponse.Snapshot
+                        // - else show resumeResponse.Message
                     });
                 break;
             case MsgType.TableList:
@@ -438,9 +538,20 @@ public sealed class GameServerClient : MonoBehaviour
                         TableListReceived?.Invoke(tableList);
                         MessageReceived?.Invoke(msgType, tableList);
                         Debug.Log("Recieved table list with " + tableList.Tables.Count + " tables.");
-                        foreach (var item in tableList.Tables)
+
+                        // RENDER: build table list UI.
+                        // Example:
+                        foreach (var table in tableList.Tables)
                         {
-                            Debug.Log(item.TableName);
+                            var code = table.TableCode;
+                            var name = table.TableName;
+                            var smallBlind = table.SmallBlind;
+                            var bigBlind = table.BigBlind;
+                            var maxPlayers = table.MaxPlayers;
+                            var minBuyIn = table.MinBuyIn;
+                            var maxBuyIn = table.MaxBuyIn;
+
+                            // render a table card/button using these fields
                         }
                     });
                 break;
@@ -452,6 +563,12 @@ public sealed class GameServerClient : MonoBehaviour
                         tableId = snapshot.TableId;
                         TableSnapshotReceived?.Invoke(snapshot);
                         MessageReceived?.Invoke(msgType, snapshot);
+
+                        // RENDER: update full table state (seats, stacks, pot, board).
+                        // Example:
+                        // - snapshot.State, snapshot.CommunityCards, snapshot.PotTotal
+                        // - snapshot.Players list: seat, stack, status, bet
+                        // - snapshot.CurrentTurnSeat highlight
                     });
                 }
                 break;
@@ -459,13 +576,17 @@ public sealed class GameServerClient : MonoBehaviour
                 if (TryParsePayload(payload, DealHoleCards.Parser, out var holeCards))
                     EnqueueMainThread(() =>
                     {
-                        var card1 = holeCards.Cards[0];
-                        var card2 = holeCards.Cards[1];
-
-                        Debug.Log($"Hole cards: {card1.Rank}-{card1.Suit}, {card2.Rank}-{card2.Suit}");
-
                         DealHoleCardsReceived?.Invoke(holeCards);
                         MessageReceived?.Invoke(msgType, holeCards);
+
+                        // RENDER: show player's 2 private hole cards.
+                        // Example:
+                        foreach (var card in holeCards.Cards)
+                        {
+                            var rank = card.Rank;
+                            var suit = card.Suit;
+                            // render each hole card sprite/model
+                        }
                     });
                 break;
             case MsgType.CommunityCards:
@@ -474,6 +595,15 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         CommunityCardsReceived?.Invoke(communityCards);
                         MessageReceived?.Invoke(msgType, communityCards);
+
+                        // RENDER: update board cards for the street (Flop/Turn/River).
+                        // Example:
+                        foreach (var card in communityCards.Cards)
+                        {
+                            var rank = card.Rank;
+                            var suit = card.Suit;
+                            // render community card
+                        }
                     });
                 break;
             case MsgType.ActionRequest:
@@ -482,6 +612,12 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         ActionRequestReceived?.Invoke(actionRequest);
                         MessageReceived?.Invoke(msgType, actionRequest);
+
+                        // RENDER: if server asks for action, show action buttons.
+                        // Example:
+                        // - actionRequest.TableId
+                        // - actionRequest.Action
+                        // - actionRequest.Amount
                     });
                 break;
             case MsgType.ActionResult:
@@ -490,6 +626,11 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         ActionResultReceived?.Invoke(actionResult);
                         MessageReceived?.Invoke(msgType, actionResult);
+
+                        // RENDER: update local player UI with result of action.
+                        // Example:
+                        // - success/fail message
+                        // - update stack/bet/current_bet/min_raise
                     });
                 break;
             case MsgType.ActionBroadcast:
@@ -498,6 +639,12 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         ActionBroadcastReceived?.Invoke(actionBroadcast);
                         MessageReceived?.Invoke(msgType, actionBroadcast);
+
+                        // RENDER: show other players' actions (fold/call/raise/bet).
+                        // Example:
+                        // - actionBroadcast.PlayerId
+                        // - actionBroadcast.Action, Amount
+                        // - update pot/current_bet
                     });
                 break;
             case MsgType.TurnUpdate:
@@ -518,6 +665,11 @@ public sealed class GameServerClient : MonoBehaviour
                         bool canAllIn = turn.AllowedActions.Contains(PokerActionType.AllIn);
 
                         Debug.Log("TurnUpdate player=" + turn.PlayerId + " seat = " + turn .Seat );
+
+                        // RENDER: highlight current turn + enable allowed buttons.
+                        // Example:
+                        // - enable buttons based on canFold/canCheck/canCall/canBet/canRaise/canAllIn
+                        // - show call_amount/min_raise/max_raise/stack
                     });
                 break;
             case MsgType.PotUpdate:
@@ -526,6 +678,11 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         PotUpdateReceived?.Invoke(potUpdate);
                         MessageReceived?.Invoke(msgType, potUpdate);
+
+                        // RENDER: update pot and side pots.
+                        // Example:
+                        // - potUpdate.PotTotal
+                        // - potUpdate.Pots list (amount + eligible_player_ids)
                     });
                 break;
             case MsgType.HandResult:
@@ -534,6 +691,21 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         HandResultReceived?.Invoke(handResult);
                         MessageReceived?.Invoke(msgType, handResult);
+
+                        // RENDER: show winners and showdown hands.
+                        // Example:
+                        foreach (var winner in handResult.Winners)
+                        {
+                            var winnerId = winner.PlayerId;
+                            var winAmount = winner.Amount;
+                            var rank = winner.Rank;
+                            // render winner banner + best five cards
+                        }
+                        foreach (var revealed in handResult.RevealedHands)
+                        {
+                            var pid = revealed.PlayerId;
+                            // render revealed hole cards for showdown
+                        }
                     });
                 break;
             case MsgType.StackUpdate:
@@ -542,6 +714,11 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         StackUpdateReceived?.Invoke(stackUpdate);
                         MessageReceived?.Invoke(msgType, stackUpdate);
+
+                        // RENDER: update player stack UI.
+                        // Example:
+                        // - stackUpdate.PlayerId
+                        // - stackUpdate.Stack
                     });
                 break;
             case MsgType.JoinTableResponse:
@@ -553,6 +730,57 @@ public sealed class GameServerClient : MonoBehaviour
                             tableId = joinTableResponse.TableId;
                         JoinTableResponseReceived?.Invoke(joinTableResponse);
                         MessageReceived?.Invoke(msgType, joinTableResponse);
+
+                        // RENDER: show join result + seat assignment.
+                        // Example:
+                        // - joinTableResponse.Seat
+                        // - joinTableResponse.SmallBlind / BigBlind
+                    });
+                }
+                break;
+            case MsgType.BuyinResponse:
+                if (TryParsePayload(payload, BuyInResponse.Parser, out var buyInResponse))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        BuyInResponseReceived?.Invoke(buyInResponse);
+                        MessageReceived?.Invoke(msgType, buyInResponse);
+
+                        // RENDER: show buy-in result and updated balance/credits.
+                        // Example:
+                        // - buyInResponse.Success, Message
+                        // - buyInResponse.Amount, Stack
+                    });
+                }
+                break;
+            case MsgType.SpectateResponse:
+                if (TryParsePayload(payload, SpectateResponse.Parser, out var spectateResponse))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        SpectateResponseReceived?.Invoke(spectateResponse);
+                        MessageReceived?.Invoke(msgType, spectateResponse);
+
+                        // RENDER: show spectator state (success/fail + message).
+                    });
+                }
+                break;
+            case MsgType.SpectatorHoleCards:
+                if (TryParsePayload(payload, SpectatorHoleCards.Parser, out var spectatorCards))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        SpectatorHoleCardsReceived?.Invoke(spectatorCards);
+                        MessageReceived?.Invoke(msgType, spectatorCards);
+
+                        // RENDER: show player's hole cards (spectator mode only).
+                        var pid = spectatorCards.PlayerId;
+                        foreach (var card in spectatorCards.Cards)
+                        {
+                            var rank = card.Rank;
+                            var suit = card.Suit;
+                            // render card for pid in spectator UI
+                        }
                     });
                 }
                 break;
@@ -565,6 +793,8 @@ public sealed class GameServerClient : MonoBehaviour
                             tableId = string.Empty;
                         LeaveTableResponseReceived?.Invoke(leaveTableResponse);
                         MessageReceived?.Invoke(msgType, leaveTableResponse);
+
+                        // RENDER: show leave result and reset table UI.
                     });
                 }
                 break;
@@ -574,6 +804,8 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         KickReceived?.Invoke(kick);
                         MessageReceived?.Invoke(msgType, kick);
+
+                        // RENDER: show kick dialog and return to lobby.
                     });
                 break;
             case MsgType.Error:
@@ -582,6 +814,8 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         ErrorReceived?.Invoke(error);
                         MessageReceived?.Invoke(msgType, error);
+
+                        // RENDER: show error banner/toast.
                     });
                 break;
         }
@@ -636,6 +870,12 @@ public sealed class GameServerClient : MonoBehaviour
         if (_socket == null || !_socket.IsOpen)
             return;
 
+        if (msgType != MsgType.ConnectRequest && string.IsNullOrEmpty(sessionId))
+        {
+            Debug.LogWarning("GameServerClient: session not ready. Wait for ConnectResponse before sending.");
+            return;
+        }
+
         var packet = new Packet
         {
             ProtocolVersion = protocolVersion,
@@ -661,3 +901,43 @@ public sealed class GameServerClient : MonoBehaviour
             action.Invoke();
     }
 }
+
+/*
+USAGE EXAMPLE (UI BUTTONS)
+-------------------------
+// Connect:
+GameServerClient.Configure("ws://51.79.160.227:26001/ws");
+GameServerClient.ConnectWithLaunchToken(launchToken, operatorPublicId);
+
+// Subscribe to server messages:
+GameServerClient.MessageReceivedStatic += OnMessage;
+GameServerClient.ConnectResponseReceivedStatic += OnConnect;
+GameServerClient.JoinTableResponseReceivedStatic += OnJoinTable;
+
+void OnConnect(ConnectResponse resp)
+{
+    // When connected, request table list or join a specific table
+    // Example: buy-in then join
+    GameServerClient.SendBuyInStatic(tableCode, buyInAmount);
+}
+
+void OnJoinTable(JoinTableResponse resp)
+{
+    // Ready to play
+}
+
+// Action buttons:
+public void OnFoldClicked()  => GameServerClient.SendFoldStatic();
+public void OnCheckClicked() => GameServerClient.SendCheckStatic();
+public void OnCallClicked(long callAmount) => GameServerClient.SendCallStatic(callAmount);
+public void OnBetClicked(long amount)  => GameServerClient.SendBetStatic(amount);
+public void OnRaiseClicked(long amount)=> GameServerClient.SendRaiseStatic(amount);
+public void OnAllInClicked(long amount)=> GameServerClient.SendAllInStatic(amount);
+
+IMPORTANT
+---------
+1) Only send actions when it's your turn.
+2) Use TurnUpdate.AllowedActions and call_amount/min_raise/max_raise from TurnUpdate to validate
+   UI input before sending (server will also validate).
+3) You must be connected and in a table before sending actions.
+*/
