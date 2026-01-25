@@ -1,8 +1,10 @@
-////////////////////
+﻿////////////////////
 //       RECK       //
 ////////////////////
 
+using Com.poker.Core;
 using DG.Tweening;
+using Google.Protobuf;
 using NaughtyAttributes;
 using System;
 using System.Collections;
@@ -44,10 +46,17 @@ namespace WCC.Poker.Client
         [SerializeField] List<PlayerPairCars> _debugCardsToDraw = new();
         [SerializeField] List<Card> _debugCardsToDrawCommmunity = new();
 
+        readonly Dictionary<Com.poker.Core.Card, CardView> _communityCardsRecords = new();
+
         [Serializable]
         class PlayerPairCars
         {
             [SerializeField] internal Card[] _cards;
+        }
+
+        void Awake()
+        {
+            PokerNetConnect.OnMessageEvent += OnMessage;
         }
 
         private void Start()
@@ -67,7 +76,7 @@ namespace WCC.Poker.Client
         public void SetBankerDealCardsForCommunity()
         {
             if(_isBankerDealingCardsForCommunity) return;
-            StartCoroutine(DealCardsForCommunity(_debugCardsToDrawCommmunity));
+            //StartCoroutine(DealCardsForCommunity(_debugCardsToDrawCommmunity));
         }
 
         [Button]
@@ -135,29 +144,29 @@ namespace WCC.Poker.Client
         /// </summary>
         /// <param name="infoList"></param>
         /// <returns></returns>
-        IEnumerator DealCardsForCommunity(List<Card> infoList)
-        {
-            _isBankerDealingCardsForCommunity = true;
+        //IEnumerator DealCardsForCommunity(List<Card> infoList)
+        //{
+        //    _isBankerDealingCardsForCommunity = true;
 
-            for (int i = 0; i < infoList.Count; i++)
-            {
-                var isReached = false;
+        //    for (int i = 0; i < infoList.Count; i++)
+        //    {
+        //        var isReached = false;
 
-                InstantiateCard(true,
-                    false, 
-                    infoList[i].Rank, 
-                    infoList[i].Suit, 
-                    _communityTableContainer, 
-                    out var cardView, 
-                    () => isReached = true);
+        //        InstantiateCard(true,
+        //            false, 
+        //            infoList[i].Rank, 
+        //            infoList[i].Suit, 
+        //            _communityTableContainer, 
+        //            out var cardView, 
+        //            () => isReached = true);
 
-                _cardViewList_onCommunity.Add(cardView);
+        //        _cardViewList_onCommunity.Add(cardView);
 
-                yield return new WaitUntil(() => isReached);
-            }
+        //        yield return new WaitUntil(() => isReached);
+        //    }
 
-            _isBankerDealingCardsForCommunity = false;
-        }
+        //    _isBankerDealingCardsForCommunity = false;
+        //}
         //
 
         /// <summary>
@@ -170,28 +179,28 @@ namespace WCC.Poker.Client
         /// <param name="cardViewParent"></param>
         /// <param name="cardView"></param>
         /// <param name="isReachedCallback"></param>
-        void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, UnityAction isReachedCallback)
-        {
-            var card = Instantiate(_cardViewPrefab, _deckTableGroup);
+        //void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, UnityAction isReachedCallback)
+        //{
+        //    var card = Instantiate(_cardViewPrefab, _deckTableGroup);
 
-            cardView = card;
+        //    cardView = card;
 
-            var cardIn = CardLibrary.main.GetCardsInfos().GetCardInfo(rank, suit);
-            card.InitCarView(cardIn, cardViewParent);
+        //    var cardIn = CardLibrary.main.GetCardsInfos().GetCardInfo(rank, suit);
+        //    card.InitCarView(cardIn, cardViewParent);
 
-            card.transform.position = _bankerPosition.position;
-            if(useRotation) card.transform.DORotate(new Vector3(0, 0, 120), 0.2f).SetEase(Ease.InOutSine);
-            card.transform.DOMove(cardViewParent.position, 0.3f)
-            .SetEase(Ease.InOutSine)
-            .OnComplete(() =>
-            {
-                card.transform.SetParent(cardViewParent);
-                card.transform.localScale = new Vector2(0.56f, 0.56f);
-                card.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                if (isOpenCard) card.OpenCard();
-                isReachedCallback();
-            });
-        }
+        //    card.transform.position = _bankerPosition.position;
+        //    if(useRotation) card.transform.DORotate(new Vector3(0, 0, 120), 0.2f).SetEase(Ease.InOutSine);
+        //    card.transform.DOMove(cardViewParent.position, 0.3f)
+        //    .SetEase(Ease.InOutSine)
+        //    .OnComplete(() =>
+        //    {
+        //        card.transform.SetParent(cardViewParent);
+        //        card.transform.localScale = new Vector2(0.56f, 0.56f);
+        //        card.transform.localRotation = Quaternion.Euler(0, 0, 0);
+        //        if (isOpenCard) card.OpenCard();
+        //        isReachedCallback();
+        //    });
+        //}
 
         /// <summary>
         /// This coroutine rereturns lahat ng cards sa banker
@@ -254,10 +263,96 @@ namespace WCC.Poker.Client
 
             _cardViewList_onPlayers.Clear();
             _cardViewList_onCommunity.Clear();
+            _communityCardsRecords.Clear();
 
             _isBankerDealsCardsForPlayers = false;
             _isBankerDealingCardsForCommunity = false;
         }
 
+        void OnMessage(MsgType type, IMessage msg)
+        {
+            if (type == MsgType.TableSnapshot)
+            {
+                //Debug.Log($"<color=green> TableSnapshot </color>");
+                // Full table state (seats, stacks, pot, board).
+                var m = (TableSnapshot)msg;
+                // Data you can use:
+                // - m.State (waiting/preflop/flop/turn/river/showdown/reset)
+                // - m.CommunityCards (board cards if already revealed)
+                // - m.PotTotal, m.CurrentBet, m.MinRaise
+                // - m.CurrentTurnSeat
+                //Debug.Log($"[Snapshot] table={m.TableId} state={m.State} pot={m.PotTotal} currentBet={m.CurrentBet}");
+                foreach (var p in m.Players)
+                {
+                    Debug.Log($"<color=blue>  seat={p.Seat} player={p.PlayerId} stack={p.Stack} bet={p.BetThisRound} status={p.Status} </color>");
+                }
+                // Community cards (if any are already revealed)
+                // You can read them like:
+                // - m.CommunityCards[0] -> first board card
+                // - m.CommunityCards[1] -> second board card
+                // If no board yet (pre-flop), count = 0.
+                if (m.CommunityCards != null && m.CommunityCards.Count > 0)
+                {
+                    Debug.Log($"<color=orange>  board={PokerNetConnect.FormatCards(m.CommunityCards)} </color>");
+                    StartCoroutine(DealCardsForCommunity(m.CommunityCards));
+                }
+
+                if (m.State == TableState.Reset)
+                {
+                    StartCoroutine(ReturnAllCardsToBanker());
+                }
+            }
+        }
+
+        void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, UnityAction isReachedCallback)
+        {
+            var card = Instantiate(_cardViewPrefab, _deckTableGroup);
+
+            cardView = card;
+
+            var cardIn = CardLibrary.main.GetCardsInfos().GetCardInfo(rank, suit);
+            card.InitCarView(cardIn, cardViewParent);
+
+            card.transform.position = _bankerPosition.position;
+            if (useRotation) card.transform.DORotate(new Vector3(0, 0, 120), 0.2f).SetEase(Ease.InOutSine);
+            card.transform.DOMove(cardViewParent.position, 0.3f)
+            .SetEase(Ease.InOutSine)
+            .OnComplete(() =>
+            {
+                card.transform.SetParent(cardViewParent);
+                card.transform.localScale = new Vector2(0.56f, 0.56f);
+                card.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                if (isOpenCard) card.OpenCard();
+                isReachedCallback();
+            });
+        }
+
+        IEnumerator DealCardsForCommunity(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> infoList)
+        {
+            _isBankerDealingCardsForCommunity = true;
+
+            for (int i = 0; i < infoList.Count; i++)
+            {
+                if (_communityCardsRecords.ContainsKey(infoList[i])) continue;
+
+                var isReached = false;
+
+                InstantiateCard(true,
+                    false,
+                    GlobalHawk.TranslateCardRank(infoList[i].Rank),
+                    (GlobalHawk.Suit)infoList[i].Suit,
+                    _communityTableContainer,
+                    out var cardView,
+                    () => isReached = true);
+
+
+                _cardViewList_onCommunity.Add(cardView);
+                _communityCardsRecords.Add(infoList[i], cardView);
+
+                yield return new WaitUntil(() => isReached);
+            }
+
+            _isBankerDealingCardsForCommunity = false;
+        }
     }
 }

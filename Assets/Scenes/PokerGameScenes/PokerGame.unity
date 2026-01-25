@@ -2278,7 +2278,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac8b24e94b64fbc47880c38a31c5c8cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cardData: {fileID: 11400000, guid: 66665690da1bc3e418b0d194c93f5175, type: 2}
+  _cardData: {fileID: 11400000, guid: e41c1ad3ffcc2984a9e9c3d6c207bba5, type: 2}
 --- !u!114 &376248691
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7960,15 +7960,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2124691868}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 631e9239a7f297542823ef10fd2afabc, type: 3}
+  m_Script: {fileID: 11500000, guid: ac13dc367ea8e3848a49d87b217bc1ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  autoConnectOnStart: 1
-  serverUrl: ws://51.79.160.227:26001/ws
-  launchToken: launchToken-01252601
-  operatorPublicId: cde5ce9f-8df7-f011-ace1-b2b431609323
-  autoSpectateOnConnect: 1
-  spectateTableCode: DEV-BOT-TABLE
+  _netInfo: {fileID: 11400000, guid: 604278ff5447d86429be0fe7ac61bacc, type: 2}
 --- !u!1001 &2130194400
 PrefabInstance:
   m_ObjectHideFlags: 0

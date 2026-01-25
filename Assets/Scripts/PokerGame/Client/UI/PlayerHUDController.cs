@@ -3,12 +3,13 @@
 ////////////////////
 
 
+using Com.poker.Core;
+using Google.Protobuf;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using WCC.Core.Exposed;
-
 
 namespace WCC.Poker.Client
 {
@@ -46,6 +47,12 @@ namespace WCC.Poker.Client
         }
         #endregion EDITOR
 
+        protected override void Awake()
+        {
+            base.Awake();
+            PokerNetConnect.OnMessageEvent += OnMessage;
+        }
+
         private async void Start()
         {
             for (int i = 0; i < _maxPlayers; i++)
@@ -58,6 +65,33 @@ namespace WCC.Poker.Client
             PlayerHUDListListenerEvent?.Invoke(_playersHUDList);
 
             TestRoundTurn();
+        }
+
+        void OnMessage(MsgType type, IMessage msg)
+        {
+            if (type == MsgType.TableSnapshot)
+            {
+                Debug.Log($"<color=green> TableSnapshot </color>");
+                // Full table state (seats, stacks, pot, board).
+                var m = (TableSnapshot)msg;
+                // Data you can use:
+                // - m.State (waiting/preflop/flop/turn/river/showdown/reset)
+                // - m.CommunityCards (board cards if already revealed)
+                // - m.PotTotal, m.CurrentBet, m.MinRaise
+                // - m.CurrentTurnSeat
+                Debug.Log($"[Snapshot] table={m.TableId} state={m.State} pot={m.PotTotal} currentBet={m.CurrentBet}");
+                foreach (var p in m.Players)
+                {
+                    Debug.Log($"<color=blue>  seat={p.Seat} player={p.PlayerId} stack={p.Stack} bet={p.BetThisRound} status={p.Status} </color>");
+                }
+                // Community cards (if any are already revealed)
+                // You can read them like:
+                // - m.CommunityCards[0] -> first board card
+                // - m.CommunityCards[1] -> second board card
+                // If no board yet (pre-flop), count = 0.
+                if (m.CommunityCards != null && m.CommunityCards.Count > 0)
+                    Debug.Log($"  board={PokerNetConnect.FormatCards(m.CommunityCards)}");
+            }
         }
 
         /// <summary>
