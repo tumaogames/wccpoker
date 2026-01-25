@@ -19,6 +19,8 @@ namespace WCC.Poker.Client
         //
         [SerializeField] Sprite[] _chipsSprites;
 
+        int _currentValue;
+
         #region VALIDATE
         private void OnValidate()
         {
@@ -29,9 +31,12 @@ namespace WCC.Poker.Client
 
         public void SetBetValue(int value)
         {
+            _currentValue = value;
             _betValueText.text = value.ToString();
             _chipImage.sprite = GetSprite(value);
         }
+
+        public void SetEnableValueHolder(bool e) => _betHolderImage.gameObject.SetActive(e);
 
         Sprite GetSprite(int value)
         {
@@ -57,5 +62,7 @@ namespace WCC.Poker.Client
             }
             return _chipsSprites[0];
         }
+
+        public int GetChipValue() => _currentValue;
     }
 }

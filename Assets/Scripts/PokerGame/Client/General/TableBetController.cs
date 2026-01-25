@@ -8,6 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 using NaughtyAttributes;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using WCC.Poker.Shared;
@@ -23,25 +24,28 @@ namespace WCC.Poker.Client
         [SerializeField] Transform[] _playersBetHolderPositions;
         List<PlayerHUD_UI> _playerHUDList = new();
 
+        [Header("[POT-GROUP]")]
+        [SerializeField] TMP_Text _potValueText;
+        [SerializeField] GameObject _potHolder;
+
         readonly Dictionary<int, BetValueUIText> _playerBetDictionary = new();
 
-        private void Start() => PlayerHUDController.main.PlayerHUDListListenerEvent += OnProfileHUDUpdates;
+        int _currentTotalPotValue = 0;
 
-        void OnProfileHUDUpdates(List<PlayerHUD_UI> data)
-        {
-            _playerHUDList = data;
-        }
+        private void Start() => PlayerHUDController.main.PlayerHUDListListenerEvent += data => _playerHUDList = data;
 
         [Button]
-        public void SetDebug_BetPlayer_0()
+        public void SetDebug_BetRandomPlayers()
         {
             SetBetPlayer(UnityEngine.Random.Range(50, 2000), UnityEngine.Random.Range(0, _playersBetHolderPositions.Length));
         }
 
-        public void SetBetPlayer(int betValue, int playerID)
-        {
-            StartBetting(betValue, playerID);
-        }
+        /// <summary>
+        /// This function ay para mag set ng bet sa player using PLAYER ID
+        /// </summary>
+        /// <param name="betValue"></param>
+        /// <param name="playerID"></param>
+        public void SetBetPlayer(int betValue, int playerID) => StartBetting(betValue, playerID);
 
         void StartBetting(int betValue, int playerID)
         {
@@ -68,7 +72,6 @@ namespace WCC.Poker.Client
          
         }
 
-        //
         void InstantiateBet(GameObject prefab, Vector2 startPosition, Vector2 destination, [Optional] UnityAction<GameObject> isReachedCallback)
         {
             var betHolder = Instantiate(prefab, _betGroupContainer);
@@ -83,9 +86,37 @@ namespace WCC.Poker.Client
             });
         }
 
-        void EditTableBet(int newBetValue, BetValueUIText betValueUIText)
+        void EditTableBet(int newBetValue, BetValueUIText betValueUIText) => betValueUIText.SetBetValue(newBetValue);
+
+        [Button]
+        public void MoveAllBetsToPot()
         {
-            betValueUIText.SetBetValue(newBetValue);
+            if(!_potHolder.activeInHierarchy) _potHolder.SetActive(true);
+            foreach (var bet in _playerBetDictionary)
+            {
+                bet.Value.SetEnableValueHolder(false);
+                bet.Value.transform.DOMove(_potHolder.transform.position, 0.5f)
+                .SetEase(Ease.InOutSine)
+                .OnComplete(() =>
+                {
+                    _currentTotalPotValue += bet.Value.GetChipValue();
+                    _potValueText.text = FormatChips(_currentTotalPotValue);
+                    Destroy(bet.Value.gameObject);
+                });
+            }
+            _playerBetDictionary.Clear();
         }
+
+
+        string FormatChips(int value)
+        {
+            if (value >= 1_000_000)
+                return (value / 1_000f).ToString("0.#") + "M";
+            if (value >= 1_000)
+                return (value / 1_000f).ToString("0.#") + "K";
+
+            return value.ToString();
+        }
+
     }
 }
