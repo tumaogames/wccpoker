@@ -15,6 +15,7 @@ namespace WCC.Poker.Client
         [SerializeField] Image _cardImage;
         [SerializeField] CardFlipAnimation _flipAnimation;
         [SerializeField] CardData.CardsInfo _cardInfo;
+        [SerializeField] GameObject _cardOutline;
 
         Sprite _closeCardSprite;
         Quaternion _parentLocalRotation;
@@ -50,5 +51,7 @@ namespace WCC.Poker.Client
         }
 
         public void FlipCardAnimation(UnityAction callback) => _flipAnimation.SetFlipAnimation(callback);
+
+        public void ShowOutline(bool show) => _cardOutline.SetActive(show);
     }
 }

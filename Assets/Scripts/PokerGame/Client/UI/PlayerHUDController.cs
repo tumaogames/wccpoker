@@ -3,14 +3,16 @@
 ////////////////////
 
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using WCC.Core.Exposed;
 
 
 namespace WCC.Poker.Client
 {
-    public class PlayerHUDController : MonoBehaviour
+    public class PlayerHUDController : Exposing<PlayerHUDController>
     {
        
         [SerializeField] PlayerHUD_UI _playerHUDPrefab;
@@ -33,6 +35,10 @@ namespace WCC.Poker.Client
 
         PlayerHUD_UI _currentPlayerHUD;
 
+        public event Action<List<PlayerHUD_UI>> PlayerHUDListListenerEvent;
+
+        int _playerIndex = 3;
+
         #region EDITOR
         private void OnValidate()
         {
@@ -49,6 +55,8 @@ namespace WCC.Poker.Client
 
             await Task.Delay(1000);
 
+            PlayerHUDListListenerEvent?.Invoke(_playersHUDList);
+
             TestRoundTurn();
         }
 
@@ -60,9 +68,9 @@ namespace WCC.Poker.Client
         {
             var p = Instantiate(_playerHUDPrefab, _playersContainer);
             _playersHUDList.Add(p);
-            p.transform.localPosition = i == 0 ? _playersTablePositions[0].localPosition : _playersTablePositions[i].localPosition;
+            p.transform.localPosition = i == _playerIndex ? _playersTablePositions[_playerIndex].localPosition : _playersTablePositions[i].localPosition;
 
-            p.InititalizePlayerHUDUI("ID3423", i == 0 ? "You" : $"Name-{Random.Range(111,9999)}", i == 0, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], UnityEngine.Random.Range(100, 999));
+            p.InititalizePlayerHUDUI("ID3423", i == _playerIndex ? "You" : $"Name-{UnityEngine.Random.Range(111,9999)}", i == _playerIndex, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], UnityEngine.Random.Range(100, 999));
             
             if(i == 0 && _currentPlayerHUD == null) _currentPlayerHUD = p;
         }
@@ -73,20 +81,12 @@ namespace WCC.Poker.Client
             {
                 var tcs = new TaskCompletionSource<bool>();
 
-                if (p == _currentPlayerHUD)
-                {
-                    _userButtonActions.PlayAnimation("PlayActionButtonGoUp");
-                }
+                if (p == _currentPlayerHUD) _userButtonActions.PlayAnimation("PlayActionButtonGoUp");
 
                 p.SetTurn(() =>
                 {
                     tcs.SetResult(true);
-
-
-                    if (p == _currentPlayerHUD)
-                    {
-                        _userButtonActions.PlayAnimation("PlayActionButtonGoDown");
-                    }
+                    if (p == _currentPlayerHUD) _userButtonActions.PlayAnimation("PlayActionButtonGoDown");
                 });
 
                 await tcs.Task; 
