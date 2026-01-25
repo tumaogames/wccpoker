@@ -13,9 +13,7 @@ namespace WCC.Poker.Client
     [Serializable]
     public struct Card
     {
-        public GlobalHawk.Suit suit;
-        public GlobalHawk.Rank rank;
-
-        public override string ToString() => $"{rank} of {suit}";
+        public GlobalHawk.Rank Rank;
+        public GlobalHawk.Suit Suit; 
     }
 }
