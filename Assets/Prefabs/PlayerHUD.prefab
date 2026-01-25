@@ -485,7 +485,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Fold/Call
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b741db7ac3d1c423aad5b49a9780ca2d, type: 2}
   m_sharedMaterial: {fileID: 5568139486216784236, guid: b741db7ac3d1c423aad5b49a9780ca2d, type: 2}
@@ -1667,6 +1667,7 @@ MonoBehaviour:
   _playerProfileImage: {fileID: 3516841264503436755}
   _amountText: {fileID: 3424801581101346480}
   _levelText: {fileID: 4625959306379750580}
+  _actionText: {fileID: 7429904353624518218}
   _turnGroupGO: {fileID: 5283821537002198470}
   _turnLoadingImgFill: {fileID: 3706459998778083457}
   _countdownTimeText: {fileID: 906646532727824109}

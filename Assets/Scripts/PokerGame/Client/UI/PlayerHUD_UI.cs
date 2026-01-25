@@ -21,6 +21,7 @@ namespace WCC.Poker.Client
         [SerializeField] Image _playerProfileImage;
         [SerializeField] TMP_Text _amountText;
         [SerializeField] TMP_Text _levelText;
+        [SerializeField] TMP_Text _actionText;
 
         [Header("[TURN]")]
         [SerializeField] GameObject _turnGroupGO;
@@ -171,5 +172,9 @@ namespace WCC.Poker.Client
             callback();
         }
 
+        public void SetActionBroadcast(string message)
+        {
+            _actionText.text = message;
+        }
     }
 }

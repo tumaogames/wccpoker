@@ -47,6 +47,7 @@ namespace WCC.Poker.Client
         [SerializeField] List<Card> _debugCardsToDrawCommmunity = new();
 
         readonly Dictionary<Com.poker.Core.Card, CardView> _communityCardsRecords = new();
+      
 
         [Serializable]
         class PlayerPairCars
@@ -54,10 +55,7 @@ namespace WCC.Poker.Client
             [SerializeField] internal Card[] _cards;
         }
 
-        void Awake()
-        {
-            PokerNetConnect.OnMessageEvent += OnMessage;
-        }
+        void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
 
         private void Start()
         {
@@ -115,13 +113,13 @@ namespace WCC.Poker.Client
 
             for (int i = 0; i < _playerTablePositions.Length; i++)
             {
-                _playerTablePositions[i].transform.localScale = i == 0 ? _playerCardsSizeSets : _otherCardsSizeSets;
+                _playerTablePositions[i].transform.localScale = i == 4 ? _playerCardsSizeSets : _otherCardsSizeSets;
 
                 for (int j = 0; j < 2; j++)
                 {
                     var isReached = false;
 
-                    InstantiateCard(i == 0, 
+                    InstantiateCard(i == 4,
                         true, 
                         infoList[i]._cards[j].Rank,
                         infoList[i]._cards[j].Suit, 
@@ -282,10 +280,11 @@ namespace WCC.Poker.Client
                 // - m.PotTotal, m.CurrentBet, m.MinRaise
                 // - m.CurrentTurnSeat
                 //Debug.Log($"[Snapshot] table={m.TableId} state={m.State} pot={m.PotTotal} currentBet={m.CurrentBet}");
-                foreach (var p in m.Players)
-                {
-                    Debug.Log($"<color=blue>  seat={p.Seat} player={p.PlayerId} stack={p.Stack} bet={p.BetThisRound} status={p.Status} </color>");
-                }
+
+                //foreach (var p in m.Players)
+                //{
+                //    Debug.Log($"<color=blue>  seat={p.Seat} player={p.PlayerId} stack={p.Stack} bet={p.BetThisRound} status={p.Status} </color>");
+                //}
                 // Community cards (if any are already revealed)
                 // You can read them like:
                 // - m.CommunityCards[0] -> first board card
