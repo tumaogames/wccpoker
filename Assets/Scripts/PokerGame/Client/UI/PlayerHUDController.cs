@@ -36,7 +36,7 @@ namespace WCC.Poker.Client
 
         PlayerHUD_UI _currentPlayerHUD;
 
-        public event Action<List<PlayerHUD_UI>> PlayerHUDListListenerEvent;
+        public event Action<Dictionary<string, PlayerHUD_UI>> PlayerHUDListListenerEvent;
 
         int _playerIndex = 4;
 
@@ -135,9 +135,9 @@ namespace WCC.Poker.Client
                         if (_inGamePlayersRecords.ContainsKey(p.PlayerId)) continue;
 
                         SummonPlayerHUDUI(p.Seat - 1, $"P-{p.PlayerId}-{p.Seat}", p.PlayerId, (int)p.Stack);
-
-                        PlayerHUDListListenerEvent?.Invoke(_playersHUDList);
                     }
+
+                    PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
                 }
 
                 if (m.State == TableState.Reset)

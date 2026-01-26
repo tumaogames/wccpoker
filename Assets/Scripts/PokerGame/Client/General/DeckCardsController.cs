@@ -9,10 +9,12 @@ using NaughtyAttributes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using WCC.Core.Audio;
 using WCC.Poker.Shared;
 
 
@@ -84,20 +86,20 @@ namespace WCC.Poker.Client
         [Button]
         public void SetShowCards()
         {
-            _cardViewList_onPlayers.ForEach(i => i.OpenCard());
+            _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
         }
 
         [Button]
         public void SetCloseCards()
         {
-            _cardViewList_onPlayers.ForEach(i => i.CloseCard());
+            _cardViewList_onPlayers.ForEach(i => i.SetCloseCard());
         }
 
         [Button]
         public void SetClosePlayerCardsOnly()
         {
-            _cardViewList_onPlayers[0].CloseCard();
-            _cardViewList_onPlayers[1].CloseCard();
+            _cardViewList_onPlayers[0].SetCloseCard();
+            _cardViewList_onPlayers[1].SetCloseCard();
         }
 
         [Button]
@@ -180,8 +182,13 @@ namespace WCC.Poker.Client
         {
             var waitSec = new WaitForSeconds(0.1f);
 
-            _cardViewList_onPlayers.ForEach(i => i.CloseCard());
-            _cardViewList_onCommunity.ForEach(i => i.CloseCard());
+            _cardViewList_onPlayers.ForEach(i => i.SetCloseCard());
+            _cardViewList_onCommunity.ForEach(i =>
+            {
+                i.SetCloseCard();
+                i.SetShowOutline(false);
+                i.SetSleepCard(false);
+            });
 
             yield return new WaitForSeconds(0.3f);
 
@@ -190,6 +197,7 @@ namespace WCC.Poker.Client
                 _cardViewList_onPlayers[i].transform.SetParent(_deckTableGroup);
                 _cardViewList_onPlayers[i].transform.localScale = new Vector2(0.56f, 0.56f);
                 _cardViewList_onPlayers[i].transform.DOMove(_deckTableGroup.position, 0.25f).SetEase(Ease.InOutSine).OnComplete(null);
+                AudioManager.main.PlayAudio("Cards", 0);
 
                 yield return waitSec;
             }
@@ -213,7 +221,7 @@ namespace WCC.Poker.Client
                     isReached = true;
                     Destroy(_cardViewList_onPlayers[i].gameObject, 0.3f);
                 });
-
+                AudioManager.main.PlayAudio("Cards", 0);
                 yield return new WaitUntil(() => isReached);
             }
 
@@ -239,7 +247,7 @@ namespace WCC.Poker.Client
             _isBankerDealingCardsForCommunity = false;
         }
 
-        void OnMessage(MsgType type, IMessage msg)
+        async void OnMessage(MsgType type, IMessage msg)
         {
             Debug.Log($"<color=orange> OnMessage | {type}</color>");
             if (type == MsgType.TableSnapshot)
@@ -272,16 +280,16 @@ namespace WCC.Poker.Client
                     StartCoroutine(DealCardsForCommunity(m.CommunityCards));
                 }
 
-                if (m.State == TableState.Reset)
-                {
-                    StartCoroutine(ReturnAllCardsToBanker());
-                }
-                if (m.State == TableState.PreFlop)
-                {
-                    //SetBankerDealCards();
+                //if (m.State == TableState.Reset)
+                //{
+                //    //StartCoroutine(ReturnAllCardsToBanker());
+                //}
+                //if (m.State == TableState.PreFlop)
+                //{
+                //    //SetBankerDealCards();
 
-                    //StartCoroutine(DealCardsForPlayers());
-                }
+                //    //StartCoroutine(DealCardsForPlayers());
+                //}
 
                 if (_playerSeatRecords.Count == 0)
                 {
@@ -291,8 +299,7 @@ namespace WCC.Poker.Client
                     }
                 }
             }
-
-            if (type == MsgType.DealHoleCards)
+            else if (type == MsgType.DealHoleCards)
             {
                 // Private hole cards for THIS player only.
                 var m = (DealHoleCards)msg;
@@ -309,8 +316,7 @@ namespace WCC.Poker.Client
 
                 //DealCardsForPlayers(m.Cards, _playerSeatRecords[m.]);
             }
-
-            if (type == MsgType.SpectatorHoleCards)
+            else if (type == MsgType.SpectatorHoleCards)
             {
                 var m = (SpectatorHoleCards)msg;
                 if (string.IsNullOrEmpty(m.PlayerId)) return;
@@ -326,16 +332,73 @@ namespace WCC.Poker.Client
 
                 DealCardsForPlayers(m.Cards, _playerSeatRecords[m.PlayerId]);
             }
+            else if (type == MsgType.HandResult)
+            {
+                // Hand finished. Winners + revealed hands.
+                var m = (HandResult)msg;
+                // Data you can use:
+                // - m.Winners (playerId, amount, rank, bestFive)
+                // - m.RevealedHands (playerId + hole cards)
+
+                Debug.Log($"<color=purple>[HandResult] winners={m.Winners.Count} revealed={m.RevealedHands.Count}</color>");
+
+                await Task.Delay(1000);
+
+                _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
+
+                // Build map: playerId -> hole cards (revealed at showdown)
+                var holeByPlayer = new Dictionary<string, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>>(StringComparer.Ordinal);
+                foreach (var rh in m.RevealedHands)
+                {
+                    var r = rh.HoleCards;
+                    holeByPlayer[rh.PlayerId] = rh.HoleCards;
+                }
+
+                foreach (var comCard in _communityCardsRecords)
+                {
+                    comCard.Value.SetSleepCard(true);
+                }
+
+                foreach (var w in m.Winners)
+                {
+                    var hole = holeByPlayer.TryGetValue(w.PlayerId, out var hc) ? hc : null;
+                    //Debug.Log($"[Winner] player={w.PlayerId} rank={w.Rank} best5={FormatCards(w.BestFive)} hole={FormatCards(hole)}");
+
+                    // Highlight logic (UI concept):
+                    // For each card in BestFive, check if it belongs to hole or board (eto yong 5 cards sa board),
+                    // then highlight the matching UI sprite.
+
+                    // Example (pseudo):
+                    foreach (var c in w.BestFive)
+                    {
+                        //if (hole != null && ContainsCard(hole, c)) HighlightPlayerHoleCard(w.PlayerId, c);
+                        //else if (ContainsCard(_boardCache, c)) HighlightBoardCard(c);
+
+                        if (_communityCardsRecords.ContainsKey(c))
+                        {
+                            _communityCardsRecords[c].SetSleepCard(false);
+                            _communityCardsRecords[c].SetShowOutline(true);
+                        }
+                    }
+                }
+
+
+                await Task.Delay(3000);
+
+                StartCoroutine(ReturnAllCardsToBanker());
+            }
         }
 
         void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, UnityAction isReachedCallback)
         {
             var card = Instantiate(_cardViewPrefab, _deckTableGroup);
 
+            AudioManager.main.PlayAudio("Cards", 0);
+
             cardView = card;
 
             var cardIn = CardLibrary.main.GetCardsInfos().GetCardInfo(rank, suit);
-            card.InitCarView(cardIn, cardViewParent);
+            card.InitializeCarView(cardIn, cardViewParent);
 
             card.transform.position = _bankerPosition.position;
             if (useRotation) card.transform.DORotate(new Vector3(0, 0, 120), 0.2f).SetEase(Ease.InOutSine);
@@ -346,7 +409,7 @@ namespace WCC.Poker.Client
                 card.transform.SetParent(cardViewParent);
                 card.transform.localScale = new Vector2(0.56f, 0.56f);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                if (isOpenCard) card.OpenCard();
+                if (isOpenCard) card.SetOpenCard();
                 isReachedCallback();
             });
         }
@@ -383,7 +446,7 @@ namespace WCC.Poker.Client
         void DealCardsForPlayers(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> infoList, int seat)
         {
             //_isBankerDealsCardsForPlayers = true;
-
+            AudioManager.main.PlayAudio("Cards", 1);
             for (int j = 0; j < infoList.Count; j++)
             {
                // var isReached = false;

@@ -668,6 +668,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1550398536}
+  - {fileID: 657307672}
   - {fileID: 575011885}
   - {fileID: 1464447995}
   - {fileID: 839448297}
@@ -4324,11 +4325,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1550398536}
+  m_Father: {fileID: 91585094}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 998.022, y: -230.44847}
+  m_AnchoredPosition: {x: 738.2019, y: -60.56018}
   m_SizeDelta: {x: 956.3003, y: 86.1173}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &666015938
@@ -7804,7 +7805,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.53333336}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.2901961}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9594,7 +9595,6 @@ RectTransform:
   m_Children:
   - {fileID: 97988614}
   - {fileID: 1256338230}
-  - {fileID: 657307672}
   m_Father: {fileID: 91585094}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -12309,6 +12309,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1889604523}
     m_Modifications:
+    - target: {fileID: 1462027222998549665, guid: ace689f5290f9294ead4c5d85b194bec, type: 3}
+      propertyPath: m_Settings.IndependentAudio
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1864160960717892298, guid: ace689f5290f9294ead4c5d85b194bec, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

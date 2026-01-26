@@ -3,15 +3,18 @@
 ////////////////////
 
 
+using Com.poker.Core;
 using DG.Tweening;
-using Google.Protobuf.WellKnownTypes;
+using Google.Protobuf;
 using NaughtyAttributes;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using WCC.Poker.Shared;
+using WCC.Core.Audio;
 
 
 namespace WCC.Poker.Client
@@ -22,22 +25,37 @@ namespace WCC.Poker.Client
         [SerializeField] GameObject _betValuePlusEffectPrefab;
         [SerializeField] Transform _betGroupContainer;
         [SerializeField] Transform[] _playersBetHolderPositions;
-        List<PlayerHUD_UI> _playerHUDList = new();
+      
 
         [Header("[POT-GROUP]")]
         [SerializeField] TMP_Text _potValueText;
         [SerializeField] GameObject _potHolder;
 
-        readonly Dictionary<int, BetValueUIText> _playerBetDictionary = new();
+        readonly Dictionary<string, BetValueUIText> _playerBetDictionary = new();
+        readonly Dictionary<string, (PlayerHUD_UI, int)> _playerHUDRecords = new();
 
         int _currentTotalPotValue = 0;
 
-        private void Start() => PlayerHUDController.main.PlayerHUDListListenerEvent += data => _playerHUDList = data;
+        TableState _currentTableState;
+
+        private void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
+
+        private void Start() => PlayerHUDController.main.PlayerHUDListListenerEvent += LoadPlayerHUDList;
+
+        void LoadPlayerHUDList(Dictionary<string, PlayerHUD_UI> data)
+        {
+            int index = 0;
+            foreach (var i in data)
+            {
+                _playerHUDRecords.Add(i.Key, (i.Value, index));
+                index++;
+            }
+        }
 
         [Button]
         public void SetDebug_BetRandomPlayers()
         {
-            SetBetPlayer(UnityEngine.Random.Range(50, 2000), UnityEngine.Random.Range(0, _playersBetHolderPositions.Length));
+            //SetBetPlayer(UnityEngine.Random.Range(50, 2000), UnityEngine.Random.Range(0, _playersBetHolderPositions.Length));
         }
 
         /// <summary>
@@ -45,15 +63,16 @@ namespace WCC.Poker.Client
         /// </summary>
         /// <param name="betValue"></param>
         /// <param name="playerID"></param>
-        public void SetBetPlayer(int betValue, int playerID) => StartBetting(betValue, playerID);
+        public void SetBetPlayer(int betValue, string playerID) => StartBetting(betValue, playerID);
 
-        void StartBetting(int betValue, int playerID)
+        void StartBetting(int betValue, string playerID)
         {
+            if(_playerHUDRecords.Count == 0) return;
             if (_playerBetDictionary.ContainsKey(playerID))
             {
-                InstantiateBet(_betValuePlusEffectPrefab, _playerHUDList[playerID].transform.position, _playersBetHolderPositions[playerID].position, instance =>
+                InstantiateBet(_betValuePlusEffectPrefab, _playerHUDRecords[playerID].Item1.transform.position, _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position, instance =>
                 {
-                    instance.transform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.InBack).OnComplete(() =>
+                    instance.transform.DOScale(Vector3.zero, 0.22f).SetEase(Ease.InBack).OnComplete(() =>
                     {
                         EditTableBet(betValue, _playerBetDictionary[playerID]);
                         Destroy(instance);
@@ -63,7 +82,7 @@ namespace WCC.Poker.Client
                 return;
             }
 
-            InstantiateBet(_betValueUITextPrefab.gameObject, _playerHUDList[playerID].transform.position, _playersBetHolderPositions[playerID].position, instance =>
+            InstantiateBet(_betValueUITextPrefab.gameObject, _playerHUDRecords[playerID].Item1.transform.position, _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position, instance =>
             {
                 var bvuiT = instance.GetComponent<BetValueUIText>();
                 _playerBetDictionary.Add(playerID, bvuiT);
@@ -75,8 +94,9 @@ namespace WCC.Poker.Client
         void InstantiateBet(GameObject prefab, Vector2 startPosition, Vector2 destination, [Optional] UnityAction<GameObject> isReachedCallback)
         {
             var betHolder = Instantiate(prefab, _betGroupContainer);
+            AudioManager.main.PlayRandomAudio("Chips_Bet", Vector2.zero);
             betHolder.transform.position = startPosition;
-            betHolder.transform.DOMove(destination, 0.3f)
+            betHolder.transform.DOMove(destination, 0.22f)
             .SetEase(Ease.InOutSine)
             .OnComplete(() =>
             {
@@ -91,15 +111,16 @@ namespace WCC.Poker.Client
         [Button]
         public void MoveAllBetsToPot()
         {
+            if (_playerBetDictionary.Count == 0) return;
             if(!_potHolder.activeInHierarchy) _potHolder.SetActive(true);
             foreach (var bet in _playerBetDictionary)
             {
                 bet.Value.SetEnableValueHolder(false);
-                bet.Value.transform.DOMove(_potHolder.transform.position, 0.5f)
+                bet.Value.transform.DOMove(_potHolder.transform.position, 0.15f)
                 .SetEase(Ease.InOutSine)
                 .OnComplete(() =>
                 {
-                    _currentTotalPotValue += bet.Value.GetChipValue();
+                    AudioManager.main.PlayAudio("Chips_Pot", 0);
                     _potValueText.text = FormatChips(_currentTotalPotValue);
                     Destroy(bet.Value.gameObject);
                 });
@@ -118,5 +139,56 @@ namespace WCC.Poker.Client
             return value.ToString();
         }
 
+        async void OnMessage(MsgType type, IMessage msg)
+        {
+            if (type == MsgType.ActionBroadcast)
+            {
+                // Broadcast of OTHER players' actions.
+                var m = (ActionBroadcast)msg;
+                // Data you can use:
+                // - m.PlayerId
+                // - m.Action, m.Amount
+                // - m.CurrentBet, m.PotTotal
+                Debug.Log($"[ActionBroadcast] player={m.PlayerId} action={m.Action} amount={m.Amount} pot={m.PotTotal}");
+
+                if (m.Action == PokerActionType.Bet || m.Action == PokerActionType.AllIn || m.Action == PokerActionType.Call)
+                {
+                    SetBetPlayer((int)m.CurrentBet, m.PlayerId);
+                }
+            }
+            else if (type == MsgType.TableSnapshot)
+            {
+                var m = (TableSnapshot)msg;
+
+                if (_currentTableState != m.State)
+                {
+                    await Task.Delay(1000);
+
+                    MoveAllBetsToPot();
+
+                    _currentTableState = m.State;
+                }
+            }
+            else if (type == MsgType.PotUpdate)
+            {
+                // Pot and side pots.
+                var m = (PotUpdate)msg;
+                // Data you can use:
+                // - m.PotTotal
+                // - m.Pots (each side pot amount + eligible players)
+                Debug.Log($"[PotUpdate] total={m.PotTotal} sidePots={m.Pots.Count}");
+
+
+                _currentTotalPotValue = (int)m.PotTotal;
+
+            }
+            else if (type == MsgType.HandResult)
+            {
+                await Task.Delay(1500);
+                _potHolder.SetActive(false);
+                _potValueText.text = string.Empty;
+            }
+
+        }
     }
 }
