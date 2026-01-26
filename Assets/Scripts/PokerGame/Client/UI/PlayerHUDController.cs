@@ -42,6 +42,10 @@ namespace WCC.Poker.Client
 
         readonly Dictionary<string, PlayerHUD_UI> _inGamePlayersRecords = new();
 
+        string _currentPlayerIdTurn;
+
+        TableState _currentTableState;
+
         #region EDITOR
         private void OnValidate()
         {
@@ -69,35 +73,33 @@ namespace WCC.Poker.Client
             //TestRoundTurn();
         }
 
-        async void OnMessage(MsgType type, IMessage msg)
+        void OnMessage(MsgType type, IMessage msg)
         {
-            switch (type)
+            if (type == MsgType.ActionBroadcast)
             {
-                case MsgType.JoinTableRequest:
+                // Broadcast of OTHER players' actions.
+                var m = (ActionBroadcast)msg;
+                // Data you can use:
+                // - m.PlayerId
+                // - m.Action, m.Amount
+                // - m.CurrentBet, m.PotTotal
+                Debug.Log($"<color=green>[ActionBroadcast] player={m.PlayerId} action={m.Action} amount={m.Amount} pot={m.PotTotal} | {_inGamePlayersRecords.Count}</color>");
 
-                    break;
+                //if (string.IsNullOrEmpty(_currentPlayerIdTurn))
+                //{
+                //    _inGamePlayersRecords[_currentPlayerIdTurn].SeCancelTurnTime();
+                //}
 
-                case MsgType.ActionBroadcast:
-                    // Broadcast of OTHER players' actions.
-                    var m = (ActionBroadcast)msg;
-                    // Data you can use:
-                    // - m.PlayerId
-                    // - m.Action, m.Amount
-                    // - m.CurrentBet, m.PotTotal
-                    Debug.Log($"[ActionBroadcast] player={m.PlayerId} action={m.Action} amount={m.Amount} pot={m.PotTotal}");
-
+                if (_inGamePlayersRecords.ContainsKey(m.PlayerId))
+                {
+                    _inGamePlayersRecords[m.PlayerId].SetCancelTurnTime();
+                    _inGamePlayersRecords[m.PlayerId].SetEnableActionHolder(true);
                     _inGamePlayersRecords[m.PlayerId].SetActionBroadcast($"{m.Action}");
+                }
+                
 
-                    break;
             }
-
-            if (type == MsgType.JoinTableResponse)
-            {
-                // Join table response (seat, blinds).
-                var m = (JoinTableResponse)msg;
-                Debug.Log($"[JoinTable] ok={m.Success} table={m.TableId} seat={m.Seat}");
-            }
-            if (type == MsgType.TableSnapshot)
+            else if (type == MsgType.TableSnapshot)
             {
                 //Debug.Log($"<color=green> TableSnapshot </color>");
                 // Full table state (seats, stacks, pot, board).
@@ -107,16 +109,23 @@ namespace WCC.Poker.Client
                 // - m.CommunityCards (board cards if already revealed)
                 // - m.PotTotal, m.CurrentBet, m.MinRaise
                 // - m.CurrentTurnSeat
+                //if (m.State == TableState.Waiting && _inGamePlayersRecords.Count != 0)
+                //{
+                //    foreach (var p in _inGamePlayersRecords)
+                //    {
+                //        Destroy(p.Value.gameObject);
+                //    }
+                //    _inGamePlayersRecords.Clear();
 
-                if (m.State == TableState.Waiting && _inGamePlayersRecords.Count != 0)
+                //}
+
+                if (_currentTableState != m.State)
                 {
                     foreach (var p in _inGamePlayersRecords)
                     {
-                        Destroy(p.Value.gameObject);
+                        p.Value.SetEnableActionHolder(false);
                     }
-                    _inGamePlayersRecords.Clear();
-
-                    await Task.Delay(1000);
+                    _currentTableState = m.State;
                 }
 
                 if (_inGamePlayersRecords.Count == 0)
@@ -124,13 +133,27 @@ namespace WCC.Poker.Client
                     foreach (var p in m.Players)
                     {
                         if (_inGamePlayersRecords.ContainsKey(p.PlayerId)) continue;
-                     
-                        SummonPlayerHUDUI(p.Seat - 1, $"P-{p.PlayerId}", p.PlayerId);
+
+                        SummonPlayerHUDUI(p.Seat - 1, $"P-{p.PlayerId}-{p.Seat}", p.PlayerId, (int)p.Stack);
 
                         PlayerHUDListListenerEvent?.Invoke(_playersHUDList);
                     }
                 }
 
+                if (m.State == TableState.Reset)
+                {
+                    foreach (var p in _inGamePlayersRecords)
+                    {
+                        p.Value.SetEnableActionHolder(false);
+                    }
+                    //foreach (var p in _inGamePlayersRecords)
+                    //{
+                    //    Destroy(p.Value.gameObject);
+                    //}
+
+                    //_inGamePlayersRecords.Clear();
+
+                }
                 //Debug.Log($"[Snapshot] table={m.TableId} state={m.State} pot={m.PotTotal} currentBet={m.CurrentBet}");
                 //foreach (var p in m.Players)
                 //{
@@ -144,13 +167,47 @@ namespace WCC.Poker.Client
                 //if (m.CommunityCards != null && m.CommunityCards.Count > 0)
                 //    Debug.Log($"  board={PokerNetConnect.FormatCards(m.CommunityCards)}");
             }
+            else if (type == MsgType.TurnUpdate)
+            {
+                // Whose turn + allowed actions.
+                var m = (TurnUpdate)msg;
+                // Data you can use:
+                // - m.PlayerId, m.Seat (current turn)
+                // - Seat number starts at 1 (not 0)
+                // - m.AllowedActions (Fold/Check/Call/Bet/Raise/AllIn)
+                // - m.CallAmount, m.MinRaise, m.MaxRaise
+                // - m.Stack (current player stack)
+                // - m.DeadlineUnixMs (absolute server time when turn expires)
+                //   Use this to build a countdown/progress bar:
+                //   remainingMs = max(0, DeadlineUnixMs - nowUtcMs)
+                var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                var remainingMs = m.DeadlineUnixMs > 0 ? Math.Max(0, (long)m.DeadlineUnixMs - nowMs) : 0;
+                Debug.Log($"[Turn] player={m.PlayerId} seat={m.Seat} allowed={m.AllowedActions.Count} remainingMs={remainingMs}");
+
+                _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
+
+                _inGamePlayersRecords[m.PlayerId].SetTurn();
+                _currentPlayerIdTurn = m.PlayerId;
+            }
+            else if (type == MsgType.StackUpdate)
+            {
+                // Single player's stack update.
+                var m = (StackUpdate)msg;
+                // Data you can use:
+                // - m.PlayerId
+                // - m.Stack (stack = player's current chips in this match)
+                Debug.Log($"[StackUpdate] player={m.PlayerId} stack={m.Stack}");
+
+                _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
+
+            }
         }
 
         /// <summary>
         /// This function ay para mag instantiate ng player UIs
         /// </summary>
         /// <param name="i"></param>
-        void SummonPlayerHUDUI(int seat, string playerName, string playerID)
+        void SummonPlayerHUDUI(int seat, string playerName, string playerID, int stackAmount)
         {
             var p = Instantiate(_playerHUDPrefab, _playersContainer);
             _playersHUDList.Add(p);
@@ -158,7 +215,7 @@ namespace WCC.Poker.Client
 
             p.transform.localPosition = seat == _playerIndex ? _playersTablePositions[_playerIndex].localPosition : _playersTablePositions[seat].localPosition;
 
-            p.InititalizePlayerHUDUI(playerID, playerName, seat == _playerIndex, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], UnityEngine.Random.Range(100, 999));
+            p.InititalizePlayerHUDUI(playerID, playerName, seat == _playerIndex, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], stackAmount);
             
             if(seat == _playerIndex && _currentPlayerHUD == null) _currentPlayerHUD = p;
         }

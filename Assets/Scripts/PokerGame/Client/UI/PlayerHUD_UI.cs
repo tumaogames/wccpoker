@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -46,7 +47,7 @@ namespace WCC.Poker.Client
 
         public bool IsOwner => _isOwner;
 
-
+        Coroutine _timerCoroutine;
 
 
         /// <summary>
@@ -67,6 +68,11 @@ namespace WCC.Poker.Client
             _playerProfileImage.sprite = profile;
             _amountText.text = $"${amount}";
             CheckOwner(isMine);
+        }
+
+        public void UpdateChipsAmount(int amount)
+        {
+            _amountText.text = $"${amount}";
         }
 
         /// <summary>
@@ -94,13 +100,26 @@ namespace WCC.Poker.Client
         public void SetTurn([Optional] Action callback)
         {
             _turnHightlightGO.SetActive(true);
-            StartCoroutine(TurnTime(() =>
+            _timerCoroutine = StartCoroutine(TurnTime(() =>
             {
                 _turnHightlightGO.SetActive(false);
                 ChangeTheWarningImageAlpha(0f);
                 _onTurnCountdownEndEvent?.Invoke();
                 callback?.Invoke();
             }));
+        }
+
+        public void SetCancelTurnTime()
+        {
+            if (_timerCoroutine != null)
+            {
+                StopCoroutine(_timerCoroutine);
+                _turnLoadingImgFill.fillAmount = 0f;
+                _turnHightlightGO.SetActive(false);
+                _turnGroupGO.SetActive(false);
+                _onTurnWarningBoolEvent?.Invoke(false);
+                _timerCoroutine = null;
+            }
         }
 
         /// <summary>
@@ -172,9 +191,8 @@ namespace WCC.Poker.Client
             callback();
         }
 
-        public void SetActionBroadcast(string message)
-        {
-            _actionText.text = message;
-        }
+        public void SetActionBroadcast(string message) => _actionText.text = message;
+
+        public void SetEnableActionHolder(bool enable) => _actionText.transform.parent.gameObject.SetActive(enable);
     }
 }
