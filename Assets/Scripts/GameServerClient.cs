@@ -420,6 +420,7 @@ public sealed class GameServerClient : MonoBehaviour
                         ConnectResponseReceived?.Invoke(connectResponse);
                         MessageReceived?.Invoke(msgType, connectResponse);
                         Debug.Log(playerId + " Credit: " + credit);
+                        GameManager.Instance.coinText.text = "Php " + credit;
                     });
                 }
                 break;
@@ -438,9 +439,10 @@ public sealed class GameServerClient : MonoBehaviour
                         TableListReceived?.Invoke(tableList);
                         MessageReceived?.Invoke(msgType, tableList);
                         Debug.Log("Recieved table list with " + tableList.Tables.Count + " tables.");
+                        GameManager.Instance.GenerateTable(tableList);
                         foreach (var item in tableList.Tables)
                         {
-                            Debug.Log(item.);
+                            Debug.Log(item.TableName);
                         }
                     });
                 break;
