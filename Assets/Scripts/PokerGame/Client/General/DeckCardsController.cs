@@ -38,22 +38,25 @@ namespace WCC.Poker.Client
         readonly List<CardView> _cardViewList_onPlayers = new();
         readonly List<CardView> _cardViewList_onCommunity = new();
 
-        readonly WaitForSeconds _drawDelay = new(0.11f);
-
-        Vector2 _playerCardsSizeSets;
-        Vector2 _otherCardsSizeSets;
-
         bool _isBankerDealsCardsForPlayers = false;
         bool _isBankerDealingCardsForCommunity = false;
 
-        [SerializeField] List<PlayerPairCars> _debugCardsToDraw = new();
-        [SerializeField] List<Card> _debugCardsToDrawCommmunity = new();
-
         readonly Dictionary<Com.poker.Core.Card, CardView> _communityCardsRecords = new();
+        readonly Dictionary<string, int> _playerSeatRecords = new();
+        readonly Dictionary<string, PlayerCardsPack> _playerCardsRecords = new();
 
+        //DEBUG TEXT
         [SerializeField] TMP_Text _debugRoundNameText;
 
-        readonly Dictionary<string, int> _playerSeatRecords = new();
+        public static event Action<string> OnWinnerEvent;
+
+        
+        [Serializable]
+        class PlayerCardsPack
+        {
+            public Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> Cards = new();
+            public List<CardView> CardViewUI;
+        }
 
         [Serializable]
         class PlayerPairCars
@@ -63,11 +66,6 @@ namespace WCC.Poker.Client
 
         void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
 
-        private void Start()
-        {
-            _playerCardsSizeSets = new Vector2(_playerCardsSize, _playerCardsSize);
-            _otherCardsSizeSets = new Vector2(_otherPlayerCardsSize, _otherPlayerCardsSize);
-        }
 
         [Button]
         public void SetBankerDealCards()
@@ -182,7 +180,12 @@ namespace WCC.Poker.Client
         {
             var waitSec = new WaitForSeconds(0.1f);
 
-            _cardViewList_onPlayers.ForEach(i => i.SetCloseCard());
+            _cardViewList_onPlayers.ForEach(i =>
+            {
+                i.SetCloseCard();
+                i.SetShowOutline(false);
+                i.SetSleepCard(false);
+            });
             _cardViewList_onCommunity.ForEach(i =>
             {
                 i.SetCloseCard();
@@ -249,143 +252,153 @@ namespace WCC.Poker.Client
 
         async void OnMessage(MsgType type, IMessage msg)
         {
-            Debug.Log($"<color=orange> OnMessage | {type}</color>");
-            if (type == MsgType.TableSnapshot)
+            switch (type)
             {
-                Debug.Log($"<color=orange> OnMessage TableSnapshot </color>");
-                //Debug.Log($"<color=green> TableSnapshot </color>");
-                // Full table state (seats, stacks, pot, board).
-                var m = (TableSnapshot)msg;
-                // Data you can use:
-                // - m.State (waiting/preflop/flop/turn/river/showdown/reset)
-                // - m.CommunityCards (board cards if already revealed)
-                // - m.PotTotal, m.CurrentBet, m.MinRaise
-                // - m.CurrentTurnSeat
-                //Debug.Log($"[Snapshot] table={m.TableId} state={m.State} pot={m.PotTotal} currentBet={m.CurrentBet}");
-
-                _debugRoundNameText.text = $"Round Status: {m.State}";
-
-                //foreach (var p in m.Players)
-                //{
-                //    Debug.Log($"<color=blue>  seat={p.Seat} player={p.PlayerId} stack={p.Stack} bet={p.BetThisRound} status={p.Status} </color>");
-                //}
-                // Community cards (if any are already revealed)-
-                // You can read them like:
-                // - m.CommunityCards[0] -> first board card
-                // - m.CommunityCards[1] -> second board card
-                // If no board yet (pre-flop), count = 0.
-                if (m.CommunityCards != null && m.CommunityCards.Count > 0)
-                {
-                    Debug.Log($"<color=orange>  board={PokerNetConnect.FormatCards(m.CommunityCards)} </color>");
-                    StartCoroutine(DealCardsForCommunity(m.CommunityCards));
-                }
-
-                //if (m.State == TableState.Reset)
-                //{
-                //    //StartCoroutine(ReturnAllCardsToBanker());
-                //}
-                //if (m.State == TableState.PreFlop)
-                //{
-                //    //SetBankerDealCards();
-
-                //    //StartCoroutine(DealCardsForPlayers());
-                //}
-
-                if (_playerSeatRecords.Count == 0)
-                {
-                    for (int i = 0; i < m.Players.Count; i++)
+                case MsgType.TableSnapshot:
                     {
-                        _playerSeatRecords.Add(m.Players[i].PlayerId, i);
-                    }
-                }
-            }
-            else if (type == MsgType.DealHoleCards)
-            {
-                // Private hole cards for THIS player only.
-                var m = (DealHoleCards)msg;
-                // Data you can use:
-                // - m.Cards[0..1] : the two hole cards
-                // How to read a card:
-                // - card.Rank (2-14, where 14 = Ace)
-                // - card.Suit (0=Clubs,1=Diamonds,2=Hearts,3=Spades)
-                // Example:
-                //   var c1 = m.Cards[0];
-                //   var c2 = m.Cards[1];
-                //   Debug.Log($"card1 rank={c1.Rank} suit={c1.Suit}");
-                Debug.Log($"<color=red> [HoleCards] cards={m.Cards} </color>");
+                        Debug.Log($"<color=orange> OnMessage TableSnapshot </color>");
+                        //Debug.Log($"<color=green> TableSnapshot </color>");
+                        // Full table state (seats, stacks, pot, board).
+                        var m = (TableSnapshot)msg;
+                        // Data you can use:
+                        // - m.State (waiting/preflop/flop/turn/river/showdown/reset)
+                        // - m.CommunityCards (board cards if already revealed)
+                        // - m.PotTotal, m.CurrentBet, m.MinRaise
+                        // - m.CurrentTurnSeat
+                        //Debug.Log($"[Snapshot] table={m.TableId} state={m.State} pot={m.PotTotal} currentBet={m.CurrentBet}");
 
-                //DealCardsForPlayers(m.Cards, _playerSeatRecords[m.]);
-            }
-            else if (type == MsgType.SpectatorHoleCards)
-            {
-                var m = (SpectatorHoleCards)msg;
-                if (string.IsNullOrEmpty(m.PlayerId)) return;
+                        _debugRoundNameText.text = $"Round Status: {m.State}";
 
-                //var arr = new Card[2];
-                //if (m.Cards.Count > 0) arr[0] = m.Cards[0];
-                //if (m.Cards.Count > 1) arr[1] = m.Cards[1];
-                //_holeByPlayer[m.PlayerId] = arr;
-
-                //Debug.Log($"[SPEC] {m.PlayerId} hole={FormatCard(arr[0])} {FormatCard(arr[1])}");
-
-                Debug.Log($"<color=red> (12)[HoleCards] cards={m.Cards} </color>");
-
-                DealCardsForPlayers(m.Cards, _playerSeatRecords[m.PlayerId]);
-            }
-            else if (type == MsgType.HandResult)
-            {
-                // Hand finished. Winners + revealed hands.
-                var m = (HandResult)msg;
-                // Data you can use:
-                // - m.Winners (playerId, amount, rank, bestFive)
-                // - m.RevealedHands (playerId + hole cards)
-
-                Debug.Log($"<color=purple>[HandResult] winners={m.Winners.Count} revealed={m.RevealedHands.Count}</color>");
-
-                await Task.Delay(1000);
-
-                _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
-
-                // Build map: playerId -> hole cards (revealed at showdown)
-                var holeByPlayer = new Dictionary<string, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>>(StringComparer.Ordinal);
-                foreach (var rh in m.RevealedHands)
-                {
-                    var r = rh.HoleCards;
-                    holeByPlayer[rh.PlayerId] = rh.HoleCards;
-                }
-
-                foreach (var comCard in _communityCardsRecords)
-                {
-                    comCard.Value.SetSleepCard(true);
-                }
-
-                foreach (var w in m.Winners)
-                {
-                    var hole = holeByPlayer.TryGetValue(w.PlayerId, out var hc) ? hc : null;
-                    //Debug.Log($"[Winner] player={w.PlayerId} rank={w.Rank} best5={FormatCards(w.BestFive)} hole={FormatCards(hole)}");
-
-                    // Highlight logic (UI concept):
-                    // For each card in BestFive, check if it belongs to hole or board (eto yong 5 cards sa board),
-                    // then highlight the matching UI sprite.
-
-                    // Example (pseudo):
-                    foreach (var c in w.BestFive)
-                    {
-                        //if (hole != null && ContainsCard(hole, c)) HighlightPlayerHoleCard(w.PlayerId, c);
-                        //else if (ContainsCard(_boardCache, c)) HighlightBoardCard(c);
-
-                        if (_communityCardsRecords.ContainsKey(c))
+                        //foreach (var p in m.Players)
+                        //{
+                        //    Debug.Log($"<color=blue>  seat={p.Seat} player={p.PlayerId} stack={p.Stack} bet={p.BetThisRound} status={p.Status} </color>");
+                        //}
+                        // Community cards (if any are already revealed)-
+                        // You can read them like:
+                        // - m.CommunityCards[0] -> first board card
+                        // - m.CommunityCards[1] -> second board card
+                        // If no board yet (pre-flop), count = 0.
+                        if (m.CommunityCards != null && m.CommunityCards.Count > 0)
                         {
-                            _communityCardsRecords[c].SetSleepCard(false);
-                            _communityCardsRecords[c].SetShowOutline(true);
+                            Debug.Log($"<color=orange>  board={PokerNetConnect.FormatCards(m.CommunityCards)} </color>");
+                            StartCoroutine(DealCardsForCommunity(m.CommunityCards));
                         }
+
+                        if (_playerSeatRecords.Count == 0)
+                        {
+                            for (int i = 0; i < m.Players.Count; i++)
+                            {
+                                _playerSeatRecords.Add(m.Players[i].PlayerId, i);
+                            }
+                        }
+                        break;
                     }
-                }
+                case MsgType.DealHoleCards:
+                    {
+                        // Private hole cards for THIS player only.
+                        var m = (DealHoleCards)msg;
+                        // Data you can use:
+                        // - m.Cards[0..1] : the two hole cards
+                        // How to read a card:
+                        // - card.Rank (2-14, where 14 = Ace)
+                        // - card.Suit (0=Clubs,1=Diamonds,2=Hearts,3=Spades)
+                        // Example:
+                        //   var c1 = m.Cards[0];
+                        //   var c2 = m.Cards[1];
+                        //   Debug.Log($"card1 rank={c1.Rank} suit={c1.Suit}");
+                        Debug.Log($"<color=red> [HoleCards] cards={m.Cards} </color>");
 
+                        //DealCardsForPlayers(m.Cards, _playerSeatRecords[m.]);
+                        break;
+                    }
+                case MsgType.SpectatorHoleCards:
+                    {
+                        var m = (SpectatorHoleCards)msg;
+                        if (string.IsNullOrEmpty(m.PlayerId)) return;
 
-                await Task.Delay(3000);
+                        //var arr = new Card[2];
+                        //if (m.Cards.Count > 0) arr[0] = m.Cards[0];
+                        //if (m.Cards.Count > 1) arr[1] = m.Cards[1];
+                        //_holeByPlayer[m.PlayerId] = arr;
 
-                StartCoroutine(ReturnAllCardsToBanker());
+                        //Debug.Log($"[SPEC] {m.PlayerId} hole={FormatCard(arr[0])} {FormatCard(arr[1])}");
+
+                        Debug.Log($"<color=red> (12)[HoleCards] cards={m.Cards} </color>");
+
+                        DealCardsForPlayers(m.PlayerId, m.Cards, _playerSeatRecords[m.PlayerId]);
+                        break;
+                    }
+                case MsgType.HandResult:
+                    {
+                        // Hand finished. Winners + revealed hands.
+                        var m = (HandResult)msg;
+                        // Data you can use:
+                        // - m.Winners (playerId, amount, rank, bestFive)
+                        // - m.RevealedHands (playerId + hole cards)
+
+                        //Debug.Log($"<color=purple>[HandResult] winners={m.Winners.Count} revealed={m.RevealedHands.Count}</color>");
+
+                        await Task.Delay(1000);
+
+                        _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
+
+                        // Build map: playerId -> hole cards (revealed at showdown)
+                        var holeByPlayer = new Dictionary<string, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>>(StringComparer.Ordinal);
+                        foreach (var rh in m.RevealedHands)
+                        {
+                            var r = rh.HoleCards;
+                            holeByPlayer[rh.PlayerId] = rh.HoleCards;
+                        }
+
+                        foreach (var comCard in _communityCardsRecords)
+                            comCard.Value.SetSleepCard(true);
+
+                        string winnerP_ID = string.Empty;
+
+                        foreach (var w in m.Winners)
+                        {
+                            var hole = holeByPlayer.TryGetValue(w.PlayerId, out var hc) ? hc : null;
+                            //Debug.Log($"[Winner] player={w.PlayerId} rank={w.Rank} best5={FormatCards(w.BestFive)} hole={FormatCards(hole)}");
+
+                            // Highlight logic (UI concept):
+                            // For each card in BestFive, check if it belongs to hole or board (eto yong 5 cards sa board),
+                            // then highlight the matching UI sprite.
+
+                            PlayerCardsPack listOfCards = _playerCardsRecords[w.PlayerId];
+
+                            // Example (pseudo):
+                            foreach (var c in w.BestFive)
+                            {
+                                for (int i = 0; i < listOfCards.Cards.Count; i++)
+                                {
+                                    if (listOfCards.Cards[i].Rank == c.Rank || listOfCards.Cards[i].Suit == c.Suit)
+                                    {
+                                        listOfCards.CardViewUI[i].SetSleepCard(false);
+                                        listOfCards.CardViewUI[i].SetShowOutline(true);
+                                        winnerP_ID = w.PlayerId;
+                                    }
+                                }
+
+                                if (_communityCardsRecords.ContainsKey(c))
+                                {
+                                    _communityCardsRecords[c].SetSleepCard(false);
+                                    _communityCardsRecords[c].SetShowOutline(true);
+                                }
+                            }
+                        }
+
+                        _playerCardsRecords.Clear();
+
+                        await Task.Delay(3000);
+
+                        SetWinner(winnerP_ID);
+
+                        await Task.Delay(3000);
+
+                        StartCoroutine(ReturnAllCardsToBanker());
+
+                        break;
+                    }
             }
         }
 
@@ -443,72 +456,31 @@ namespace WCC.Poker.Client
         }
 
 
-        void DealCardsForPlayers(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> infoList, int seat)
+        void DealCardsForPlayers(string playerID, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> playerCards, int seat)
         {
-            //_isBankerDealsCardsForPlayers = true;
             AudioManager.main.PlayAudio("Cards", 1);
-            for (int j = 0; j < infoList.Count; j++)
+            List<CardView> _cardList = new();
+            for (int j = 0; j < playerCards.Count; j++)
             {
-               // var isReached = false;
-
                 InstantiateCard(seat == 4,
                     true,
-                    GlobalHawk.TranslateCardRank(infoList[j].Rank),
-                    (GlobalHawk.Suit)infoList[j].Suit,
+                    GlobalHawk.TranslateCardRank(playerCards[j].Rank),
+                    (GlobalHawk.Suit)playerCards[j].Suit,
                     _playerTablePositions[seat],
                     out var cardView,
-                    () =>
-                    {
-
-                    });
+                    () => { });
 
                 _cardViewList_onPlayers.Add(cardView);
-
-               // yield return new WaitUntil(() => isReached);
+                _cardList.Add(cardView);
             }
 
-            //for (int i = 0; i < _playerTablePositions.Length; i++)
-            //{
-            //    _playerTablePositions[i].transform.localScale = i == 4 ? _playerCardsSizeSets : _otherCardsSizeSets;
-
-              
-
-            //    yield return _drawDelay;
-            //}
+            _playerCardsRecords.Add(playerID, new PlayerCardsPack
+            {
+                Cards = playerCards,
+                CardViewUI = _cardList,
+            });
         }
 
-        /// <summary>
-        /// On this coroutine ang banker ay nag bibigay ng mga braha sa each players
-        /// </summary>
-        /// <param name="infoList"></param>
-        /// <returns></returns>
-        //IEnumerator DealCardsForPlayers(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> infoList)
-        //{
-        //    _isBankerDealsCardsForPlayers = true;
-
-        //    for (int i = 0; i < _playerTablePositions.Length; i++)
-        //    {
-        //        _playerTablePositions[i].transform.localScale = i == 4 ? _playerCardsSizeSets : _otherCardsSizeSets;
-
-        //        for (int j = 0; j < 2; j++)
-        //        {
-        //            var isReached = false;
-
-        //            InstantiateCard(i == 4,
-        //                true,
-        //                GlobalHawk.TranslateCardRank(infoList[i].Rank),
-        //                (GlobalHawk.Suit)infoList[i].Suit,
-        //                _playerTablePositions[i],
-        //                out var cardView,
-        //                () => isReached = true);
-
-        //            _cardViewList_onPlayers.Add(cardView);
-
-        //            yield return new WaitUntil(() => isReached);
-        //        }
-
-        //        yield return _drawDelay;
-        //    }
-        //}
+        void SetWinner(string playerID) => OnWinnerEvent?.Invoke(playerID);
     }
 }

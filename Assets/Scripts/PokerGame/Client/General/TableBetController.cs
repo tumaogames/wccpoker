@@ -28,6 +28,7 @@ namespace WCC.Poker.Client
       
 
         [Header("[POT-GROUP]")]
+        [SerializeField] GameObject _bigPotPrefab;
         [SerializeField] TMP_Text _potValueText;
         [SerializeField] GameObject _potHolder;
 
@@ -40,7 +41,11 @@ namespace WCC.Poker.Client
 
         private void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
 
-        private void Start() => PlayerHUDController.main.PlayerHUDListListenerEvent += LoadPlayerHUDList;
+        private void Start()
+        {
+            PlayerHUDController.main.PlayerHUDListListenerEvent += LoadPlayerHUDList;
+            DeckCardsController.OnWinnerEvent += MoveAllPotChipsToWinner;
+        }
 
         void LoadPlayerHUDList(Dictionary<string, PlayerHUD_UI> data)
         {
@@ -70,33 +75,41 @@ namespace WCC.Poker.Client
             if(_playerHUDRecords.Count == 0) return;
             if (_playerBetDictionary.ContainsKey(playerID))
             {
-                InstantiateBet(_betValuePlusEffectPrefab, _playerHUDRecords[playerID].Item1.transform.position, _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position, instance =>
+                InstantiateBet(_betValuePlusEffectPrefab,
+                    _playerHUDRecords[playerID].Item1.transform.position, 
+                    _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position,
+                    0.22f,
+                    Instance =>
                 {
-                    instance.transform.DOScale(Vector3.zero, 0.22f).SetEase(Ease.InBack).OnComplete(() =>
+                    Instance.transform.DOScale(Vector3.zero, 0.22f).SetEase(Ease.InBack).OnComplete(() =>
                     {
                         EditTableBet(betValue, _playerBetDictionary[playerID]);
-                        Destroy(instance);
+                        Destroy(Instance);
                     });
                 });
 
                 return;
             }
 
-            InstantiateBet(_betValueUITextPrefab.gameObject, _playerHUDRecords[playerID].Item1.transform.position, _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position, instance =>
+            InstantiateBet(_betValueUITextPrefab.gameObject,
+                _playerHUDRecords[playerID].Item1.transform.position,
+                _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position,
+                0.22f,
+                Instance =>
             {
-                var bvuiT = instance.GetComponent<BetValueUIText>();
+                var bvuiT = Instance.GetComponent<BetValueUIText>();
                 _playerBetDictionary.Add(playerID, bvuiT);
                 bvuiT.SetBetValue(betValue);
             });
          
         }
 
-        void InstantiateBet(GameObject prefab, Vector2 startPosition, Vector2 destination, [Optional] UnityAction<GameObject> isReachedCallback)
+        void InstantiateBet(GameObject prefab, Vector2 startPosition, Vector2 destination, float moveDuration, [Optional] UnityAction<GameObject> isReachedCallback)
         {
             var betHolder = Instantiate(prefab, _betGroupContainer);
             AudioManager.main.PlayRandomAudio("Chips_Bet", Vector2.zero);
             betHolder.transform.position = startPosition;
-            betHolder.transform.DOMove(destination, 0.22f)
+            betHolder.transform.DOMove(destination, moveDuration)
             .SetEase(Ease.InOutSine)
             .OnComplete(() =>
             {
@@ -128,6 +141,19 @@ namespace WCC.Poker.Client
             _playerBetDictionary.Clear();
         }
 
+        void MoveAllPotChipsToWinner(string playerID)
+        {
+            InstantiateBet(_bigPotPrefab, 
+                _potHolder.transform.position,
+                _playerHUDRecords[playerID].Item1.transform.position,
+                0.8f,
+                Instance =>
+            {
+                AudioManager.main.PlayAudio("Chips_Pot", 0);
+                Destroy(Instance);
+            });
+        }
+
 
         string FormatChips(int value)
         {
@@ -141,54 +167,59 @@ namespace WCC.Poker.Client
 
         async void OnMessage(MsgType type, IMessage msg)
         {
-            if (type == MsgType.ActionBroadcast)
+            switch (type)
             {
-                // Broadcast of OTHER players' actions.
-                var m = (ActionBroadcast)msg;
-                // Data you can use:
-                // - m.PlayerId
-                // - m.Action, m.Amount
-                // - m.CurrentBet, m.PotTotal
-                Debug.Log($"[ActionBroadcast] player={m.PlayerId} action={m.Action} amount={m.Amount} pot={m.PotTotal}");
+                case MsgType.ActionBroadcast:
+                    {
+                        // Broadcast of OTHER players' actions.
+                        var m = (ActionBroadcast)msg;
+                        // Data you can use:
+                        // - m.PlayerId
+                        // - m.Action, m.Amount
+                        // - m.CurrentBet, m.PotTotal
+                        Debug.Log($"[ActionBroadcast] player={m.PlayerId} action={m.Action} amount={m.Amount} pot={m.PotTotal}");
 
-                if (m.Action == PokerActionType.Bet || m.Action == PokerActionType.AllIn || m.Action == PokerActionType.Call)
-                {
-                    SetBetPlayer((int)m.CurrentBet, m.PlayerId);
-                }
+                        if (m.Action == PokerActionType.Bet || m.Action == PokerActionType.AllIn || m.Action == PokerActionType.Call)
+                            SetBetPlayer((int)m.CurrentBet, m.PlayerId);
+
+                        break;
+                    }
+
+                case MsgType.TableSnapshot:
+                    {
+                        var m = (TableSnapshot)msg;
+
+                        if (_currentTableState != m.State)
+                        {
+                            await Task.Delay(1000);
+
+                            MoveAllBetsToPot();
+
+                            _currentTableState = m.State;
+                        }
+                        break;
+                    }
+                case MsgType.PotUpdate:
+                    {
+                        // Pot and side pots.
+                        var m = (PotUpdate)msg;
+                        // Data you can use:
+                        // - m.PotTotal
+                        // - m.Pots (each side pot amount + eligible players)
+                        Debug.Log($"[PotUpdate] total={m.PotTotal} sidePots={m.Pots.Count}");
+
+
+                        _currentTotalPotValue = (int)m.PotTotal;
+                        break;
+                    }
+                case MsgType.HandResult:
+                    {
+                        await Task.Delay(1500);
+                        _potHolder.SetActive(false);
+                        _potValueText.text = string.Empty;
+                        break;
+                    }
             }
-            else if (type == MsgType.TableSnapshot)
-            {
-                var m = (TableSnapshot)msg;
-
-                if (_currentTableState != m.State)
-                {
-                    await Task.Delay(1000);
-
-                    MoveAllBetsToPot();
-
-                    _currentTableState = m.State;
-                }
-            }
-            else if (type == MsgType.PotUpdate)
-            {
-                // Pot and side pots.
-                var m = (PotUpdate)msg;
-                // Data you can use:
-                // - m.PotTotal
-                // - m.Pots (each side pot amount + eligible players)
-                Debug.Log($"[PotUpdate] total={m.PotTotal} sidePots={m.Pots.Count}");
-
-
-                _currentTotalPotValue = (int)m.PotTotal;
-
-            }
-            else if (type == MsgType.HandResult)
-            {
-                await Task.Delay(1500);
-                _potHolder.SetActive(false);
-                _potValueText.text = string.Empty;
-            }
-
         }
     }
 }

@@ -36,6 +36,8 @@ namespace WCC.Poker.Client
             _chipImage.sprite = GetSprite(value);
         }
 
+        public void SetChipsIconToHeavy() => _chipImage.sprite = _chipsSprites[_chipsSprites.Length - 1];
+
         public void SetEnableValueHolder(bool e) => _betHolderImage.gameObject.SetActive(e);
 
         Sprite GetSprite(int value)

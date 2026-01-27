@@ -42,9 +42,9 @@ namespace WCC.Poker.Client
 
         readonly Dictionary<string, PlayerHUD_UI> _inGamePlayersRecords = new();
 
-        string _currentPlayerIdTurn;
-
         TableState _currentTableState;
+
+        public enum TagType { Dealer, SmallBlind, BigBlind }
 
         #region EDITOR
         private void OnValidate()
@@ -61,16 +61,16 @@ namespace WCC.Poker.Client
 
         private async void Start()
         {
-            //for (int i = 0; i < _maxPlayers; i++)
-            //{
-            //    SummonPlayerHUDUI(i);
-            //}
+            DeckCardsController.OnWinnerEvent += async playerID =>
+            {
+                var p = _inGamePlayersRecords[playerID];
 
-            //await Task.Delay(1000);
+                p.SetEnableWinner(true);
 
-            //PlayerHUDListListenerEvent?.Invoke(_playersHUDList);
+                await Task.Delay(1000);
 
-            //TestRoundTurn();
+                p.SetEnableWinner(false);
+            };
         }
 
         void OnMessage(MsgType type, IMessage msg)
@@ -187,7 +187,6 @@ namespace WCC.Poker.Client
                 _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
 
                 _inGamePlayersRecords[m.PlayerId].SetTurn();
-                _currentPlayerIdTurn = m.PlayerId;
             }
             else if (type == MsgType.StackUpdate)
             {

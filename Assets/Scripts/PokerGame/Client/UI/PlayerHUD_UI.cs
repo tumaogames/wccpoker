@@ -6,7 +6,6 @@
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -29,10 +28,13 @@ namespace WCC.Poker.Client
         [SerializeField] Image _turnLoadingImgFill;
         [SerializeField] TMP_Text _countdownTimeText;
         [SerializeField] Image _turnWarningImage;
+        [SerializeField] GameObject _winnerGO;
 
         [Header("[Effects]")]
         [SerializeField] Color _ownPlayerNameTextColor;
         [SerializeField] GameObject _turnHightlightGO;
+
+        [SerializeField] GameObject[] _tagIcons;
 
         [Header("[EVENTS]")]
         [SerializeField] UnityEvent _isMineEvent;
@@ -48,7 +50,6 @@ namespace WCC.Poker.Client
         public bool IsOwner => _isOwner;
 
         Coroutine _timerCoroutine;
-
 
         /// <summary>
         /// This function ay para sa initialize ng player
@@ -136,11 +137,7 @@ namespace WCC.Poker.Client
         /// <summary>
         /// This function ay para sa effects lamang
         /// </summary>
-        [NaughtyAttributes.Button]
-        public void SetEffect()
-        {
-
-        }
+        public void SetEnableWinner(bool e) => _winnerGO.SetActive(e);
 
         #region DEBUG-ONLY
         [NaughtyAttributes.Button] public void Debug_SetOwner() => CheckOwner(true);
@@ -190,6 +187,14 @@ namespace WCC.Poker.Client
             _onTurnWarningBoolEvent?.Invoke(false);
             callback();
         }
+
+        void SetEnableTag(int i)
+        {
+            foreach(var j in _tagIcons) j.SetActive(false);
+            _tagIcons[i].SetActive(true);
+        }
+
+        public void SetTag(PlayerHUDController.TagType tagType) => SetEnableTag((int)tagType);
 
         public void SetActionBroadcast(string message) => _actionText.text = message;
 

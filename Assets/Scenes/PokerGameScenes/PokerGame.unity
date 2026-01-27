@@ -2500,59 +2500,6 @@ MonoBehaviour:
   - {fileID: 14447619}
   _otherPlayerCardsSize: 0.8
   _playerCardsSize: 1.3
-  _debugCardsToDraw:
-  - _cards:
-    - Rank: 0
-      Suit: 1
-    - Rank: 1
-      Suit: 1
-  - _cards:
-    - Rank: 2
-      Suit: 1
-    - Rank: 3
-      Suit: 3
-  - _cards:
-    - Rank: 4
-      Suit: 0
-    - Rank: 5
-      Suit: 1
-  - _cards:
-    - Rank: 6
-      Suit: 0
-    - Rank: 8
-      Suit: 1
-  - _cards:
-    - Rank: 8
-      Suit: 3
-    - Rank: 9
-      Suit: 2
-  - _cards:
-    - Rank: 10
-      Suit: 3
-    - Rank: 11
-      Suit: 1
-  - _cards:
-    - Rank: 8
-      Suit: 0
-    - Rank: 9
-      Suit: 0
-  - _cards:
-    - Rank: 3
-      Suit: 1
-    - Rank: 12
-      Suit: 1
-  - _cards:
-    - Rank: 2
-      Suit: 2
-    - Rank: 6
-      Suit: 3
-  _debugCardsToDrawCommmunity:
-  - Rank: 5
-    Suit: 2
-  - Rank: 10
-    Suit: 0
-  - Rank: 9
-    Suit: 3
   _debugRoundNameText: {fileID: 657307670}
 --- !u!114 &376248690
 MonoBehaviour:
@@ -2592,6 +2539,7 @@ MonoBehaviour:
   - {fileID: 1093417028289651877}
   - {fileID: 134077075}
   - {fileID: 1816016165}
+  _bigPotPrefab: {fileID: 372859107937285492, guid: da270587ce889ca4ea0270ca77487d0d, type: 3}
   _potValueText: {fileID: 1261355299}
   _potHolder: {fileID: 25301630}
 --- !u!1 &377045461
