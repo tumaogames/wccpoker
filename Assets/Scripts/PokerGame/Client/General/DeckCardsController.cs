@@ -323,7 +323,7 @@ namespace WCC.Poker.Client
 
                         //Debug.Log($"[SPEC] {m.PlayerId} hole={FormatCard(arr[0])} {FormatCard(arr[1])}");
 
-                        Debug.Log($"<color=red> (12)[HoleCards] cards={m.Cards} </color>");
+                        Debug.Log($"<color=white> (12)[HoleCards] cards={m.Cards} </color>");
 
                         DealCardsForPlayers(m.PlayerId, m.Cards, _playerSeatRecords[m.PlayerId]);
                         break;

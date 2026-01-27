@@ -14,10 +14,12 @@ namespace WCC.Poker.Client
     {
         [SerializeField] Transform _cardRoot;
 
+        float _cardRootDefaultY;
         bool _isFlip = false;
 
         public void SetFlipAnimation(UnityAction callback)
         {
+            ResetRootTransform();
             transform.DOLocalRotate(new Vector3(0, !_isFlip ? 90 : 0, 0), 0.1f).SetEase(Ease.InOutSine).OnComplete(()=>
             {
                 transform.localRotation = Quaternion.Euler(0, 270f, 0);
@@ -33,8 +35,20 @@ namespace WCC.Poker.Client
 
         public void SetBloomCard()
         {
-            _cardRoot.DOMoveY(_cardRoot.position.y + 1.3f, 1f).SetEase(Ease.InOutSine);
-            _cardRoot.DOScale(new Vector3(1.08f, 1.08f, 1.08f), 0.5f);
+            _cardRootDefaultY = _cardRoot.position.y;
+            _cardRoot.DOScale(new Vector3(1.085f, 1.085f, 1.085f), 0.5f);
+            _cardRoot.DOMoveY(_cardRoot.position.y + 2.5f, 0.5f).SetEase(Ease.InOutSine).OnComplete(() =>
+            {
+                _cardRoot.DOMoveY(_cardRootDefaultY, 0.3f).SetEase(Ease.InOutSine);
+                _cardRoot.DOScale(Vector3.one, 0.5f);
+            });
+           
+        }
+
+        void ResetRootTransform()
+        {
+            _cardRoot.localPosition = Vector3.zero;
+            _cardRoot.localScale = Vector3.one;
         }
     }
 }

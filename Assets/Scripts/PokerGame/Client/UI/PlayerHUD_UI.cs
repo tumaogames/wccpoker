@@ -22,6 +22,7 @@ namespace WCC.Poker.Client
         [SerializeField] TMP_Text _amountText;
         [SerializeField] TMP_Text _levelText;
         [SerializeField] TMP_Text _actionText;
+        [SerializeField] GameObject _actionHolder;
 
         [Header("[TURN]")]
         [SerializeField] GameObject _turnGroupGO;
@@ -188,16 +189,20 @@ namespace WCC.Poker.Client
             callback();
         }
 
-        void SetEnableTag(int i)
+        void SetEnableTag(int i, bool e)
         {
             foreach(var j in _tagIcons) j.SetActive(false);
-            _tagIcons[i].SetActive(true);
+            _tagIcons[i].SetActive(e);
         }
 
-        public void SetTag(PlayerHUDController.TagType tagType) => SetEnableTag((int)tagType);
+        public void SetTag(PlayerHUDController.TagType tagType, bool e) => SetEnableTag((int)tagType, e);
 
-        public void SetActionBroadcast(string message) => _actionText.text = message;
+        public void SetActionBroadcast(string message)
+        {
+            _actionText.text = message;
+            _actionHolder.SetActive(_actionText.text != string.Empty);
+        }
 
-        public void SetEnableActionHolder(bool enable) => _actionText.transform.parent.gameObject.SetActive(enable);
+        public void SetEnableActionHolder(bool enable) => _actionHolder.SetActive(enable);
     }
 }

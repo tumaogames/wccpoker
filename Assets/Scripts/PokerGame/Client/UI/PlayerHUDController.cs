@@ -96,7 +96,7 @@ namespace WCC.Poker.Client
                     _inGamePlayersRecords[m.PlayerId].SetEnableActionHolder(true);
                     _inGamePlayersRecords[m.PlayerId].SetActionBroadcast($"{m.Action}");
                 }
-                
+
 
             }
             else if (type == MsgType.TableSnapshot)
@@ -109,15 +109,27 @@ namespace WCC.Poker.Client
                 // - m.CommunityCards (board cards if already revealed)
                 // - m.PotTotal, m.CurrentBet, m.MinRaise
                 // - m.CurrentTurnSeat
-                //if (m.State == TableState.Waiting && _inGamePlayersRecords.Count != 0)
-                //{
-                //    foreach (var p in _inGamePlayersRecords)
-                //    {
-                //        Destroy(p.Value.gameObject);
-                //    }
-                //    _inGamePlayersRecords.Clear();
 
-                //}
+
+                // Who is dealer / blinds (seat -> playerId)
+                string dealerId = "?";
+                string sbId = "?";
+                string bbId = "?";
+
+                foreach (var p in m.Players)
+                {
+                    if (p.Seat == m.DealerSeat) dealerId = p.PlayerId;
+                    if (p.Seat == m.SmallBlindSeat) sbId = p.PlayerId;
+                    if (p.Seat == m.BigBlindSeat) bbId = p.PlayerId;
+                }
+
+                if (_inGamePlayersRecords.Count != 0)
+                {
+                    if(_inGamePlayersRecords.ContainsKey(dealerId)) _inGamePlayersRecords[dealerId].SetTag(TagType.Dealer, true);
+                    if (_inGamePlayersRecords.ContainsKey(sbId)) _inGamePlayersRecords[sbId].SetTag(TagType.SmallBlind, true);
+                    if (_inGamePlayersRecords.ContainsKey(bbId)) _inGamePlayersRecords[bbId].SetTag(TagType.BigBlind, true);
+                }
+
 
                 if (_currentTableState != m.State)
                 {
