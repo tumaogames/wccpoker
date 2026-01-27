@@ -56,7 +56,7 @@ public class LayoutHoverResizeDOTween :
         AnimateSize(hoverPreferredWidth, hoverPreferredHeight);
         ToggleChild(true);
 
-        AudioManager.Instance.PlaySFX("OnSelect");
+        ArtAudioManager.Instance.PlaySFX("OnSelect");
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -85,8 +85,8 @@ public class LayoutHoverResizeDOTween :
         AnimateSize(hoverPreferredWidth, hoverPreferredHeight);
         ToggleChild(true);
 
-        AudioManager.Instance.PlaySFX("OnClick");
-        GameManager.Instance.selectedTable = GetComponent<TableData>();
+        ArtAudioManager.Instance.PlaySFX("OnClick");
+        ArtGameManager.Instance.selectedTable = GetComponent<TableData>();
     }
 
     private void Deselect()
@@ -103,7 +103,7 @@ public class LayoutHoverResizeDOTween :
 
         currentSelected.Deselect();
         currentSelected = null;
-        GameManager.Instance.selectedTable = null;
+        ArtGameManager.Instance.selectedTable = null;
     }
 
     // =====================

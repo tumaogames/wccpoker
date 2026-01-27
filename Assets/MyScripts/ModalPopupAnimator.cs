@@ -53,7 +53,7 @@ public class ModalPopupAnimator : MonoBehaviour
             .SetEase(scaleEase));
 
         seq.Play();
-        AudioManager.Instance.PlaySFX("OnPop");
+        ArtAudioManager.Instance.PlaySFX("OnPop");
     }
 
     // ================== CLOSE ==================
@@ -81,7 +81,7 @@ public class ModalPopupAnimator : MonoBehaviour
         });
 
         seq.Play();
-        AudioManager.Instance.PlaySFX("OnClick");
+        ArtAudioManager.Instance.PlaySFX("OnClick");
     }
 }
 

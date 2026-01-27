@@ -39,7 +39,7 @@ public class ImageToggleUI : MonoBehaviour
         StopAllCoroutines();
         StartCoroutine(AnimateToggle());
         SettingsManager.Instance.SetSetting(settingType, isOn);
-        AudioManager.Instance.PlaySFX("OnToogle");
+        ArtAudioManager.Instance.PlaySFX("OnToogle");
     }
 
     void ApplyInstant()

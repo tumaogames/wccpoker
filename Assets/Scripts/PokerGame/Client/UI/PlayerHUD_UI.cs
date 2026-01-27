@@ -21,16 +21,21 @@ namespace WCC.Poker.Client
         [SerializeField] Image _playerProfileImage;
         [SerializeField] TMP_Text _amountText;
         [SerializeField] TMP_Text _levelText;
+        [SerializeField] TMP_Text _actionText;
+        [SerializeField] GameObject _actionHolder;
 
         [Header("[TURN]")]
         [SerializeField] GameObject _turnGroupGO;
         [SerializeField] Image _turnLoadingImgFill;
         [SerializeField] TMP_Text _countdownTimeText;
         [SerializeField] Image _turnWarningImage;
+        [SerializeField] GameObject _winnerGO;
 
         [Header("[Effects]")]
         [SerializeField] Color _ownPlayerNameTextColor;
         [SerializeField] GameObject _turnHightlightGO;
+
+        [SerializeField] GameObject[] _tagIcons;
 
         [Header("[EVENTS]")]
         [SerializeField] UnityEvent _isMineEvent;
@@ -45,8 +50,7 @@ namespace WCC.Poker.Client
 
         public bool IsOwner => _isOwner;
 
-
-
+        Coroutine _timerCoroutine;
 
         /// <summary>
         /// This function ay para sa initialize ng player
@@ -66,6 +70,11 @@ namespace WCC.Poker.Client
             _playerProfileImage.sprite = profile;
             _amountText.text = $"${amount}";
             CheckOwner(isMine);
+        }
+
+        public void UpdateChipsAmount(int amount)
+        {
+            _amountText.text = $"${amount}";
         }
 
         /// <summary>
@@ -93,13 +102,26 @@ namespace WCC.Poker.Client
         public void SetTurn([Optional] Action callback)
         {
             _turnHightlightGO.SetActive(true);
-            StartCoroutine(TurnTime(() =>
+            _timerCoroutine = StartCoroutine(TurnTime(() =>
             {
                 _turnHightlightGO.SetActive(false);
                 ChangeTheWarningImageAlpha(0f);
                 _onTurnCountdownEndEvent?.Invoke();
                 callback?.Invoke();
             }));
+        }
+
+        public void SetCancelTurnTime()
+        {
+            if (_timerCoroutine != null)
+            {
+                StopCoroutine(_timerCoroutine);
+                _turnLoadingImgFill.fillAmount = 0f;
+                _turnHightlightGO.SetActive(false);
+                _turnGroupGO.SetActive(false);
+                _onTurnWarningBoolEvent?.Invoke(false);
+                _timerCoroutine = null;
+            }
         }
 
         /// <summary>
@@ -116,11 +138,7 @@ namespace WCC.Poker.Client
         /// <summary>
         /// This function ay para sa effects lamang
         /// </summary>
-        [NaughtyAttributes.Button]
-        public void SetEffect()
-        {
-
-        }
+        public void SetEnableWinner(bool e) => _winnerGO.SetActive(e);
 
         #region DEBUG-ONLY
         [NaughtyAttributes.Button] public void Debug_SetOwner() => CheckOwner(true);
@@ -171,5 +189,20 @@ namespace WCC.Poker.Client
             callback();
         }
 
+        void SetEnableTag(int i, bool e)
+        {
+            foreach(var j in _tagIcons) j.SetActive(false);
+            _tagIcons[i].SetActive(e);
+        }
+
+        public void SetTag(PlayerHUDController.TagType tagType, bool e) => SetEnableTag((int)tagType, e);
+
+        public void SetActionBroadcast(string message)
+        {
+            _actionText.text = message;
+            _actionHolder.SetActive(_actionText.text != string.Empty);
+        }
+
+        public void SetEnableActionHolder(bool enable) => _actionHolder.SetActive(enable);
     }
 }

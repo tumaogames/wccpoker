@@ -26,12 +26,12 @@ public class StartClickHandler : MonoBehaviour, IPointerDownHandler
     public void EnableSound()
     {
         this.GetComponent<Image>().raycastTarget = false;
-        GameManager.Instance.StartMusic();
+        ArtGameManager.Instance.StartMusic();
         if (transform.parent != null)
         {
             transform.parent.gameObject.SetActive(false);
         }
         gameObject.SetActive(false);
-        GameManager.Instance.enableSound = true;
+        ArtGameManager.Instance.enableSound = true;
     }
 }
