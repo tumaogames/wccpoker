@@ -340,6 +340,7 @@ namespace WCC.Poker.Client
 
                         await Task.Delay(1000);
 
+                        AudioManager.main.PlayAudio("SFX", 0);
                         _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
 
                         // Build map: playerId -> hole cards (revealed at showdown)
@@ -393,7 +394,7 @@ namespace WCC.Poker.Client
 
                         SetWinner(winnerP_ID);
 
-                        await Task.Delay(3000);
+                        await Task.Delay(5000);
 
                         StartCoroutine(ReturnAllCardsToBanker());
 

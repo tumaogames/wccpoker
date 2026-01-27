@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using WCC.Core.Audio;
 using WCC.Core.Exposed;
 
 namespace WCC.Poker.Client
@@ -70,8 +71,9 @@ namespace WCC.Poker.Client
                 var p = _inGamePlayersRecords[playerID];
 
                 p.SetEnableWinner(true);
+                AudioManager.main.PlayRandomAudio("Winner", Vector2.zero);
 
-                await Task.Delay(1000);
+                await Task.Delay(3000);
 
                 p.SetEnableWinner(false);
             };
@@ -99,6 +101,8 @@ namespace WCC.Poker.Client
                     _inGamePlayersRecords[m.PlayerId].SetCancelTurnTime();
                     _inGamePlayersRecords[m.PlayerId].SetEnableActionHolder(true);
                     _inGamePlayersRecords[m.PlayerId].SetActionBroadcast($"{m.Action}");
+
+                    if (m.Action == PokerActionType.Check) AudioManager.main.PlayAudio("Actions", 0);
                 }
 
 
