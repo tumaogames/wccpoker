@@ -11,6 +11,8 @@ using UnityEngine;
 public class PokerNetConnect : MonoBehaviour
 {
     [SerializeField] PokerNetData _netInfo;
+    [SerializeField] string _debug_tableID;
+    public static string OwnerPlayerID;
 
     public static event Action<MsgType, IMessage> OnMessageEvent;
 
@@ -47,6 +49,8 @@ public class PokerNetConnect : MonoBehaviour
 
     void OnConnect(ConnectResponse resp)
     {
+        OwnerPlayerID = resp.PlayerId;
+
         if (!_netInfo.AutoSpectateOnConnect)
             return;
 
@@ -56,7 +60,8 @@ public class PokerNetConnect : MonoBehaviour
             return;
         }
 
-        GameServerClient.SendSpectateStatic(_netInfo.SpectateTableCode);
+        //GameServerClient.SendSpectateStatic(_netInfo.SpectateTableCode);
+        GameServerClient.SendJoinTableStatic(_debug_tableID);
     }
 
 

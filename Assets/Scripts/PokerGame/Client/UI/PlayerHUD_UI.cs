@@ -72,10 +72,7 @@ namespace WCC.Poker.Client
             CheckOwner(isMine);
         }
 
-        public void UpdateChipsAmount(int amount)
-        {
-            _amountText.text = $"${amount}";
-        }
+        public void UpdateChipsAmount(int amount) => _amountText.text = $"${amount}";
 
         /// <summary>
         /// This function ay para mag check kung sino owner HUD

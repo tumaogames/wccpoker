@@ -1,0 +1,4 @@
+repository "WCC Poker@local"
+  path "/"
+    br "/main"
+    co "/main"

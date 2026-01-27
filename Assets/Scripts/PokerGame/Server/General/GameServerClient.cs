@@ -4,6 +4,7 @@ using Google.Protobuf;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using UnityEditor;
 using UnityEngine;
 using PokerError = Com.poker.Core.Error;
 
@@ -66,6 +67,10 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<BuyInResponse> BuyInResponseReceived;
     public event Action<SpectateResponse> SpectateResponseReceived;
     public event Action<SpectatorHoleCards> SpectatorHoleCardsReceived;
+    public event Action<InactiveNotice> InactiveNoticeReceived;
+    public event Action<WaitVoteRequest> WaitVoteRequestReceived;
+    public event Action<WaitVoteResult> WaitVoteResultReceived;
+    public event Action<RejoinResponse> RejoinResponseReceived;
     public event Action<Kick> KickReceived;
     public event Action<PokerError> ErrorReceived;
 
@@ -109,6 +114,30 @@ public sealed class GameServerClient : MonoBehaviour
     {
         add => Instance.SpectatorHoleCardsReceived += value;
         remove => Instance.SpectatorHoleCardsReceived -= value;
+    }
+
+    public static event Action<InactiveNotice> InactiveNoticeReceivedStatic
+    {
+        add => Instance.InactiveNoticeReceived += value;
+        remove => Instance.InactiveNoticeReceived -= value;
+    }
+
+    public static event Action<WaitVoteRequest> WaitVoteRequestReceivedStatic
+    {
+        add => Instance.WaitVoteRequestReceived += value;
+        remove => Instance.WaitVoteRequestReceived -= value;
+    }
+
+    public static event Action<WaitVoteResult> WaitVoteResultReceivedStatic
+    {
+        add => Instance.WaitVoteResultReceived += value;
+        remove => Instance.WaitVoteResultReceived -= value;
+    }
+
+    public static event Action<RejoinResponse> RejoinResponseReceivedStatic
+    {
+        add => Instance.RejoinResponseReceived += value;
+        remove => Instance.RejoinResponseReceived -= value;
     }
 
     static GameServerClient CreateSingleton()
@@ -224,6 +253,16 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendSpectate(tableIdValue);
     }
 
+    public static void SendWaitVoteResponseStatic(string tableIdValue, string targetPlayerId, bool wait)
+    {
+        Instance.SendWaitVoteResponse(tableIdValue, targetPlayerId, wait);
+    }
+
+    public static void SendRejoinStatic(string tableIdValue)
+    {
+        Instance.SendRejoin(tableIdValue);
+    }
+
     public static void SendLeaveTableStatic(string reason)
     {
         Instance.SendLeaveTable(reason);
@@ -277,6 +316,23 @@ public sealed class GameServerClient : MonoBehaviour
     {
         var req = new SpectateRequest { TableId = tableIdValue ?? "" };
         SendPacket(MsgType.SpectateRequest, req);
+    }
+
+    public void SendWaitVoteResponse(string tableIdValue, string targetPlayerId, bool wait)
+    {
+        var req = new WaitVoteResponse
+        {
+            TableId = tableIdValue ?? "",
+            TargetPlayerId = targetPlayerId ?? "",
+            Wait = wait
+        };
+        SendPacket(MsgType.WaitVoteResponse, req);
+    }
+
+    public void SendRejoin(string tableIdValue)
+    {
+        var req = new RejoinRequest { TableId = tableIdValue ?? "" };
+        SendPacket(MsgType.RejoinRequest, req);
     }
 
     public void SendLeaveTable(string reason)
@@ -509,7 +565,8 @@ public sealed class GameServerClient : MonoBehaviour
                         resumeWindowSec = connectResponse.ResumeWindowSec;
                         ConnectResponseReceived?.Invoke(connectResponse);
                         MessageReceived?.Invoke(msgType, connectResponse);
-
+                        //sharedData.myPlayerID = playerId;
+                        //Debug.Log("myPlayerID:" + sharedData.myPlayerID);
                         // RENDER: update player HUD (player id, session, credits, protocol).
                         // Example:
                         // - show connect success toast
@@ -664,7 +721,7 @@ public sealed class GameServerClient : MonoBehaviour
                         bool canRaise = turn.AllowedActions.Contains(PokerActionType.Raise);
                         bool canAllIn = turn.AllowedActions.Contains(PokerActionType.AllIn);
 
-                        Debug.Log("TurnUpdate player=" + turn.PlayerId + " seat = " + turn .Seat );
+                        Debug.Log("TurnUpdate player=" + turn.PlayerId + " seat = " + turn.Seat);
 
                         // RENDER: highlight current turn + enable allowed buttons.
                         // Example:
@@ -781,6 +838,46 @@ public sealed class GameServerClient : MonoBehaviour
                             var suit = card.Suit;
                             // render card for pid in spectator UI
                         }
+                    });
+                }
+                break;
+            case MsgType.InactiveNotice:
+                if (TryParsePayload(payload, InactiveNotice.Parser, out var inactiveNotice))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        InactiveNoticeReceived?.Invoke(inactiveNotice);
+                        MessageReceived?.Invoke(msgType, inactiveNotice);
+                    });
+                }
+                break;
+            case MsgType.WaitVoteRequest:
+                if (TryParsePayload(payload, WaitVoteRequest.Parser, out var voteReq))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        WaitVoteRequestReceived?.Invoke(voteReq);
+                        MessageReceived?.Invoke(msgType, voteReq);
+                    });
+                }
+                break;
+            case MsgType.WaitVoteResult:
+                if (TryParsePayload(payload, WaitVoteResult.Parser, out var voteResult))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        WaitVoteResultReceived?.Invoke(voteResult);
+                        MessageReceived?.Invoke(msgType, voteResult);
+                    });
+                }
+                break;
+            case MsgType.RejoinResponse:
+                if (TryParsePayload(payload, RejoinResponse.Parser, out var rejoinResp))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        RejoinResponseReceived?.Invoke(rejoinResp);
+                        MessageReceived?.Invoke(msgType, rejoinResp);
                     });
                 }
                 break;
@@ -933,6 +1030,14 @@ public void OnCallClicked(long callAmount) => GameServerClient.SendCallStatic(ca
 public void OnBetClicked(long amount)  => GameServerClient.SendBetStatic(amount);
 public void OnRaiseClicked(long amount)=> GameServerClient.SendRaiseStatic(amount);
 public void OnAllInClicked(long amount)=> GameServerClient.SendAllInStatic(amount);
+
+// Vote / Rejoin:
+public void OnVoteWaitYes(string tableId, string targetPlayerId)
+    => GameServerClient.SendWaitVoteResponseStatic(tableId, targetPlayerId, true);
+public void OnVoteWaitNo(string tableId, string targetPlayerId)
+    => GameServerClient.SendWaitVoteResponseStatic(tableId, targetPlayerId, false);
+public void OnRejoin(string tableId)
+    => GameServerClient.SendRejoinStatic(tableId);
 
 IMPORTANT
 ---------

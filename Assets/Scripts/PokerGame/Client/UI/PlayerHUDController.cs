@@ -6,6 +6,7 @@
 using Com.poker.Core;
 using Google.Protobuf;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -31,17 +32,15 @@ namespace WCC.Poker.Client
 
         [Space]
 
-        [SerializeField] BaseAnimation _userButtonActions;
-
         readonly List<PlayerHUD_UI> _playersHUDList = new();
 
         PlayerHUD_UI _currentPlayerHUD;
 
-        public event Action<Dictionary<string, PlayerHUD_UI>> PlayerHUDListListenerEvent;
+        public event Action<ConcurrentDictionary<string, PlayerHUD_UI>> PlayerHUDListListenerEvent;
 
         int _playerIndex = 4;
 
-        readonly Dictionary<string, PlayerHUD_UI> _inGamePlayersRecords = new();
+        readonly ConcurrentDictionary<string, PlayerHUD_UI> _inGamePlayersRecords = new();
 
         TableState _currentTableState;
 
@@ -68,6 +67,7 @@ namespace WCC.Poker.Client
         {
             DeckCardsController.OnWinnerEvent += async playerID =>
             {
+                if (!_inGamePlayersRecords.ContainsKey(playerID)) return;
                 var p = _inGamePlayersRecords[playerID];
 
                 p.SetEnableWinner(true);
@@ -79,173 +79,113 @@ namespace WCC.Poker.Client
             };
         }
 
-        void OnMessage(MsgType type, IMessage msg)
+        void OnActionBroadcast(ActionBroadcast m)
         {
-            if (type == MsgType.ActionBroadcast)
+            if (_inGamePlayersRecords.ContainsKey(m.PlayerId))
             {
-                // Broadcast of OTHER players' actions.
-                var m = (ActionBroadcast)msg;
-                // Data you can use:
-                // - m.PlayerId
-                // - m.Action, m.Amount
-                // - m.CurrentBet, m.PotTotal
-                Debug.Log($"<color=green>[ActionBroadcast] player={m.PlayerId} action={m.Action} amount={m.Amount} pot={m.PotTotal} | {_inGamePlayersRecords.Count}</color>");
+                _inGamePlayersRecords[m.PlayerId].SetCancelTurnTime();
+                _inGamePlayersRecords[m.PlayerId].SetEnableActionHolder(true);
+                _inGamePlayersRecords[m.PlayerId].SetActionBroadcast($"{m.Action}");
 
-                //if (string.IsNullOrEmpty(_currentPlayerIdTurn))
-                //{
-                //    _inGamePlayersRecords[_currentPlayerIdTurn].SeCancelTurnTime();
-                //}
-
-                if (_inGamePlayersRecords.ContainsKey(m.PlayerId))
-                {
-                    _inGamePlayersRecords[m.PlayerId].SetCancelTurnTime();
-                    _inGamePlayersRecords[m.PlayerId].SetEnableActionHolder(true);
-                    _inGamePlayersRecords[m.PlayerId].SetActionBroadcast($"{m.Action}");
-
-                    if (m.Action == PokerActionType.Check) AudioManager.main.PlayAudio("Actions", 0);
-                }
-
-
+                if (m.Action == PokerActionType.Check) AudioManager.main.PlayAudio("Actions", 0);
             }
-            else if (type == MsgType.TableSnapshot)
+        }
+
+        void OnTableSnapshot(TableSnapshot m)
+        {
+            var dealerId = "?";
+            var sbId = "?";
+            var bbId = "?";
+
+            foreach (var p in m.Players)
             {
-                //Debug.Log($"<color=green> TableSnapshot </color>");
-                // Full table state (seats, stacks, pot, board).
-                var m = (TableSnapshot)msg;
-                // Data you can use:
-                // - m.State (waiting/preflop/flop/turn/river/showdown/reset)
-                // - m.CommunityCards (board cards if already revealed)
-                // - m.PotTotal, m.CurrentBet, m.MinRaise
-                // - m.CurrentTurnSeat
+                if (p.Seat == m.DealerSeat)
+                {
+                    if (_inGamePlayersRecords.ContainsKey(_last_dealerId))
+                        _inGamePlayersRecords[_last_dealerId].SetTag(TagType.Dealer, false);
+                    dealerId = p.PlayerId;
+                }
+                if (p.Seat == m.SmallBlindSeat)
+                {
+                    if (_inGamePlayersRecords.ContainsKey(_last_sbId))
+                        _inGamePlayersRecords[_last_sbId].SetTag(TagType.Dealer, false);
+                    sbId = p.PlayerId;
+                }
+                if (p.Seat == m.BigBlindSeat)
+                {
+                    if (_inGamePlayersRecords.ContainsKey(_last_bbId))
+                        _inGamePlayersRecords[_last_bbId].SetTag(TagType.Dealer, false);
+                    bbId = p.PlayerId;
+                }
+            }
+
+            if (_inGamePlayersRecords.Count != 0)
+            {
+                if (_inGamePlayersRecords.ContainsKey(dealerId))
+                {
+                    _inGamePlayersRecords[dealerId].SetTag(TagType.Dealer, true);
+                    _last_dealerId = dealerId;
+                }
+                if (_inGamePlayersRecords.ContainsKey(sbId))
+                {
+                    _inGamePlayersRecords[sbId].SetTag(TagType.SmallBlind, true);
+                    _last_sbId = sbId;
+                }
+                if (_inGamePlayersRecords.ContainsKey(bbId))
+                {
+                    _inGamePlayersRecords[bbId].SetTag(TagType.BigBlind, true);
+                    _last_bbId = bbId;
+                }
+            }
 
 
-                // Who is dealer / blinds (seat -> playerId)
-                string dealerId = "?";
-                string sbId = "?";
-                string bbId = "?";
+            if (_currentTableState != m.State)
+            {
+                foreach (var p in _inGamePlayersRecords)
+                    p.Value.SetEnableActionHolder(false);
 
+                _currentTableState = m.State;
+            }
+
+            if (_inGamePlayersRecords.Count == 0)
+            {
                 foreach (var p in m.Players)
                 {
-                    if (p.Seat == m.DealerSeat)
-                    {
-                        if(_inGamePlayersRecords.ContainsKey(_last_dealerId)) 
-                            _inGamePlayersRecords[_last_dealerId].SetTag(TagType.Dealer, false);
-                        dealerId = p.PlayerId;
-                    }
-                    if (p.Seat == m.SmallBlindSeat)
-                    {
-                        if (_inGamePlayersRecords.ContainsKey(_last_sbId))
-                            _inGamePlayersRecords[_last_sbId].SetTag(TagType.Dealer, false);
-                        sbId = p.PlayerId;
-                    }
-                    if (p.Seat == m.BigBlindSeat)
-                    {
-                        if (_inGamePlayersRecords.ContainsKey(_last_bbId))
-                            _inGamePlayersRecords[_last_bbId].SetTag(TagType.Dealer, false);
-                        bbId = p.PlayerId;
-                    }
+                    if (_inGamePlayersRecords.ContainsKey(p.PlayerId)) continue;
+                    SummonPlayerHUDUI(p.Seat - 1, $"P-{p.PlayerId}-{p.Seat}", p.PlayerId, (int)p.Stack);
                 }
 
-                if (_inGamePlayersRecords.Count != 0)
-                {
-                    if(_inGamePlayersRecords.ContainsKey(dealerId))
-                    {
-                        _inGamePlayersRecords[dealerId].SetTag(TagType.Dealer, true);
-                        _last_dealerId = dealerId;
-                    }
-                    if (_inGamePlayersRecords.ContainsKey(sbId))
-                    {
-                        _inGamePlayersRecords[sbId].SetTag(TagType.SmallBlind, true);
-                        _last_sbId = sbId;
-                    }
-                    if (_inGamePlayersRecords.ContainsKey(bbId))
-                    {
-                        _inGamePlayersRecords[bbId].SetTag(TagType.BigBlind, true);
-                        _last_bbId = bbId;
-                    }
-                }
-
-
-                if (_currentTableState != m.State)
-                {
-                    foreach (var p in _inGamePlayersRecords)
-                    {
-                        p.Value.SetEnableActionHolder(false);
-                    }
-                    _currentTableState = m.State;
-                }
-
-                if (_inGamePlayersRecords.Count == 0)
-                {
-                    foreach (var p in m.Players)
-                    {
-                        if (_inGamePlayersRecords.ContainsKey(p.PlayerId)) continue;
-
-                        SummonPlayerHUDUI(p.Seat - 1, $"P-{p.PlayerId}-{p.Seat}", p.PlayerId, (int)p.Stack);
-                    }
-
-                    PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
-                }
-
-                if (m.State == TableState.Reset)
-                {
-                    foreach (var p in _inGamePlayersRecords)
-                    {
-                        p.Value.SetEnableActionHolder(false);
-                    }
-                    //foreach (var p in _inGamePlayersRecords)
-                    //{
-                    //    Destroy(p.Value.gameObject);
-                    //}
-
-                    //_inGamePlayersRecords.Clear();
-
-                }
-                //Debug.Log($"[Snapshot] table={m.TableId} state={m.State} pot={m.PotTotal} currentBet={m.CurrentBet}");
-                //foreach (var p in m.Players)
-                //{
-                //    Debug.Log($"<color=blue>  seat={p.Seat} player={p.PlayerId} stack={p.Stack} bet={p.BetThisRound} status={p.Status} </color>");
-                //}
-                // Community cards (if any are already revealed)
-                // You can read them like:
-                // - m.CommunityCards[0] -> first board card
-                // - m.CommunityCards[1] -> second board card
-                // If no board yet (pre-flop), count = 0.
-                //if (m.CommunityCards != null && m.CommunityCards.Count > 0)
-                //    Debug.Log($"  board={PokerNetConnect.FormatCards(m.CommunityCards)}");
+                PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
             }
-            else if (type == MsgType.TurnUpdate)
+
+            if (m.State == TableState.Reset)
             {
-                // Whose turn + allowed actions.
-                var m = (TurnUpdate)msg;
-                // Data you can use:
-                // - m.PlayerId, m.Seat (current turn)
-                // - Seat number starts at 1 (not 0)
-                // - m.AllowedActions (Fold/Check/Call/Bet/Raise/AllIn)
-                // - m.CallAmount, m.MinRaise, m.MaxRaise
-                // - m.Stack (current player stack)
-                // - m.DeadlineUnixMs (absolute server time when turn expires)
-                //   Use this to build a countdown/progress bar:
-                //   remainingMs = max(0, DeadlineUnixMs - nowUtcMs)
-                var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var remainingMs = m.DeadlineUnixMs > 0 ? Math.Max(0, (long)m.DeadlineUnixMs - nowMs) : 0;
-                Debug.Log($"[Turn] player={m.PlayerId} seat={m.Seat} allowed={m.AllowedActions.Count} remainingMs={remainingMs}");
-
-                _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
-
-                _inGamePlayersRecords[m.PlayerId].SetTurn();
+                foreach (var p in _inGamePlayersRecords)
+                    p.Value.SetEnableActionHolder(false);
             }
-            else if (type == MsgType.StackUpdate)
+        }
+
+        void OnTurnUpdate(TurnUpdate m)
+        {
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var remainingMs = m.DeadlineUnixMs > 0 ? Math.Max(0, (long)m.DeadlineUnixMs - nowMs) : 0;
+            _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
+            _inGamePlayersRecords[m.PlayerId].SetTurn();
+        }
+
+        void OnStackUpdate(StackUpdate m)
+        {
+            _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
+        }
+
+        void OnMessage(MsgType type, IMessage msg)
+        {
+            switch (type)
             {
-                // Single player's stack update.
-                var m = (StackUpdate)msg;
-                // Data you can use:
-                // - m.PlayerId
-                // - m.Stack (stack = player's current chips in this match)
-                Debug.Log($"[StackUpdate] player={m.PlayerId} stack={m.Stack}");
-
-                _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
-
+                case MsgType.ActionBroadcast: OnActionBroadcast((ActionBroadcast)msg); break;
+                case MsgType.TableSnapshot: OnTableSnapshot((TableSnapshot)msg); break;
+                case MsgType.TurnUpdate: OnTurnUpdate((TurnUpdate)msg); break;
+                case MsgType.StackUpdate: OnStackUpdate((StackUpdate)msg); break;
             }
         }
 
@@ -257,31 +197,13 @@ namespace WCC.Poker.Client
         {
             var p = Instantiate(_playerHUDPrefab, _playersContainer);
             _playersHUDList.Add(p);
-            _inGamePlayersRecords.Add(playerID, p);
+            _inGamePlayersRecords.TryAdd(playerID, p);
 
             p.transform.localPosition = seat == _playerIndex ? _playersTablePositions[_playerIndex].localPosition : _playersTablePositions[seat].localPosition;
 
             p.InititalizePlayerHUDUI(playerID, playerName, seat == _playerIndex, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], stackAmount);
             
             if(seat == _playerIndex && _currentPlayerHUD == null) _currentPlayerHUD = p;
-        }
-
-        async void TestRoundTurn()
-        {
-            foreach (var p in _playersHUDList)
-            {
-                var tcs = new TaskCompletionSource<bool>();
-
-                if (p == _currentPlayerHUD) _userButtonActions.PlayAnimation("PlayActionButtonGoUp");
-
-                p.SetTurn(() =>
-                {
-                    tcs.SetResult(true);
-                    if (p == _currentPlayerHUD) _userButtonActions.PlayAnimation("PlayActionButtonGoDown");
-                });
-
-                await tcs.Task; 
-            }
         }
     }
 }
