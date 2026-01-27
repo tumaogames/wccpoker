@@ -199,19 +199,19 @@ namespace WCC.Poker.Client
             {
                 _cardViewList_onPlayers[i].transform.SetParent(_deckTableGroup);
                 _cardViewList_onPlayers[i].transform.localScale = new Vector2(0.56f, 0.56f);
-                _cardViewList_onPlayers[i].transform.DOMove(_deckTableGroup.position, 0.25f).SetEase(Ease.InOutSine).OnComplete(null);
+                _cardViewList_onPlayers[i].transform.DOMove(_deckTableGroup.position, 0.1f).SetEase(Ease.InOutSine).OnComplete(null);
                 AudioManager.main.PlayAudio("Cards", 0);
 
-                yield return waitSec;
+                yield return null;
             }
 
             for (int i = 0; i < _cardViewList_onCommunity.Count; i++)
             {
                 _cardViewList_onCommunity[i].transform.SetParent(_deckTableGroup);
                 _cardViewList_onCommunity[i].transform.localScale = new Vector2(0.56f, 0.56f);
-                _cardViewList_onCommunity[i].transform.DOMove(_deckTableGroup.position, 0.25f).SetEase(Ease.InOutSine).OnComplete(null);
+                _cardViewList_onCommunity[i].transform.DOMove(_deckTableGroup.position, 0.1f).SetEase(Ease.InOutSine).OnComplete(null);
 
-                yield return waitSec;
+                yield return null; //yield return null;
             }
 
             for (int i = 0; i < _cardViewList_onPlayers.Count; i++)
@@ -219,10 +219,10 @@ namespace WCC.Poker.Client
                 var isReached = false;
 
                 _cardViewList_onPlayers[i].transform.localScale = new Vector2(0.56f, 0.56f);
-                _cardViewList_onPlayers[i].transform.DOMove(_bankerPosition.position, 0.03f).SetEase(Ease.InOutSine).OnComplete(() =>
+                _cardViewList_onPlayers[i].transform.DOMove(_bankerPosition.position, 0.03f).SetEase(Ease.InSine).OnComplete(() =>
                 {
                     isReached = true;
-                    Destroy(_cardViewList_onPlayers[i].gameObject, 0.3f);
+                    Destroy(_cardViewList_onPlayers[i].gameObject);
                 });
                 AudioManager.main.PlayAudio("Cards", 0);
                 yield return new WaitUntil(() => isReached);
@@ -233,10 +233,10 @@ namespace WCC.Poker.Client
                 var isReached = false;
 
                 _cardViewList_onCommunity[i].transform.localScale = new Vector2(0.56f, 0.56f);
-                _cardViewList_onCommunity[i].transform.DOMove(_bankerPosition.position, 0.22f).SetEase(Ease.InOutSine).OnComplete(() =>
+                _cardViewList_onCommunity[i].transform.DOMove(_bankerPosition.position, 0.1f).SetEase(Ease.InSine).OnComplete(() =>
                 {
                     isReached = true;
-                    Destroy(_cardViewList_onCommunity[i].gameObject, 0.3f);
+                    Destroy(_cardViewList_onCommunity[i].gameObject);
                 });
 
                 yield return new WaitUntil(() => isReached);

@@ -46,6 +46,10 @@ namespace WCC.Poker.Client
 
         public enum TagType { Dealer, SmallBlind, BigBlind }
 
+        string _last_dealerId = "?";
+        string _last_sbId = "?";
+        string _last_bbId = "?";
+
         #region EDITOR
         private void OnValidate()
         {
@@ -118,16 +122,43 @@ namespace WCC.Poker.Client
 
                 foreach (var p in m.Players)
                 {
-                    if (p.Seat == m.DealerSeat) dealerId = p.PlayerId;
-                    if (p.Seat == m.SmallBlindSeat) sbId = p.PlayerId;
-                    if (p.Seat == m.BigBlindSeat) bbId = p.PlayerId;
+                    if (p.Seat == m.DealerSeat)
+                    {
+                        if(_inGamePlayersRecords.ContainsKey(_last_dealerId)) 
+                            _inGamePlayersRecords[_last_dealerId].SetTag(TagType.Dealer, false);
+                        dealerId = p.PlayerId;
+                    }
+                    if (p.Seat == m.SmallBlindSeat)
+                    {
+                        if (_inGamePlayersRecords.ContainsKey(_last_sbId))
+                            _inGamePlayersRecords[_last_sbId].SetTag(TagType.Dealer, false);
+                        sbId = p.PlayerId;
+                    }
+                    if (p.Seat == m.BigBlindSeat)
+                    {
+                        if (_inGamePlayersRecords.ContainsKey(_last_bbId))
+                            _inGamePlayersRecords[_last_bbId].SetTag(TagType.Dealer, false);
+                        bbId = p.PlayerId;
+                    }
                 }
 
                 if (_inGamePlayersRecords.Count != 0)
                 {
-                    if(_inGamePlayersRecords.ContainsKey(dealerId)) _inGamePlayersRecords[dealerId].SetTag(TagType.Dealer, true);
-                    if (_inGamePlayersRecords.ContainsKey(sbId)) _inGamePlayersRecords[sbId].SetTag(TagType.SmallBlind, true);
-                    if (_inGamePlayersRecords.ContainsKey(bbId)) _inGamePlayersRecords[bbId].SetTag(TagType.BigBlind, true);
+                    if(_inGamePlayersRecords.ContainsKey(dealerId))
+                    {
+                        _inGamePlayersRecords[dealerId].SetTag(TagType.Dealer, true);
+                        _last_dealerId = dealerId;
+                    }
+                    if (_inGamePlayersRecords.ContainsKey(sbId))
+                    {
+                        _inGamePlayersRecords[sbId].SetTag(TagType.SmallBlind, true);
+                        _last_sbId = sbId;
+                    }
+                    if (_inGamePlayersRecords.ContainsKey(bbId))
+                    {
+                        _inGamePlayersRecords[bbId].SetTag(TagType.BigBlind, true);
+                        _last_bbId = bbId;
+                    }
                 }
 
 

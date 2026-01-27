@@ -91,6 +91,7 @@ namespace WCC.Poker.Client
                 return;
             }
 
+            if(!_playerHUDRecords.ContainsKey(playerID)) return;
             InstantiateBet(_betValueUITextPrefab.gameObject,
                 _playerHUDRecords[playerID].Item1.transform.position,
                 _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position,
@@ -149,8 +150,12 @@ namespace WCC.Poker.Client
                 0.8f,
                 Instance =>
             {
+                _potHolder.SetActive(false);
+                _potValueText.text = string.Empty;
+
                 AudioManager.main.PlayAudio("Chips_Pot", 0);
                 Destroy(Instance);
+
             });
         }
 
@@ -214,9 +219,9 @@ namespace WCC.Poker.Client
                     }
                 case MsgType.HandResult:
                     {
-                        await Task.Delay(1500);
-                        _potHolder.SetActive(false);
-                        _potValueText.text = string.Empty;
+                        //await Task.Delay(1500);
+                        //_potHolder.SetActive(false);
+                        //_potValueText.text = string.Empty;
                         break;
                     }
             }
