@@ -81,6 +81,7 @@ public class ModalPopupAnimator : MonoBehaviour
         });
 
         seq.Play();
+        AudioManager.Instance.PlaySFX("OnClick");
     }
 }
 

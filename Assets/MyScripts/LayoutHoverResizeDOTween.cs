@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -7,7 +7,8 @@ using DG.Tweening;
 public class LayoutHoverResizeDOTween :
     MonoBehaviour,
     IPointerEnterHandler,
-    IPointerExitHandler
+    IPointerExitHandler,
+    IPointerClickHandler
 {
     [Header("Hover Size")]
     public float hoverPreferredWidth = 400f;
@@ -20,6 +21,9 @@ public class LayoutHoverResizeDOTween :
     [Header("Child Toggle")]
     public int childIndexToToggle = 1;
 
+    // 🔒 Global selection
+    private static LayoutHoverResizeDOTween currentSelected;
+
     private LayoutElement layoutElement;
     private RectTransform rectTransform;
 
@@ -27,51 +31,100 @@ public class LayoutHoverResizeDOTween :
     private float originalHeight;
 
     private Tween sizeTween;
+    private bool isSelected;
 
     void Awake()
     {
         layoutElement = GetComponent<LayoutElement>();
-        rectTransform = transform as RectTransform;
+        rectTransform = (RectTransform)transform;
 
         originalWidth = layoutElement.preferredWidth;
         originalHeight = layoutElement.preferredHeight;
 
-        // Ensure child starts hidden
-        if (transform.childCount > childIndexToToggle)
-        {
-            transform.GetChild(childIndexToToggle).gameObject.SetActive(false);
-        }
+        ToggleChild(false);
     }
+
+    // =====================
+    // POINTER EVENTS
+    // =====================
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        AnimateSize(hoverPreferredWidth, hoverPreferredHeight);
+        if (currentSelected != null && currentSelected != this)
+            currentSelected.Deselect();
 
+        AnimateSize(hoverPreferredWidth, hoverPreferredHeight);
         ToggleChild(true);
-        AudioManager.Instance.PlaySFX("OnClick");
+
+        AudioManager.Instance.PlaySFX("OnSelect");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        AnimateSize(originalWidth, originalHeight);
+        if (isSelected) return;
 
+        AnimateSize(originalWidth, originalHeight);
         ToggleChild(false);
     }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        Select();
+        eventData.Use(); // ⛔ prevents background click
+    }
+
+    // =====================
+    // SELECTION API
+    // =====================
+
+    private void Select()
+    {
+        isSelected = true;
+        currentSelected = this;
+
+        AnimateSize(hoverPreferredWidth, hoverPreferredHeight);
+        ToggleChild(true);
+
+        AudioManager.Instance.PlaySFX("OnClick");
+        GameManager.Instance.selectedTable = GetComponent<TableData>();
+    }
+
+    private void Deselect()
+    {
+        isSelected = false;
+
+        AnimateSize(originalWidth, originalHeight);
+        ToggleChild(false);
+    }
+
+    public static void DeselectCurrent()
+    {
+        if (currentSelected == null) return;
+
+        currentSelected.Deselect();
+        currentSelected = null;
+        GameManager.Instance.selectedTable = null;
+    }
+
+    // =====================
+    // ANIMATION
+    // =====================
 
     private void AnimateSize(float targetWidth, float targetHeight)
     {
         sizeTween?.Kill();
 
-        float startW = layoutElement.preferredWidth;
-        float startH = layoutElement.preferredHeight;
+        Vector2 start = new Vector2(
+            layoutElement.preferredWidth,
+            layoutElement.preferredHeight
+        );
 
         sizeTween = DOTween.To(
-            () => new Vector2(startW, startH),
+            () => start,
             v =>
             {
                 layoutElement.preferredWidth = v.x;
                 layoutElement.preferredHeight = v.y;
-
                 LayoutRebuilder.MarkLayoutForRebuild(rectTransform);
             },
             new Vector2(targetWidth, targetHeight),
@@ -82,9 +135,7 @@ public class LayoutHoverResizeDOTween :
     private void ToggleChild(bool state)
     {
         if (transform.childCount > childIndexToToggle)
-        {
             transform.GetChild(childIndexToToggle).gameObject.SetActive(state);
-        }
     }
 
     void OnDisable()

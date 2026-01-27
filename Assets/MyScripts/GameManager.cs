@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public bool end;
     public bool enableSound;
+    public TableData selectedTable;
     public RectTransform imageParentContainer;   // Image RectTransform
     public GameObject tablePrefab;          // UI prefab (must have RectTransform)
     public enum GameState { MainMenu, Playing, Paused, GameOver }

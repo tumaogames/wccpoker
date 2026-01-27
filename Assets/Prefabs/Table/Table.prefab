@@ -725,8 +725,8 @@ GameObject:
   - component: {fileID: 2559653479961648098}
   - component: {fileID: 3024261101535265155}
   - component: {fileID: 6285664340556320932}
-  - component: {fileID: 6884737834180150398}
   - component: {fileID: 6272354359545096657}
+  - component: {fileID: 6909510892180590130}
   m_Layer: 5
   m_Name: Table
   m_TagString: Untagged
@@ -853,23 +853,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &6884737834180150398
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8734159816331224758}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b0a9e820263bccb44816857c4d394b47, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hoverPreferredWidth: 400
-  hoverPreferredHeight: 400
-  duration: 0.25
-  ease: 27
-  childIndexToToggle: 1
 --- !u!114 &6272354359545096657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -891,3 +874,20 @@ MonoBehaviour:
   tableNameTxt: {fileID: 3821711609337950875}
   blindTxt: {fileID: 2961455942396596266}
   buyInTxt: {fileID: 7848122319904397248}
+--- !u!114 &6909510892180590130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8734159816331224758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdebf2a3ffe266243bc9acd6059727c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverPreferredWidth: 400
+  hoverPreferredHeight: 400
+  duration: 0.25
+  ease: 27
+  childIndexToToggle: 1

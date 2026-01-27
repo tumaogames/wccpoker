@@ -23,3 +23,13 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: c2bc0fcad4dfa2f45b47feeb6da218ca, type: 3}
     volume: 0.72
     loop: 0
+  - key: OnSelect
+    channel: 1
+    clip: {fileID: 8300000, guid: 42fd95cb756b81247b6e9ceebbfe4224, type: 3}
+    volume: 0.363
+    loop: 0
+  - key: OnToogle
+    channel: 1
+    clip: {fileID: 8300000, guid: 3ba0b8cf7f84eaa40aafdfe33181d991, type: 3}
+    volume: 0.688
+    loop: 0
