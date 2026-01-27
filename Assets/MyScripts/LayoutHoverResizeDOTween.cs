@@ -71,6 +71,7 @@ public class LayoutHoverResizeDOTween :
     {
         Select();
         eventData.Use(); // ⛔ prevents background click
+        GameManager.Instance.tableCode = GameManager.Instance.selectedTable.GetComponent<TableData>().tableCode;
     }
 
     // =====================

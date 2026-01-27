@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+    public string tableCode;
     public bool end;
     public bool enableSound;
     public TableData selectedTable;
@@ -96,6 +97,7 @@ public class GameManager : MonoBehaviour
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
         var tableDataInfo = instance.GetComponent<TableData>();
+        tableDataInfo.tableCode = tableItem.TableCode;
         tableDataInfo.tableName = tableItem.TableName;
         tableDataInfo.smallBlind = tableItem.SmallBlind;
         tableDataInfo.minBuy = tableItem.MinBuyIn;

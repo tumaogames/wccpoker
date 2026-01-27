@@ -5,6 +5,7 @@ using TMPro;
 
 public class TableData : MonoBehaviour
 {
+    public string tableCode;
     public string tableName;
     public long smallBlind;
     public long bigBlind;

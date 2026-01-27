@@ -3632,7 +3632,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c60fafee32127b54b8115b8491624507, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameToken: 4c622459-1272-4428-adda-37d4e30fbbb7
+  gameToken: 167de1da-e7ac-4a51-be7e-8391d3ae8109
   opId: cde5ce9f-8df7-f011-ace1-b2b431609323
 --- !u!114 &3183145240839044569
 MonoBehaviour:
@@ -3661,6 +3661,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 393d3f81fd55236418da07cf270279ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tableCode: 
   end: 0
   enableSound: 0
   selectedTable: {fileID: 0}
