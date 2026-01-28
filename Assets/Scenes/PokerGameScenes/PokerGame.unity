@@ -2459,6 +2459,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cc4b0a278f22ed94e97c703d51dc84f6, type: 3}
   - {fileID: 21300000, guid: fe8b319c78e7ca14fad26b95dbc521e0, type: 3}
   - {fileID: 21300000, guid: 1a7f92f97e1af0f47b54fddfae3bb51f, type: 3}
+  Debug_inGamePlayersRecords: 0
+  Debug_playersHUDList: 0
 --- !u!114 &376248689
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2488,6 +2490,14 @@ MonoBehaviour:
   _otherPlayerCardsSize: 0.8
   _playerCardsSize: 1.3
   _debugRoundNameText: {fileID: 657307670}
+  _logDealWarnings: 1
+  _logHandSummary: 0
+  _logStateTransitions: 0
+  Debug_communityCardsRecords: 0
+  Debug_playerSeatRecords: 0
+  Debug_playerCardsRecords: 0
+  Debug_cardViewList_onPlayers: 0
+  Debug_cardViewList_onCommunity: 0
 --- !u!114 &376248690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2529,6 +2539,8 @@ MonoBehaviour:
   _bigPotPrefab: {fileID: 372859107937285492, guid: da270587ce889ca4ea0270ca77487d0d, type: 3}
   _potValueText: {fileID: 1261355299}
   _potHolder: {fileID: 25301630}
+  Debug_playerBetDictionary: 0
+  Debug_playerHUDRecords: 0
 --- !u!114 &376248692
 MonoBehaviour:
   m_ObjectHideFlags: 0
