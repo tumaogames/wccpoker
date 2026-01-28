@@ -40,6 +40,8 @@ namespace WCC.Poker.Client
 
         TableState _currentTableState;
 
+        public static event Action<string> OnPotChipsMovedToWinner;
+
         private void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
 
         private void Start()
@@ -48,13 +50,30 @@ namespace WCC.Poker.Client
             DeckCardsController.OnWinnerEvent += MoveAllPotChipsToWinner;
         }
 
+        #region DEBUG
+        [Space(20)]
+        public int Debug_playerBetDictionary;
+        public int Debug_playerHUDRecords;
+
+        private void Update()
+        {
+            Debug_playerBetDictionary = _playerBetDictionary.Count;
+            Debug_playerHUDRecords = _playerHUDRecords.Count;
+        }
+        #endregion DEBUG
+
         void LoadPlayerHUDList(ConcurrentDictionary<string, PlayerHUD_UI> data)
         {
-            int index = 0;
             foreach (var i in data)
             {
-                _playerHUDRecords.TryAdd(i.Key, (i.Value, index));
-                index++;
+                if (_playerHUDRecords.TryGetValue(i.Key, out var existing))
+                {
+                    if (existing.Item2 != i.Value.SeatIndex)
+                        _playerHUDRecords[i.Key] = (i.Value, i.Value.SeatIndex);
+                    continue;
+                }
+
+                _playerHUDRecords.TryAdd(i.Key, (i.Value, i.Value.SeatIndex));
             }
         }
 
@@ -92,7 +111,7 @@ namespace WCC.Poker.Client
                 return;
             }
 
-            if(!_playerHUDRecords.ContainsKey(playerID)) return;
+            //if(!_playerHUDRecords.ContainsKey(playerID)) return;
             InstantiateBet(_betValueUITextPrefab.gameObject,
                 _playerHUDRecords[playerID].Item1.transform.position,
                 _playersBetHolderPositions[_playerHUDRecords[playerID].Item2].position,
@@ -111,6 +130,15 @@ namespace WCC.Poker.Client
             var betHolder = Instantiate(prefab, _betGroupContainer);
             AudioManager.main.PlayRandomAudio("Chips_Bet", Vector2.zero);
             betHolder.transform.position = startPosition;
+            if (GameServerClient.Instance.IsCatchingUp)
+            {
+                betHolder.transform.position = destination;
+                betHolder.transform.localScale = Vector2.one;
+                betHolder.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                isReachedCallback?.Invoke(betHolder);
+                return;
+            }
+
             betHolder.transform.DOMove(destination, moveDuration)
             .SetEase(Ease.InOutSine)
             .OnComplete(() =>
@@ -145,6 +173,7 @@ namespace WCC.Poker.Client
 
         void MoveAllPotChipsToWinner(string playerID)
         {
+            if(!_playerHUDRecords.ContainsKey(playerID)) return;
             InstantiateBet(_bigPotPrefab, 
                 _potHolder.transform.position,
                 _playerHUDRecords[playerID].Item1.transform.position,
@@ -156,6 +185,7 @@ namespace WCC.Poker.Client
 
                 AudioManager.main.PlayAudio("Chips_Pot", 0);
                 Destroy(Instance);
+                OnPotChipsMovedToWinner?.Invoke(playerID);
 
             });
         }

@@ -46,9 +46,11 @@ namespace WCC.Poker.Client
 
         bool _isOwner;
         string _playerID;
+        int _seatIndex = -1;
         readonly static WaitForSeconds _waitForSeconds1 = new(1f);
 
         public bool IsOwner => _isOwner;
+        public int SeatIndex => _seatIndex;
 
         Coroutine _timerCoroutine;
 
@@ -71,6 +73,8 @@ namespace WCC.Poker.Client
             _amountText.text = $"${amount}";
             CheckOwner(isMine);
         }
+
+        public void SetSeatIndex(int seatIndex) => _seatIndex = seatIndex;
 
         public void UpdateChipsAmount(int amount) => _amountText.text = $"${amount}";
 

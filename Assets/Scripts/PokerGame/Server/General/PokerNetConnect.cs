@@ -16,6 +16,11 @@ public class PokerNetConnect : MonoBehaviour
 
     public static event Action<MsgType, IMessage> OnMessageEvent;
 
+    void Awake()
+    {
+        Application.runInBackground = true;
+    }
+
     void Start()
     {
 

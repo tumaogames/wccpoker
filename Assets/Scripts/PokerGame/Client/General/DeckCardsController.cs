@@ -39,12 +39,19 @@ namespace WCC.Poker.Client
         readonly List<CardView> _cardViewList_onPlayers = new();
         readonly List<CardView> _cardViewList_onCommunity = new();
 
-        readonly ConcurrentDictionary<Com.poker.Core.Card, CardView> _communityCardsRecords = new();
+        readonly ConcurrentDictionary<int, CardView> _communityCardsRecords = new();
         readonly ConcurrentDictionary<string, int> _playerSeatRecords = new();
         readonly ConcurrentDictionary<string, PlayerCardsPack> _playerCardsRecords = new();
+        readonly List<(string playerId, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> cards)> _pendingDeals = new();
+        TableState _lastTableState = TableState.Unspecified;
+        bool _inShowdown = false;
+        bool _pendingClearAfterShowdown = false;
 
         //DEBUG TEXT
         [SerializeField] TMP_Text _debugRoundNameText;
+        [SerializeField] bool _logDealWarnings = true;
+        [SerializeField] bool _logHandSummary = false;
+        [SerializeField] bool _logStateTransitions = false;
 
         public static event Action<string> OnWinnerEvent;
 
@@ -54,6 +61,7 @@ namespace WCC.Poker.Client
         {
             public Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> Cards = new();
             public List<CardView> CardViewUI;
+            public bool IsPlaceholder;
         }
 
         [Serializable]
@@ -63,6 +71,26 @@ namespace WCC.Poker.Client
         }
 
         void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
+
+        #region DEBUG
+        [Space(20)]
+        public int Debug_communityCardsRecords;
+        public int Debug_playerSeatRecords;
+        public int Debug_playerCardsRecords;
+
+        public int Debug_cardViewList_onPlayers;
+        public int Debug_cardViewList_onCommunity;
+
+        private void Update()
+        {
+            Debug_communityCardsRecords = _communityCardsRecords.Count;
+            Debug_playerSeatRecords = _playerSeatRecords.Count;
+            Debug_playerCardsRecords = _playerCardsRecords.Count;
+
+            Debug_cardViewList_onPlayers = _cardViewList_onPlayers.Count;
+            Debug_cardViewList_onCommunity = _cardViewList_onCommunity.Count;
+        }
+        #endregion DEBUG
 
         /// <summary>
         /// This coroutine rereturns lahat ng cards sa banker
@@ -137,6 +165,13 @@ namespace WCC.Poker.Client
             _cardViewList_onPlayers.Clear();
             _cardViewList_onCommunity.Clear();
             _communityCardsRecords.Clear();
+
+            _inShowdown = false;
+            if (_pendingClearAfterShowdown)
+            {
+                _pendingClearAfterShowdown = false;
+                ClearAllCardsImmediate();
+            }
         }
 
         void OnMessage(MsgType type, IMessage msg)
@@ -145,6 +180,7 @@ namespace WCC.Poker.Client
             {
                 case MsgType.TableSnapshot: OnTableSnapshot((TableSnapshot)msg); break;
                 case MsgType.DealHoleCards: OnDealHoleCards((DealHoleCards)msg); break;
+                case MsgType.CommunityCards: OnCommunityCards((CommunityCards)msg); break;
                 case MsgType.SpectatorHoleCards: OnSpectatorHoleCards((SpectatorHoleCards)msg); break;
                 case MsgType.HandResult: OnHandResult((HandResult)msg); break;
             }
@@ -152,6 +188,9 @@ namespace WCC.Poker.Client
 
         void OnTableSnapshot(TableSnapshot m)
         {
+            if (_logStateTransitions && _lastTableState != m.State)
+                Debug.Log($"TableState transition: {_lastTableState} -> {m.State}");
+
             _debugRoundNameText.text = $"Round Status: {m.State}";
 
             if (m.CommunityCards != null && m.CommunityCards.Count > 0)
@@ -159,42 +198,131 @@ namespace WCC.Poker.Client
                 StartCoroutine(DealCardsForCommunity(m.CommunityCards));
             }
 
-            if (_playerSeatRecords.Count == 0)
+            for (int i = 0; i < m.Players.Count; i++)
             {
-                for (int i = 0; i < m.Players.Count; i++)
+                _playerSeatRecords[m.Players[i].PlayerId] = m.Players[i].Seat - 1;
+            }
+
+            if (_lastTableState != m.State && m.State == TableState.PreFlop)
+            {
+                foreach (var p in m.Players)
                 {
-                    _playerSeatRecords.TryAdd(m.Players[i].PlayerId, i);
+                    if (p.Status == PlayerStatus.SittingOut ||
+                        p.Status == PlayerStatus.Disconnected)
+                        continue;
+
+                    if (p.PlayerId == PokerNetConnect.OwnerPlayerID)
+                        continue;
+
+                    if (_playerCardsRecords.ContainsKey(p.PlayerId))
+                        continue;
+
+                    if (_playerSeatRecords.TryGetValue(p.PlayerId, out var seat))
+                        DealFaceDownCards(p.PlayerId, seat, 2);
                 }
+            }
+            if (_lastTableState != m.State && m.State == TableState.Waiting)
+            {
+                if (_inShowdown)
+                    _pendingClearAfterShowdown = true;
+                else
+                    ClearAllCardsImmediate();
+            }
+            if (m.State == TableState.Reset)
+            {
+                if (_inShowdown)
+                    _pendingClearAfterShowdown = true;
+                else
+                    ClearAllCardsImmediate();
+            }
+
+            _lastTableState = m.State;
+
+            for (int i = _pendingDeals.Count - 1; i >= 0; i--)
+            {
+                var pd = _pendingDeals[i];
+                if (_playerSeatRecords.TryGetValue(pd.playerId, out var seat))
+                {
+                    DealCardsForPlayers(pd.playerId, pd.cards, seat);
+                    _pendingDeals.RemoveAt(i);
+                }
+            }
+        }
+
+        void OnCommunityCards(CommunityCards m)
+        {
+            if (m.Cards != null && m.Cards.Count > 0)
+            {
+                if (_logHandSummary)
+                    Debug.Log($"CommunityCards ({m.Street}): {PokerNetConnect.FormatCards(m.Cards)}");
+                StartCoroutine(DealCardsForCommunity(m.Cards));
             }
         }
 
         void OnDealHoleCards(DealHoleCards m)
         {
+            Debug.Log($"<color=purple>OnDealHoleCards: {PokerNetConnect.OwnerPlayerID} </color>");
             if (string.IsNullOrEmpty(PokerNetConnect.OwnerPlayerID)) return;
-            DealCardsForPlayers(PokerNetConnect.OwnerPlayerID, m.Cards, _playerSeatRecords[PokerNetConnect.OwnerPlayerID]);
+            //if (_playerSeatRecords.ContainsKey(PokerNetConnect.OwnerPlayerID)) return;
+            if (_playerCardsRecords.TryGetValue(PokerNetConnect.OwnerPlayerID, out var existing) && !existing.IsPlaceholder) return;
+            if (existing != null && existing.IsPlaceholder) ClearPlayerCards(PokerNetConnect.OwnerPlayerID);
+            if (_playerSeatRecords.TryGetValue(PokerNetConnect.OwnerPlayerID, out var seat))
+                DealCardsForPlayers(PokerNetConnect.OwnerPlayerID, m.Cards, seat);
+            else
+            {
+                if (_logDealWarnings)
+                    Debug.LogWarning($"DealHoleCards before seat known for player {PokerNetConnect.OwnerPlayerID}. Queued.");
+                _pendingDeals.Add((PokerNetConnect.OwnerPlayerID, m.Cards));
+            }
         }
 
         void OnSpectatorHoleCards(SpectatorHoleCards m)
         {
+            Debug.Log($"<color=purple>OnSpectatorHoleCards: {m.PlayerId} </color>");
             if (string.IsNullOrEmpty(m.PlayerId)) return;
-            DealCardsForPlayers(m.PlayerId, m.Cards, _playerSeatRecords[m.PlayerId]);
+            if (_playerCardsRecords.TryGetValue(m.PlayerId, out var existing) && !existing.IsPlaceholder) return;
+            if (existing != null && existing.IsPlaceholder) ClearPlayerCards(m.PlayerId);
+            if (_playerSeatRecords.TryGetValue(m.PlayerId, out var seat))
+                DealCardsForPlayers(m.PlayerId, m.Cards, seat);
+            else
+            {
+                if (_logDealWarnings)
+                    Debug.LogWarning($"SpectatorHoleCards before seat known for player {m.PlayerId}. Queued.");
+                _pendingDeals.Add((m.PlayerId, m.Cards));
+            }
         }
 
         async void OnHandResult(HandResult m)
         {
+            _inShowdown = true;
             await Task.Delay(1000);
 
             AudioManager.main.PlayAudio("SFX", 0);
 
-            _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
-
             // Build map: playerId -> hole cards (revealed at showdown)
             var holeByPlayer = new Dictionary<string, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>>(StringComparer.Ordinal);
             foreach (var rh in m.RevealedHands)
-            {
-                var r = rh.HoleCards;
                 holeByPlayer[rh.PlayerId] = rh.HoleCards;
+
+            foreach (var kvp in holeByPlayer)
+            {
+                if (!_playerCardsRecords.TryGetValue(kvp.Key, out var pack) || pack.CardViewUI == null)
+                    continue;
+
+                pack.Cards = kvp.Value;
+                pack.IsPlaceholder = false;
+
+                var count = Math.Min(pack.CardViewUI.Count, kvp.Value.Count);
+                for (int i = 0; i < count; i++)
+                {
+                    var cardInfo = CardLibrary.main.GetCardsInfos().GetCardInfo(
+                        GlobalHawk.TranslateCardRank(kvp.Value[i].Rank),
+                        (GlobalHawk.Suit)kvp.Value[i].Suit);
+                    pack.CardViewUI[i].UpdateCardInfo(cardInfo);
+                }
             }
+
+            _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
 
             foreach (var comCard in _communityCardsRecords)
                 comCard.Value.SetSleepCard(true);
@@ -205,13 +333,14 @@ namespace WCC.Poker.Client
             {
                 var hole = holeByPlayer.TryGetValue(w.PlayerId, out var hc) ? hc : null;
 
+                if (!_playerCardsRecords.ContainsKey(w.PlayerId)) continue;
                 PlayerCardsPack listOfCards = _playerCardsRecords[w.PlayerId];
 
                 foreach (var c in w.BestFive)
                 {
                     for (int i = 0; i < listOfCards.Cards.Count; i++)
                     {
-                        if (listOfCards.Cards[i].Rank == c.Rank || listOfCards.Cards[i].Suit == c.Suit)
+                        if (listOfCards.Cards[i].Rank == c.Rank && listOfCards.Cards[i].Suit == c.Suit)
                         {
                             listOfCards.CardViewUI[i].SetSleepCard(false);
                             listOfCards.CardViewUI[i].SetShowOutline(true);
@@ -219,10 +348,11 @@ namespace WCC.Poker.Client
                         }
                     }
 
-                    if (_communityCardsRecords.ContainsKey(c))
+                    var key = CardKey(c);
+                    if (_communityCardsRecords.TryGetValue(key, out var comView))
                     {
-                        _communityCardsRecords[c].SetSleepCard(false);
-                        _communityCardsRecords[c].SetShowOutline(true);
+                        comView.SetSleepCard(false);
+                        comView.SetShowOutline(true);
                     }
                 }
             }
@@ -231,7 +361,7 @@ namespace WCC.Poker.Client
 
             await Task.Delay(3000);
 
-            SetWinner(winnerP_ID);
+            if (winnerP_ID != string.Empty) SetWinner(winnerP_ID);
 
             await Task.Delay(5000);
 
@@ -252,6 +382,17 @@ namespace WCC.Poker.Client
             card.InitializeCarView(cardIn, cardViewParent);
 
             card.transform.position = _bankerPosition.position;
+            if (GameServerClient.Instance.IsCatchingUp)
+            {
+                card.transform.SetParent(cardViewParent);
+                card.transform.position = cardViewParent.position;
+                card.transform.localScale = new Vector2(0.56f, 0.56f);
+                card.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                if (isOpenCard) card.SetOpenCard();
+                isReachedCallback();
+                return;
+            }
+
             if (useRotation) card.transform.DORotate(new Vector3(0, 0, 120), 0.2f).SetEase(Ease.InOutSine);
             card.transform.DOMove(cardViewParent.position, 0.3f)
             .SetEase(Ease.InOutSine)
@@ -269,34 +410,49 @@ namespace WCC.Poker.Client
         {
             for (int i = 0; i < infoList.Count; i++)
             {
-                if (_communityCardsRecords.ContainsKey(infoList[i])) continue;
+                var key = CardKey(infoList[i]);
+                if (!_communityCardsRecords.ContainsKey(key))
+                {
 
-                var isReached = false;
+                    var isReached = false;
 
-                InstantiateCard(true,
-                    false,
-                    GlobalHawk.TranslateCardRank(infoList[i].Rank),
-                    (GlobalHawk.Suit)infoList[i].Suit,
-                    _communityTableContainer,
-                    out var cardView,
-                    () => isReached = true);
+                    InstantiateCard(true,
+                        false,
+                        GlobalHawk.TranslateCardRank(infoList[i].Rank),
+                        (GlobalHawk.Suit)infoList[i].Suit,
+                        _communityTableContainer,
+                        out var cardView,
+                        () => isReached = true);
 
 
-                _cardViewList_onCommunity.Add(cardView);
-                _communityCardsRecords.TryAdd(infoList[i], cardView);
+                    _cardViewList_onCommunity.Add(cardView);
+                    _communityCardsRecords.TryAdd(key, cardView);
 
-                yield return new WaitUntil(() => isReached);
+                    yield return new WaitUntil(() => isReached);
+                }
+
+                yield return null;
             }
         }
 
 
         void DealCardsForPlayers(string playerID, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> playerCards, int seat)
         {
+            if (seat < 0 || seat >= _playerTablePositions.Length)
+            {
+                if (_logDealWarnings)
+                    Debug.LogWarning($"Invalid seat index {seat} for player {playerID}. Cards not dealt.");
+                return;
+            }
+
             AudioManager.main.PlayAudio("Cards", 1);
             List<CardView> _cardList = new();
+            var isLocal = playerID == PokerNetConnect.OwnerPlayerID;
+            if (_logHandSummary)
+                Debug.Log($"DealHoleCards player={playerID} seat={seat} cards={PokerNetConnect.FormatCards(playerCards)} local={isLocal}");
             for (int j = 0; j < playerCards.Count; j++)
             {
-                InstantiateCard(seat == 4,
+                InstantiateCard(isLocal,
                     true,
                     GlobalHawk.TranslateCardRank(playerCards[j].Rank),
                     (GlobalHawk.Suit)playerCards[j].Suit,
@@ -312,9 +468,86 @@ namespace WCC.Poker.Client
             {
                 Cards = playerCards,
                 CardViewUI = _cardList,
+                IsPlaceholder = false,
             });
         }
 
+        void DealFaceDownCards(string playerID, int seat, int count)
+        {
+            if (seat < 0 || seat >= _playerTablePositions.Length)
+            {
+                if (_logDealWarnings)
+                    Debug.LogWarning($"Invalid seat index {seat} for player {playerID}. Cards not dealt.");
+                return;
+            }
+
+            AudioManager.main.PlayAudio("Cards", 1);
+            List<CardView> _cardList = new();
+            var dummyCards = CreatePlaceholderCards(count);
+
+            for (int j = 0; j < dummyCards.Count; j++)
+            {
+                InstantiateCard(false,
+                    true,
+                    GlobalHawk.TranslateCardRank(dummyCards[j].Rank),
+                    (GlobalHawk.Suit)dummyCards[j].Suit,
+                    _playerTablePositions[seat],
+                    out var cardView,
+                    () => { });
+
+                _cardViewList_onPlayers.Add(cardView);
+                _cardList.Add(cardView);
+            }
+
+            _playerCardsRecords[playerID] = new PlayerCardsPack
+            {
+                Cards = dummyCards,
+                CardViewUI = _cardList,
+                IsPlaceholder = true,
+            };
+        }
+
+        Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> CreatePlaceholderCards(int count)
+        {
+            var list = new Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>();
+            for (int i = 0; i < count; i++)
+                list.Add(new Com.poker.Core.Card { Rank = 2, Suit = 0 });
+            return list;
+        }
+
+        void ClearPlayerCards(string playerID)
+        {
+            if (!_playerCardsRecords.TryRemove(playerID, out var pack) || pack?.CardViewUI == null)
+                return;
+
+            foreach (var cv in pack.CardViewUI)
+            {
+                if (cv == null) continue;
+                _cardViewList_onPlayers.Remove(cv);
+                Destroy(cv.gameObject);
+            }
+        }
+
+        void ClearAllCardsImmediate()
+        {
+            foreach (var cv in _cardViewList_onPlayers)
+            {
+                if (cv != null) Destroy(cv.gameObject);
+            }
+            foreach (var cv in _cardViewList_onCommunity)
+            {
+                if (cv != null) Destroy(cv.gameObject);
+            }
+
+            _cardViewList_onPlayers.Clear();
+            _cardViewList_onCommunity.Clear();
+            _communityCardsRecords.Clear();
+            _playerCardsRecords.Clear();
+            _pendingDeals.Clear();
+        }
+
         void SetWinner(string playerID) => OnWinnerEvent?.Invoke(playerID);
+
+        static int CardKey(Com.poker.Core.Card card) => (card.Rank << 2) | (card.Suit & 0x3);
     }
 }
