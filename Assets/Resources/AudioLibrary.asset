@@ -25,3 +25,17 @@ MonoBehaviour:
     AudioClip:
     - {fileID: 8300000, guid: ffe8b1c7094391749bbfb97274e99a7a, type: 3}
     - {fileID: 8300000, guid: 87a349a2fdfd3ec42bbe588160156789, type: 3}
+  - Key: Winner
+    AudioClip:
+    - {fileID: 8300000, guid: 78f07f4713389db4282beba6c2a1112e, type: 3}
+    - {fileID: 8300000, guid: 5bd59207bd7c9eb4eb8dddfb3255e6a4, type: 3}
+    - {fileID: 8300000, guid: b4ddda6223eba1d448cffec880c73a1e, type: 3}
+    - {fileID: 8300000, guid: b9d3f97ed836ff74b987e9b046bea201, type: 3}
+    - {fileID: 8300000, guid: 8274d870b38dc1c4baa0a45973f0e30a, type: 3}
+    - {fileID: 8300000, guid: 02afd1d7e4d54b14db067d5022985515, type: 3}
+  - Key: SFX
+    AudioClip:
+    - {fileID: 8300000, guid: 434e72bf0a53fbf4fa3ba2b65ef03df4, type: 3}
+  - Key: Actions
+    AudioClip:
+    - {fileID: 8300000, guid: 2c914e37ac97f6749a917864abdf23fc, type: 3}

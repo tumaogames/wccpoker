@@ -51,6 +51,13 @@ namespace WCC.Poker.Client
             _isOpenCard = false;
         }
 
+        public void UpdateCardInfo(CardData.CardsInfo cardInfo)
+        {
+            _cardInfo = cardInfo;
+            if (_isOpenCard)
+                _cardImage.sprite = _cardInfo.CardSprite;
+        }
+
         public void SetFlipCardAnimation(UnityAction callback) => _flipAnimation.SetFlipAnimation(callback);
 
         public void SetShowOutline(bool show)

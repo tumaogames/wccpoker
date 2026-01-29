@@ -4,6 +4,7 @@ using Google.Protobuf;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using UnityEditor;
 using UnityEngine;
 using PokerError = Com.poker.Core.Error;
 
@@ -22,6 +23,12 @@ public sealed class GameServerClient : MonoBehaviour
     public string clientVersionOverride = "";
     public string deviceIdOverride = "";
 
+    [Header("Reconnect")]
+    public bool autoReconnect = true;
+    public float reconnectInitialDelaySec = 1.0f;
+    public float reconnectMaxDelaySec = 10.0f;
+    public int reconnectMaxAttempts = 0; // 0 = infinite
+
     [Header("State (read-only)")]
     [SerializeField] string playerId;
     [SerializeField] long credits;
@@ -30,6 +37,11 @@ public sealed class GameServerClient : MonoBehaviour
     [SerializeField] bool isConnected;
     [SerializeField] ulong lastReceivedSeq;
     [SerializeField] uint resumeWindowSec;
+
+    [Header("Main Thread Queue")]
+    [SerializeField] int _maxMainThreadActionsPerFrame = 120;
+    [SerializeField] int _catchUpQueueThreshold = 240;
+    public bool IsCatchingUp { get; private set; }
 
     public string PlayerId => playerId;
     public string SessionId => sessionId;
@@ -41,12 +53,20 @@ public sealed class GameServerClient : MonoBehaviour
     string _pendingOperatorPublicId;
     ulong _seq;
     float _nextPingTime;
+    float _nextReconnectTime;
+    float _currentReconnectDelay;
+    int _reconnectAttempts;
+    bool _reconnectPending;
+    bool _shouldSendResume;
+    ulong _resumeSeq;
 
     readonly ConcurrentQueue<byte[]> _recvQueue = new ConcurrentQueue<byte[]>();
     readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
     AutoResetEvent _recvSignal;
     Thread _recvThread;
     volatile bool _running;
+    long _lastRecvTicks;
+    long _lastHandledTicks;
 
     public event Action<MsgType, IMessage> MessageReceived;
     public event Action<ConnectResponse> ConnectResponseReceived;
@@ -67,8 +87,18 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<BuyInResponse> BuyInResponseReceived;
     public event Action<SpectateResponse> SpectateResponseReceived;
     public event Action<SpectatorHoleCards> SpectatorHoleCardsReceived;
+    public event Action<InactiveNotice> InactiveNoticeReceived;
+    public event Action<WaitVoteRequest> WaitVoteRequestReceived;
+    public event Action<WaitVoteResult> WaitVoteResultReceived;
+    public event Action<RejoinResponse> RejoinResponseReceived;
     public event Action<Kick> KickReceived;
     public event Action<PokerError> ErrorReceived;
+
+    [Header("Debug Logging")]
+    public bool logIncomingMessages = false;
+    public bool logIncomingPayloadSize = false;
+    public bool logQueueHealth = false;
+    public float stallWarnSeconds = 5f;
 
     public static event Action<MsgType, IMessage> MessageReceivedStatic
     {
@@ -112,6 +142,30 @@ public sealed class GameServerClient : MonoBehaviour
         remove => Instance.SpectatorHoleCardsReceived -= value;
     }
 
+    public static event Action<InactiveNotice> InactiveNoticeReceivedStatic
+    {
+        add => Instance.InactiveNoticeReceived += value;
+        remove => Instance.InactiveNoticeReceived -= value;
+    }
+
+    public static event Action<WaitVoteRequest> WaitVoteRequestReceivedStatic
+    {
+        add => Instance.WaitVoteRequestReceived += value;
+        remove => Instance.WaitVoteRequestReceived -= value;
+    }
+
+    public static event Action<WaitVoteResult> WaitVoteResultReceivedStatic
+    {
+        add => Instance.WaitVoteResultReceived += value;
+        remove => Instance.WaitVoteResultReceived -= value;
+    }
+
+    public static event Action<RejoinResponse> RejoinResponseReceivedStatic
+    {
+        add => Instance.RejoinResponseReceived += value;
+        remove => Instance.RejoinResponseReceived -= value;
+    }
+
     static GameServerClient CreateSingleton()
     {
         var go = new GameObject("GameServerClient");
@@ -128,6 +182,7 @@ public sealed class GameServerClient : MonoBehaviour
             return;
         }
 
+        Application.runInBackground = true;
         _instance = this;
         DontDestroyOnLoad(gameObject);
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -147,12 +202,32 @@ public sealed class GameServerClient : MonoBehaviour
 #endif
 
         if (!isConnected || _socket == null || !_socket.IsOpen)
+        {
+            TryReconnect();
             return;
+        }
 
         if (Time.unscaledTime >= _nextPingTime)
         {
             _nextPingTime = Time.unscaledTime + pingIntervalSec;
             SendPing();
+        }
+
+        if (logQueueHealth && stallWarnSeconds > 0f)
+        {
+            var nowTicks = DateTime.UtcNow.Ticks;
+            if (_lastRecvTicks > 0)
+            {
+                var idleRecv = (nowTicks - _lastRecvTicks) / (double)TimeSpan.TicksPerSecond;
+                if (idleRecv > stallWarnSeconds)
+                    Debug.LogWarning($"GameServerClient: no packets received for {idleRecv:0.0}s (connected={isConnected}).");
+            }
+            if (_lastHandledTicks > 0)
+            {
+                var idleHandle = (nowTicks - _lastHandledTicks) / (double)TimeSpan.TicksPerSecond;
+                if (idleHandle > stallWarnSeconds)
+                    Debug.LogWarning($"GameServerClient: main thread not handling packets for {idleHandle:0.0}s (queue={_mainThreadQueue.Count}).");
+            }
         }
     }
 
@@ -193,6 +268,7 @@ public sealed class GameServerClient : MonoBehaviour
 
         _pendingLaunchToken = launchToken;
         _pendingOperatorPublicId = operatorPublicId;
+        ResetReconnectState();
         Open();
     }
 
@@ -223,6 +299,16 @@ public sealed class GameServerClient : MonoBehaviour
     public static void SendSpectateStatic(string tableIdValue)
     {
         Instance.SendSpectate(tableIdValue);
+    }
+
+    public static void SendWaitVoteResponseStatic(string tableIdValue, string targetPlayerId, bool wait)
+    {
+        Instance.SendWaitVoteResponse(tableIdValue, targetPlayerId, wait);
+    }
+
+    public static void SendRejoinStatic(string tableIdValue)
+    {
+        Instance.SendRejoin(tableIdValue);
     }
 
     public static void SendLeaveTableStatic(string reason)
@@ -280,6 +366,23 @@ public sealed class GameServerClient : MonoBehaviour
         SendPacket(MsgType.SpectateRequest, req);
     }
 
+    public void SendWaitVoteResponse(string tableIdValue, string targetPlayerId, bool wait)
+    {
+        var req = new WaitVoteResponse
+        {
+            TableId = tableIdValue ?? "",
+            TargetPlayerId = targetPlayerId ?? "",
+            Wait = wait
+        };
+        SendPacket(MsgType.WaitVoteResponse, req);
+    }
+
+    public void SendRejoin(string tableIdValue)
+    {
+        var req = new RejoinRequest { TableId = tableIdValue ?? "" };
+        SendPacket(MsgType.RejoinRequest, req);
+    }
+
     public void SendLeaveTable(string reason)
     {
         var req = new LeaveTableRequest { Reason = reason ?? "" };
@@ -328,6 +431,7 @@ public sealed class GameServerClient : MonoBehaviour
     {
         isConnected = true;
         _nextPingTime = Time.unscaledTime + pingIntervalSec;
+        Debug.Log($"GameServerClient: connected to {serverUrl}.");
         SendConnectRequest();
     }
 
@@ -350,17 +454,21 @@ public sealed class GameServerClient : MonoBehaviour
         Buffer.BlockCopy(data, 0, copy, 0, data.Length);
         _recvQueue.Enqueue(copy);
         _recvSignal?.Set();
+        _lastRecvTicks = DateTime.UtcNow.Ticks;
     }
 
     void OnClosed(WebSocket ws, ushort code, string message)
     {
         isConnected = false;
+        Debug.LogWarning($"GameServerClient: disconnected code={code} message={message}");
+        ScheduleReconnect($"closed ({code}) {message}");
     }
 
     void OnError(WebSocket ws, string reason)
     {
         isConnected = false;
         Debug.LogWarning("GameServerClient: socket error " + reason);
+        ScheduleReconnect($"error {reason}");
     }
 
     void StartReceiver()
@@ -493,6 +601,14 @@ public sealed class GameServerClient : MonoBehaviour
         var msgType = (MsgType)packet.MsgType;
         var payload = packet.Payload ?? ByteString.Empty;
 
+        if (logIncomingMessages)
+        {
+            var size = payload.Length;
+            Debug.Log(logIncomingPayloadSize
+                ? $"GameServerClient: recv {msgType} payload={size}B seq={packet.Seq} ts={packet.Timestamp}"
+                : $"GameServerClient: recv {msgType} seq={packet.Seq}");
+        }
+
         switch (msgType)
         {
             case MsgType.Ping:
@@ -509,11 +625,19 @@ public sealed class GameServerClient : MonoBehaviour
                         sessionId = connectResponse.SessionId;
                         credits = connectResponse.Credits;
                         resumeWindowSec = connectResponse.ResumeWindowSec;
+                        if (_shouldSendResume && _resumeSeq > 0)
+                        {
+                            Debug.Log($"GameServerClient: sending resume lastSeq={_resumeSeq}.");
+                            SendResume(_resumeSeq);
+                            _shouldSendResume = false;
+                        }
                         ConnectResponseReceived?.Invoke(connectResponse);
                         MessageReceived?.Invoke(msgType, connectResponse);
                         Debug.Log(playerId + " Credit: " + credits);
                         ArtGameManager.Instance.coinText.text = "Php " + credits;
 
+                        //sharedData.myPlayerID = playerId;
+                        Debug.Log("myPlayerID:" + playerId);
                         // RENDER: update player HUD (player id, session, credits, protocol).
                         // Example:
                         // - show connect success toast
@@ -559,6 +683,8 @@ public sealed class GameServerClient : MonoBehaviour
             case MsgType.TableSnapshot:
                 if (TryParsePayload(payload, TableSnapshot.Parser, out var snapshot))
                 {
+
+                    Debug.Log("Table Snapshot received");
                     EnqueueMainThread(() =>
                     {
                         tableId = snapshot.TableId;
@@ -579,7 +705,7 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         DealHoleCardsReceived?.Invoke(holeCards);
                         MessageReceived?.Invoke(msgType, holeCards);
-
+                        Debug.Log("Cards are given to players");
                         // RENDER: show player's 2 private hole cards.
                         // Example:
                         foreach (var card in holeCards.Cards)
@@ -665,7 +791,7 @@ public sealed class GameServerClient : MonoBehaviour
                         bool canRaise = turn.AllowedActions.Contains(PokerActionType.Raise);
                         bool canAllIn = turn.AllowedActions.Contains(PokerActionType.AllIn);
 
-                        Debug.Log("TurnUpdate player=" + turn.PlayerId + " seat = " + turn .Seat );
+                        Debug.Log("TurnUpdate player=" + turn.PlayerId + " seat = " + turn.Seat);
 
                         // RENDER: highlight current turn + enable allowed buttons.
                         // Example:
@@ -785,6 +911,46 @@ public sealed class GameServerClient : MonoBehaviour
                     });
                 }
                 break;
+            case MsgType.InactiveNotice:
+                if (TryParsePayload(payload, InactiveNotice.Parser, out var inactiveNotice))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        InactiveNoticeReceived?.Invoke(inactiveNotice);
+                        MessageReceived?.Invoke(msgType, inactiveNotice);
+                    });
+                }
+                break;
+            case MsgType.WaitVoteRequest:
+                if (TryParsePayload(payload, WaitVoteRequest.Parser, out var voteReq))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        WaitVoteRequestReceived?.Invoke(voteReq);
+                        MessageReceived?.Invoke(msgType, voteReq);
+                    });
+                }
+                break;
+            case MsgType.WaitVoteResult:
+                if (TryParsePayload(payload, WaitVoteResult.Parser, out var voteResult))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        WaitVoteResultReceived?.Invoke(voteResult);
+                        MessageReceived?.Invoke(msgType, voteResult);
+                    });
+                }
+                break;
+            case MsgType.RejoinResponse:
+                if (TryParsePayload(payload, RejoinResponse.Parser, out var rejoinResp))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        RejoinResponseReceived?.Invoke(rejoinResp);
+                        MessageReceived?.Invoke(msgType, rejoinResp);
+                    });
+                }
+                break;
             case MsgType.LeaveTableResponse:
                 if (TryParsePayload(payload, LeaveTableResponse.Parser, out var leaveTableResponse))
                 {
@@ -820,6 +986,8 @@ public sealed class GameServerClient : MonoBehaviour
                     });
                 break;
         }
+
+        _lastHandledTicks = DateTime.UtcNow.Ticks;
     }
 
     bool TryParsePayload<T>(ByteString payload, MessageParser<T> parser, out T message) where T : class, IMessage<T>
@@ -890,6 +1058,62 @@ public sealed class GameServerClient : MonoBehaviour
         _socket.Send(packet.ToByteArray());
     }
 
+    void ScheduleReconnect(string reason)
+    {
+        if (!autoReconnect)
+            return;
+
+        if (string.IsNullOrEmpty(_pendingLaunchToken) || string.IsNullOrEmpty(_pendingOperatorPublicId))
+        {
+            Debug.LogWarning("GameServerClient: reconnect skipped (missing launch token/operator id).");
+            return;
+        }
+
+        if (!_reconnectPending)
+        {
+            _reconnectPending = true;
+            _currentReconnectDelay = Mathf.Max(0.2f, reconnectInitialDelaySec);
+            _reconnectAttempts = 0;
+        }
+
+        if (lastReceivedSeq > 0)
+        {
+            _resumeSeq = lastReceivedSeq;
+            _shouldSendResume = true;
+        }
+
+        Debug.LogWarning($"GameServerClient: scheduling reconnect ({reason}).");
+    }
+
+    void TryReconnect()
+    {
+        if (!autoReconnect || !_reconnectPending)
+            return;
+
+        if (reconnectMaxAttempts > 0 && _reconnectAttempts >= reconnectMaxAttempts)
+            return;
+
+        if (Time.unscaledTime < _nextReconnectTime)
+            return;
+
+        _reconnectAttempts++;
+        _nextReconnectTime = Time.unscaledTime + _currentReconnectDelay;
+        _currentReconnectDelay = Mathf.Min(reconnectMaxDelaySec, _currentReconnectDelay * 1.6f);
+
+        Debug.LogWarning($"GameServerClient: reconnect attempt {_reconnectAttempts} (delay={_currentReconnectDelay:0.00}s).");
+        Open();
+    }
+
+    void ResetReconnectState()
+    {
+        _reconnectPending = false;
+        _currentReconnectDelay = 0f;
+        _reconnectAttempts = 0;
+        _nextReconnectTime = 0f;
+        _shouldSendResume = false;
+        _resumeSeq = 0;
+    }
+
     void EnqueueMainThread(Action action)
     {
         if (action != null)
@@ -898,8 +1122,19 @@ public sealed class GameServerClient : MonoBehaviour
 
     void DrainMainThreadQueue()
     {
-        while (_mainThreadQueue.TryDequeue(out var action))
+        var backlog = _mainThreadQueue.Count;
+        if (backlog > _catchUpQueueThreshold)
+            IsCatchingUp = true;
+
+        var processed = 0;
+        while (processed < _maxMainThreadActionsPerFrame && _mainThreadQueue.TryDequeue(out var action))
+        {
+            processed++;
             action.Invoke();
+        }
+
+        if (IsCatchingUp && _mainThreadQueue.Count <= _catchUpQueueThreshold / 2)
+            IsCatchingUp = false;
     }
 }
 
@@ -934,6 +1169,14 @@ public void OnCallClicked(long callAmount) => GameServerClient.SendCallStatic(ca
 public void OnBetClicked(long amount)  => GameServerClient.SendBetStatic(amount);
 public void OnRaiseClicked(long amount)=> GameServerClient.SendRaiseStatic(amount);
 public void OnAllInClicked(long amount)=> GameServerClient.SendAllInStatic(amount);
+
+// Vote / Rejoin:
+public void OnVoteWaitYes(string tableId, string targetPlayerId)
+    => GameServerClient.SendWaitVoteResponseStatic(tableId, targetPlayerId, true);
+public void OnVoteWaitNo(string tableId, string targetPlayerId)
+    => GameServerClient.SendWaitVoteResponseStatic(tableId, targetPlayerId, false);
+public void OnRejoin(string tableId)
+    => GameServerClient.SendRejoinStatic(tableId);
 
 IMPORTANT
 ---------
