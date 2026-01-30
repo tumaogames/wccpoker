@@ -10,6 +10,8 @@ public class ArtGameManager : MonoBehaviour
 {
     public static ArtGameManager Instance;
     public bool end;
+    [Header("Runtime Injected Data")]
+    public string gameTokenID;
     public bool enableSound;
     public TableData selectedTable;
     public RectTransform imageParentContainer;   // Image RectTransform
@@ -18,11 +20,29 @@ public class ArtGameManager : MonoBehaviour
     public GameState CurrentState { get; private set; }
     public int currentScore;
     public TMP_Text coinText;
+    public bool isInitialized;
     public int CurrentScore {
         get { return currentScore; }
         set {
             currentScore = value;
         }
+    }
+
+    private void OnEnable()
+    {
+        TokenManager.TokenSet += OnTokenSet;
+    }
+
+    private void OnDisable()
+    {
+        TokenManager.TokenSet -= OnTokenSet;
+    }
+
+    private void OnTokenSet(string token)
+    {
+        gameTokenID = token;
+        isInitialized = true;
+        Debug.Log(" GameManager updated token: " + gameTokenID);
     }
 
     private void Awake()
@@ -38,9 +58,25 @@ public class ArtGameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
     private void Start()
     {
+
+        Debug.LogWarning(" GameManager waiting for token...");
+
+  
         ChangeState(GameState.MainMenu);
+    }
+
+    private void Update()
+    {
+        // Safety net: if token arrives after Start or OnEnable missed it, pull once here.
+        if (!isInitialized && TokenManager.HasToken())
+        {
+            gameTokenID = TokenManager.GetToken();
+            isInitialized = true;
+            Debug.Log(" GameManager late-grabbed token: " + gameTokenID);
+        }
     }
 
 

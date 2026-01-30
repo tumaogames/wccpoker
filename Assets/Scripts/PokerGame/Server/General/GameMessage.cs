@@ -100,77 +100,82 @@ namespace Com.poker.Core
                   "IwoFY2FyZHMYAiADKAsyFC5Db20ucG9rZXIuQ29yZS5DYXJkInMKDkNvbW11",
                   "bml0eUNhcmRzEhAKCHRhYmxlX2lkGAEgASgJEioKBnN0cmVldBgCIAEoDjIa",
                   "LkNvbS5wb2tlci5Db3JlLlRhYmxlU3RhdGUSIwoFY2FyZHMYAyADKAsyFC5D",
-                  "b20ucG9rZXIuQ29yZS5DYXJkImIKDUFjdGlvblJlcXVlc3QSEAoIdGFibGVf",
-                  "aWQYASABKAkSLwoGYWN0aW9uGAIgASgOMh8uQ29tLnBva2VyLkNvcmUuUG9r",
-                  "ZXJBY3Rpb25UeXBlEg4KBmFtb3VudBgDIAEoAyKoAQoMQWN0aW9uUmVzdWx0",
-                  "Eg8KB3N1Y2Nlc3MYASABKAgSDwoHbWVzc2FnZRgCIAEoCRIvCgZhY3Rpb24Y",
-                  "AyABKA4yHy5Db20ucG9rZXIuQ29yZS5Qb2tlckFjdGlvblR5cGUSDgoGYW1v",
-                  "dW50GAQgASgDEhMKC2N1cnJlbnRfYmV0GAUgASgDEhEKCW1pbl9yYWlzZRgG",
-                  "IAEoAxINCgVzdGFjaxgHIAEoAyKfAQoPQWN0aW9uQnJvYWRjYXN0EhAKCHRh",
-                  "YmxlX2lkGAEgASgJEhEKCXBsYXllcl9pZBgCIAEoCRIvCgZhY3Rpb24YAyAB",
-                  "KA4yHy5Db20ucG9rZXIuQ29yZS5Qb2tlckFjdGlvblR5cGUSDgoGYW1vdW50",
-                  "GAQgASgDEhMKC2N1cnJlbnRfYmV0GAUgASgDEhEKCXBvdF90b3RhbBgGIAEo",
-                  "AyLdAQoKVHVyblVwZGF0ZRIQCgh0YWJsZV9pZBgBIAEoCRIRCglwbGF5ZXJf",
-                  "aWQYAiABKAkSDAoEc2VhdBgDIAEoBRIYChBkZWFkbGluZV91bml4X21zGAQg",
-                  "ASgEEjgKD2FsbG93ZWRfYWN0aW9ucxgFIAMoDjIfLkNvbS5wb2tlci5Db3Jl",
-                  "LlBva2VyQWN0aW9uVHlwZRITCgtjYWxsX2Ftb3VudBgGIAEoAxIRCgltaW5f",
-                  "cmFpc2UYByABKAMSEQoJbWF4X3JhaXNlGAggASgDEg0KBXN0YWNrGAkgASgD",
-                  "IjYKB1NpZGVQb3QSDgoGYW1vdW50GAEgASgDEhsKE2VsaWdpYmxlX3BsYXll",
-                  "cl9pZHMYAiADKAkiVwoJUG90VXBkYXRlEhAKCHRhYmxlX2lkGAEgASgJEhEK",
-                  "CXBvdF90b3RhbBgCIAEoAxIlCgRwb3RzGAMgAygLMhcuQ29tLnBva2VyLkNv",
-                  "cmUuU2lkZVBvdCJBCgtTdGFja1VwZGF0ZRIQCgh0YWJsZV9pZBgBIAEoCRIR",
-                  "CglwbGF5ZXJfaWQYAiABKAkSDQoFc3RhY2sYAyABKAMipAEKCkhhbmRSZXN1",
-                  "bHQSEAoIdGFibGVfaWQYASABKAkSJwoHd2lubmVycxgCIAMoCzIWLkNvbS5w",
-                  "b2tlci5Db3JlLldpbm5lchI0Cg5yZXZlYWxlZF9oYW5kcxgDIAMoCzIcLkNv",
-                  "bS5wb2tlci5Db3JlLlJldmVhbGVkSGFuZBIlCgRwb3RzGAQgAygLMhcuQ29t",
-                  "LnBva2VyLkNvcmUuU2lkZVBvdCJ8CgZXaW5uZXISEQoJcGxheWVyX2lkGAEg",
-                  "ASgJEg4KBmFtb3VudBgCIAEoAxImCgRyYW5rGAMgASgOMhguQ29tLnBva2Vy",
-                  "LkNvcmUuSGFuZFJhbmsSJwoJYmVzdF9maXZlGAQgAygLMhQuQ29tLnBva2Vy",
-                  "LkNvcmUuQ2FyZCJLCgxSZXZlYWxlZEhhbmQSEQoJcGxheWVyX2lkGAEgASgJ",
-                  "EigKCmhvbGVfY2FyZHMYAiADKAsyFC5Db20ucG9rZXIuQ29yZS5DYXJkIhYK",
-                  "BEtpY2sSDgoGcmVhc29uGAEgASgJIiYKBUVycm9yEgwKBGNvZGUYASABKAkS",
-                  "DwoHbWVzc2FnZRgCIAEoCSIiCgRDYXJkEgwKBHJhbmsYASABKAUSDAoEc3Vp",
-                  "dBgCIAEoBSr2BwoHTXNnVHlwZRIYChRNU0dfVFlQRV9VTlNQRUNJRklFRBAA",
-                  "EhwKGE1TR19UWVBFX0NPTk5FQ1RfUkVRVUVTVBABEh0KGU1TR19UWVBFX0NP",
-                  "Tk5FQ1RfUkVTUE9OU0UQAhIbChdNU0dfVFlQRV9SRVNVTUVfUkVRVUVTVBAD",
-                  "EhwKGE1TR19UWVBFX1JFU1VNRV9SRVNQT05TRRAEEhEKDU1TR19UWVBFX1BJ",
-                  "TkcQBRIRCg1NU0dfVFlQRV9QT05HEAYSHwobTVNHX1RZUEVfSk9JTl9UQUJM",
-                  "RV9SRVFVRVNUEAcSIAocTVNHX1RZUEVfSk9JTl9UQUJMRV9SRVNQT05TRRAI",
-                  "EiAKHE1TR19UWVBFX0xFQVZFX1RBQkxFX1JFUVVFU1QQCRIhCh1NU0dfVFlQ",
-                  "RV9MRUFWRV9UQUJMRV9SRVNQT05TRRAKEhsKF01TR19UWVBFX1RBQkxFX1NO",
-                  "QVBTSE9UEAsSHAoYTVNHX1RZUEVfREVBTF9IT0xFX0NBUkRTEAwSHAoYTVNH",
-                  "X1RZUEVfQ09NTVVOSVRZX0NBUkRTEA0SGwoXTVNHX1RZUEVfQUNUSU9OX1JF",
-                  "UVVFU1QQDhIaChZNU0dfVFlQRV9BQ1RJT05fUkVTVUxUEA8SHQoZTVNHX1RZ",
-                  "UEVfQUNUSU9OX0JST0FEQ0FTVBAQEhgKFE1TR19UWVBFX1RVUk5fVVBEQVRF",
-                  "EBESFwoTTVNHX1RZUEVfUE9UX1VQREFURRASEhgKFE1TR19UWVBFX0hBTkRf",
-                  "UkVTVUxUEBMSGQoVTVNHX1RZUEVfU1RBQ0tfVVBEQVRFEBQSEQoNTVNHX1RZ",
-                  "UEVfS0lDSxAVEhIKDk1TR19UWVBFX0VSUk9SEBYSFwoTTVNHX1RZUEVfVEFC",
-                  "TEVfTElTVBAXEhoKFk1TR19UWVBFX0JVWUlOX1JFUVVFU1QQGBIbChdNU0df",
-                  "VFlQRV9CVVlJTl9SRVNQT05TRRAZEh0KGU1TR19UWVBFX1NQRUNUQVRFX1JF",
-                  "UVVFU1QQGhIeChpNU0dfVFlQRV9TUEVDVEFURV9SRVNQT05TRRAbEiEKHU1T",
-                  "R19UWVBFX1NQRUNUQVRPUl9IT0xFX0NBUkRTEBwSHAoYTVNHX1RZUEVfSU5B",
-                  "Q1RJVkVfTk9USUNFEB0SHgoaTVNHX1RZUEVfV0FJVF9WT1RFX1JFUVVFU1QQ",
-                  "HhIfChtNU0dfVFlQRV9XQUlUX1ZPVEVfUkVTUE9OU0UQHxIdChlNU0dfVFlQ",
-                  "RV9XQUlUX1ZPVEVfUkVTVUxUECASGwoXTVNHX1RZUEVfUkVKT0lOX1JFUVVF",
-                  "U1QQIRIcChhNU0dfVFlQRV9SRUpPSU5fUkVTUE9OU0UQIiq2AQoMUGxheWVy",
-                  "U3RhdHVzEhkKFVBMQVlFUl9TVEFUVVNfVU5LTk9XThAAEhgKFFBMQVlFUl9T",
-                  "VEFUVVNfQUNUSVZFEAESGAoUUExBWUVSX1NUQVRVU19GT0xERUQQAhIYChRQ",
-                  "TEFZRVJfU1RBVFVTX0FMTF9JThADEh0KGVBMQVlFUl9TVEFUVVNfU0lUVElO",
-                  "R19PVVQQBBIeChpQTEFZRVJfU1RBVFVTX0RJU0NPTk5FQ1RFRBAFKm4KD1Bv",
-                  "a2VyQWN0aW9uVHlwZRIcChhQT0tFUl9BQ1RJT05fVU5TUEVDSUZJRUQQABII",
-                  "CgRGT0xEEAESCQoFQ0hFQ0sQAhIICgRDQUxMEAMSBwoDQkVUEAQSCQoFUkFJ",
-                  "U0UQBRIKCgZBTExfSU4QBiqQAgoISGFuZFJhbmsSGQoVSEFORF9SQU5LX1VO",
-                  "U1BFQ0lGSUVEEAASHAoYSEFORF9SQU5LX0ZPVVJfT0ZfQV9LSU5EEAESEwoP",
-                  "SEFORF9SQU5LX0ZMVVNIEAISFgoSSEFORF9SQU5LX1NUUkFJR0hUEAMSHQoZ",
-                  "SEFORF9SQU5LX1RIUkVFX09GX0FfS0lORBAEEhYKEkhBTkRfUkFOS19UV09f",
-                  "UEFJUhAFEhYKEkhBTkRfUkFOS19PTkVfUEFJUhAGEhcKE0hBTkRfUkFOS19I",
-                  "SUdIX0NBUkQQBxIYChRIQU5EX1JBTktfRlVMTF9IT1VTRRAIEhwKGEhBTkRf",
-                  "UkFOS19TVFJBSUdIVF9GTFVTSBAJKtABCgpUYWJsZVN0YXRlEhsKF1RBQkxF",
-                  "X1NUQVRFX1VOU1BFQ0lGSUVEEAASFwoTVEFCTEVfU1RBVEVfV0FJVElORxAB",
-                  "EhgKFFRBQkxFX1NUQVRFX1BSRV9GTE9QEAISFAoQVEFCTEVfU1RBVEVfRkxP",
-                  "UBADEhQKEFRBQkxFX1NUQVRFX1RVUk4QBBIVChFUQUJMRV9TVEFURV9SSVZF",
-                  "UhAFEhgKFFRBQkxFX1NUQVRFX1NIT1dET1dOEAYSFQoRVEFCTEVfU1RBVEVf",
-                  "UkVTRVQQB0IRqgIOQ29tLnBva2VyLkNvcmViBnByb3RvMw=="));
+                  "b20ucG9rZXIuQ29yZS5DYXJkIr0BCg5Sb3VuZEVuZE5vdGljZRIQCgh0YWJs",
+                  "ZV9pZBgBIAEoCRI0ChBjb21wbGV0ZWRfc3RyZWV0GAIgASgOMhouQ29tLnBv",
+                  "a2VyLkNvcmUuVGFibGVTdGF0ZRIvCgtuZXh0X3N0cmVldBgDIAEoDjIaLkNv",
+                  "bS5wb2tlci5Db3JlLlRhYmxlU3RhdGUSFQoNZGVsYXlfc2Vjb25kcxgEIAEo",
+                  "DRIbChNuZXh0X3N0cmVldF91bml4X21zGAUgASgEImIKDUFjdGlvblJlcXVl",
+                  "c3QSEAoIdGFibGVfaWQYASABKAkSLwoGYWN0aW9uGAIgASgOMh8uQ29tLnBv",
+                  "a2VyLkNvcmUuUG9rZXJBY3Rpb25UeXBlEg4KBmFtb3VudBgDIAEoAyKoAQoM",
+                  "QWN0aW9uUmVzdWx0Eg8KB3N1Y2Nlc3MYASABKAgSDwoHbWVzc2FnZRgCIAEo",
+                  "CRIvCgZhY3Rpb24YAyABKA4yHy5Db20ucG9rZXIuQ29yZS5Qb2tlckFjdGlv",
+                  "blR5cGUSDgoGYW1vdW50GAQgASgDEhMKC2N1cnJlbnRfYmV0GAUgASgDEhEK",
+                  "CW1pbl9yYWlzZRgGIAEoAxINCgVzdGFjaxgHIAEoAyKfAQoPQWN0aW9uQnJv",
+                  "YWRjYXN0EhAKCHRhYmxlX2lkGAEgASgJEhEKCXBsYXllcl9pZBgCIAEoCRIv",
+                  "CgZhY3Rpb24YAyABKA4yHy5Db20ucG9rZXIuQ29yZS5Qb2tlckFjdGlvblR5",
+                  "cGUSDgoGYW1vdW50GAQgASgDEhMKC2N1cnJlbnRfYmV0GAUgASgDEhEKCXBv",
+                  "dF90b3RhbBgGIAEoAyLdAQoKVHVyblVwZGF0ZRIQCgh0YWJsZV9pZBgBIAEo",
+                  "CRIRCglwbGF5ZXJfaWQYAiABKAkSDAoEc2VhdBgDIAEoBRIYChBkZWFkbGlu",
+                  "ZV91bml4X21zGAQgASgEEjgKD2FsbG93ZWRfYWN0aW9ucxgFIAMoDjIfLkNv",
+                  "bS5wb2tlci5Db3JlLlBva2VyQWN0aW9uVHlwZRITCgtjYWxsX2Ftb3VudBgG",
+                  "IAEoAxIRCgltaW5fcmFpc2UYByABKAMSEQoJbWF4X3JhaXNlGAggASgDEg0K",
+                  "BXN0YWNrGAkgASgDIjYKB1NpZGVQb3QSDgoGYW1vdW50GAEgASgDEhsKE2Vs",
+                  "aWdpYmxlX3BsYXllcl9pZHMYAiADKAkiVwoJUG90VXBkYXRlEhAKCHRhYmxl",
+                  "X2lkGAEgASgJEhEKCXBvdF90b3RhbBgCIAEoAxIlCgRwb3RzGAMgAygLMhcu",
+                  "Q29tLnBva2VyLkNvcmUuU2lkZVBvdCJBCgtTdGFja1VwZGF0ZRIQCgh0YWJs",
+                  "ZV9pZBgBIAEoCRIRCglwbGF5ZXJfaWQYAiABKAkSDQoFc3RhY2sYAyABKAMi",
+                  "pAEKCkhhbmRSZXN1bHQSEAoIdGFibGVfaWQYASABKAkSJwoHd2lubmVycxgC",
+                  "IAMoCzIWLkNvbS5wb2tlci5Db3JlLldpbm5lchI0Cg5yZXZlYWxlZF9oYW5k",
+                  "cxgDIAMoCzIcLkNvbS5wb2tlci5Db3JlLlJldmVhbGVkSGFuZBIlCgRwb3Rz",
+                  "GAQgAygLMhcuQ29tLnBva2VyLkNvcmUuU2lkZVBvdCJ8CgZXaW5uZXISEQoJ",
+                  "cGxheWVyX2lkGAEgASgJEg4KBmFtb3VudBgCIAEoAxImCgRyYW5rGAMgASgO",
+                  "MhguQ29tLnBva2VyLkNvcmUuSGFuZFJhbmsSJwoJYmVzdF9maXZlGAQgAygL",
+                  "MhQuQ29tLnBva2VyLkNvcmUuQ2FyZCJLCgxSZXZlYWxlZEhhbmQSEQoJcGxh",
+                  "eWVyX2lkGAEgASgJEigKCmhvbGVfY2FyZHMYAiADKAsyFC5Db20ucG9rZXIu",
+                  "Q29yZS5DYXJkIhYKBEtpY2sSDgoGcmVhc29uGAEgASgJIiYKBUVycm9yEgwK",
+                  "BGNvZGUYASABKAkSDwoHbWVzc2FnZRgCIAEoCSIiCgRDYXJkEgwKBHJhbmsY",
+                  "ASABKAUSDAoEc3VpdBgCIAEoBSqVCAoHTXNnVHlwZRIYChRNU0dfVFlQRV9V",
+                  "TlNQRUNJRklFRBAAEhwKGE1TR19UWVBFX0NPTk5FQ1RfUkVRVUVTVBABEh0K",
+                  "GU1TR19UWVBFX0NPTk5FQ1RfUkVTUE9OU0UQAhIbChdNU0dfVFlQRV9SRVNV",
+                  "TUVfUkVRVUVTVBADEhwKGE1TR19UWVBFX1JFU1VNRV9SRVNQT05TRRAEEhEK",
+                  "DU1TR19UWVBFX1BJTkcQBRIRCg1NU0dfVFlQRV9QT05HEAYSHwobTVNHX1RZ",
+                  "UEVfSk9JTl9UQUJMRV9SRVFVRVNUEAcSIAocTVNHX1RZUEVfSk9JTl9UQUJM",
+                  "RV9SRVNQT05TRRAIEiAKHE1TR19UWVBFX0xFQVZFX1RBQkxFX1JFUVVFU1QQ",
+                  "CRIhCh1NU0dfVFlQRV9MRUFWRV9UQUJMRV9SRVNQT05TRRAKEhsKF01TR19U",
+                  "WVBFX1RBQkxFX1NOQVBTSE9UEAsSHAoYTVNHX1RZUEVfREVBTF9IT0xFX0NB",
+                  "UkRTEAwSHAoYTVNHX1RZUEVfQ09NTVVOSVRZX0NBUkRTEA0SGwoXTVNHX1RZ",
+                  "UEVfQUNUSU9OX1JFUVVFU1QQDhIaChZNU0dfVFlQRV9BQ1RJT05fUkVTVUxU",
+                  "EA8SHQoZTVNHX1RZUEVfQUNUSU9OX0JST0FEQ0FTVBAQEhgKFE1TR19UWVBF",
+                  "X1RVUk5fVVBEQVRFEBESFwoTTVNHX1RZUEVfUE9UX1VQREFURRASEhgKFE1T",
+                  "R19UWVBFX0hBTkRfUkVTVUxUEBMSGQoVTVNHX1RZUEVfU1RBQ0tfVVBEQVRF",
+                  "EBQSEQoNTVNHX1RZUEVfS0lDSxAVEhIKDk1TR19UWVBFX0VSUk9SEBYSFwoT",
+                  "TVNHX1RZUEVfVEFCTEVfTElTVBAXEhoKFk1TR19UWVBFX0JVWUlOX1JFUVVF",
+                  "U1QQGBIbChdNU0dfVFlQRV9CVVlJTl9SRVNQT05TRRAZEh0KGU1TR19UWVBF",
+                  "X1NQRUNUQVRFX1JFUVVFU1QQGhIeChpNU0dfVFlQRV9TUEVDVEFURV9SRVNQ",
+                  "T05TRRAbEiEKHU1TR19UWVBFX1NQRUNUQVRPUl9IT0xFX0NBUkRTEBwSHAoY",
+                  "TVNHX1RZUEVfSU5BQ1RJVkVfTk9USUNFEB0SHgoaTVNHX1RZUEVfV0FJVF9W",
+                  "T1RFX1JFUVVFU1QQHhIfChtNU0dfVFlQRV9XQUlUX1ZPVEVfUkVTUE9OU0UQ",
+                  "HxIdChlNU0dfVFlQRV9XQUlUX1ZPVEVfUkVTVUxUECASGwoXTVNHX1RZUEVf",
+                  "UkVKT0lOX1JFUVVFU1QQIRIcChhNU0dfVFlQRV9SRUpPSU5fUkVTUE9OU0UQ",
+                  "IhIdChlNU0dfVFlQRV9ST1VORF9FTkRfTk9USUNFECMqtgEKDFBsYXllclN0",
+                  "YXR1cxIZChVQTEFZRVJfU1RBVFVTX1VOS05PV04QABIYChRQTEFZRVJfU1RB",
+                  "VFVTX0FDVElWRRABEhgKFFBMQVlFUl9TVEFUVVNfRk9MREVEEAISGAoUUExB",
+                  "WUVSX1NUQVRVU19BTExfSU4QAxIdChlQTEFZRVJfU1RBVFVTX1NJVFRJTkdf",
+                  "T1VUEAQSHgoaUExBWUVSX1NUQVRVU19ESVNDT05ORUNURUQQBSpuCg9Qb2tl",
+                  "ckFjdGlvblR5cGUSHAoYUE9LRVJfQUNUSU9OX1VOU1BFQ0lGSUVEEAASCAoE",
+                  "Rk9MRBABEgkKBUNIRUNLEAISCAoEQ0FMTBADEgcKA0JFVBAEEgkKBVJBSVNF",
+                  "EAUSCgoGQUxMX0lOEAYqkAIKCEhhbmRSYW5rEhkKFUhBTkRfUkFOS19VTlNQ",
+                  "RUNJRklFRBAAEhwKGEhBTkRfUkFOS19GT1VSX09GX0FfS0lORBABEhMKD0hB",
+                  "TkRfUkFOS19GTFVTSBACEhYKEkhBTkRfUkFOS19TVFJBSUdIVBADEh0KGUhB",
+                  "TkRfUkFOS19USFJFRV9PRl9BX0tJTkQQBBIWChJIQU5EX1JBTktfVFdPX1BB",
+                  "SVIQBRIWChJIQU5EX1JBTktfT05FX1BBSVIQBhIXChNIQU5EX1JBTktfSElH",
+                  "SF9DQVJEEAcSGAoUSEFORF9SQU5LX0ZVTExfSE9VU0UQCBIcChhIQU5EX1JB",
+                  "TktfU1RSQUlHSFRfRkxVU0gQCSrQAQoKVGFibGVTdGF0ZRIbChdUQUJMRV9T",
+                  "VEFURV9VTlNQRUNJRklFRBAAEhcKE1RBQkxFX1NUQVRFX1dBSVRJTkcQARIY",
+                  "ChRUQUJMRV9TVEFURV9QUkVfRkxPUBACEhQKEFRBQkxFX1NUQVRFX0ZMT1AQ",
+                  "AxIUChBUQUJMRV9TVEFURV9UVVJOEAQSFQoRVEFCTEVfU1RBVEVfUklWRVIQ",
+                  "BRIYChRUQUJMRV9TVEFURV9TSE9XRE9XThAGEhUKEVRBQkxFX1NUQVRFX1JF",
+                  "U0VUEAdCEaoCDkNvbS5wb2tlci5Db3JlYgZwcm90bzM="));
             descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
                 new pbr::FileDescriptor[] { },
                 new pbr::GeneratedClrTypeInfo(new[] { typeof(global::Com.poker.Core.MsgType), typeof(global::Com.poker.Core.PlayerStatus), typeof(global::Com.poker.Core.PokerActionType), typeof(global::Com.poker.Core.HandRank), typeof(global::Com.poker.Core.TableState), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -202,6 +207,7 @@ namespace Com.poker.Core
             new pbr::GeneratedClrTypeInfo(typeof(global::Com.poker.Core.PlayerState), global::Com.poker.Core.PlayerState.Parser, new[]{ "PlayerId", "Seat", "Stack", "BetThisRound", "TotalBet", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Com.poker.Core.DealHoleCards), global::Com.poker.Core.DealHoleCards.Parser, new[]{ "TableId", "Cards" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Com.poker.Core.CommunityCards), global::Com.poker.Core.CommunityCards.Parser, new[]{ "TableId", "Street", "Cards" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Com.poker.Core.RoundEndNotice), global::Com.poker.Core.RoundEndNotice.Parser, new[]{ "TableId", "CompletedStreet", "NextStreet", "DelaySeconds", "NextStreetUnixMs" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Com.poker.Core.ActionRequest), global::Com.poker.Core.ActionRequest.Parser, new[]{ "TableId", "Action", "Amount" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Com.poker.Core.ActionResult), global::Com.poker.Core.ActionResult.Parser, new[]{ "Success", "Message", "Action", "Amount", "CurrentBet", "MinRaise", "Stack" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Com.poker.Core.ActionBroadcast), global::Com.poker.Core.ActionBroadcast.Parser, new[]{ "TableId", "PlayerId", "Action", "Amount", "CurrentBet", "PotTotal" }, null, null, null, null),
@@ -258,6 +264,7 @@ namespace Com.poker.Core
         [pbr::OriginalName("MSG_TYPE_WAIT_VOTE_RESULT")] WaitVoteResult = 32,
         [pbr::OriginalName("MSG_TYPE_REJOIN_REQUEST")] RejoinRequest = 33,
         [pbr::OriginalName("MSG_TYPE_REJOIN_RESPONSE")] RejoinResponse = 34,
+        [pbr::OriginalName("MSG_TYPE_ROUND_END_NOTICE")] RoundEndNotice = 35,
     }
 
     public enum PlayerStatus
@@ -312,7 +319,7 @@ namespace Com.poker.Core
     #region Messages
     public sealed partial class Packet : pb::IMessage<Packet>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<Packet> _parser = new pb::MessageParser<Packet>(() => new Packet());
@@ -745,7 +752,7 @@ namespace Com.poker.Core
 
     public sealed partial class ConnectRequest : pb::IMessage<ConnectRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<ConnectRequest> _parser = new pb::MessageParser<ConnectRequest>(() => new ConnectRequest());
@@ -1135,7 +1142,7 @@ namespace Com.poker.Core
 
     public sealed partial class ConnectResponse : pb::IMessage<ConnectResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<ConnectResponse> _parser = new pb::MessageParser<ConnectResponse>(() => new ConnectResponse());
@@ -1525,7 +1532,7 @@ namespace Com.poker.Core
 
     public sealed partial class ResumeRequest : pb::IMessage<ResumeRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<ResumeRequest> _parser = new pb::MessageParser<ResumeRequest>(() => new ResumeRequest());
@@ -1743,7 +1750,7 @@ namespace Com.poker.Core
 
     public sealed partial class ResumeResponse : pb::IMessage<ResumeResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<ResumeResponse> _parser = new pb::MessageParser<ResumeResponse>(() => new ResumeResponse());
@@ -2058,7 +2065,7 @@ namespace Com.poker.Core
 
     public sealed partial class Ping : pb::IMessage<Ping>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<Ping> _parser = new pb::MessageParser<Ping>(() => new Ping());
@@ -2276,7 +2283,7 @@ namespace Com.poker.Core
 
     public sealed partial class Pong : pb::IMessage<Pong>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<Pong> _parser = new pb::MessageParser<Pong>(() => new Pong());
@@ -2494,7 +2501,7 @@ namespace Com.poker.Core
 
     public sealed partial class JoinTableRequest : pb::IMessage<JoinTableRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<JoinTableRequest> _parser = new pb::MessageParser<JoinTableRequest>(() => new JoinTableRequest());
@@ -2712,7 +2719,7 @@ namespace Com.poker.Core
 
     public sealed partial class JoinTableResponse : pb::IMessage<JoinTableResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<JoinTableResponse> _parser = new pb::MessageParser<JoinTableResponse>(() => new JoinTableResponse());
@@ -3188,7 +3195,7 @@ namespace Com.poker.Core
 
     public sealed partial class BuyInRequest : pb::IMessage<BuyInRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<BuyInRequest> _parser = new pb::MessageParser<BuyInRequest>(() => new BuyInRequest());
@@ -3449,7 +3456,7 @@ namespace Com.poker.Core
 
     public sealed partial class BuyInResponse : pb::IMessage<BuyInResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<BuyInResponse> _parser = new pb::MessageParser<BuyInResponse>(() => new BuyInResponse());
@@ -3882,7 +3889,7 @@ namespace Com.poker.Core
 
     public sealed partial class SpectateRequest : pb::IMessage<SpectateRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<SpectateRequest> _parser = new pb::MessageParser<SpectateRequest>(() => new SpectateRequest());
@@ -4100,7 +4107,7 @@ namespace Com.poker.Core
 
     public sealed partial class SpectateResponse : pb::IMessage<SpectateResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<SpectateResponse> _parser = new pb::MessageParser<SpectateResponse>(() => new SpectateResponse());
@@ -4447,7 +4454,7 @@ namespace Com.poker.Core
 
     public sealed partial class SpectatorHoleCards : pb::IMessage<SpectatorHoleCards>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<SpectatorHoleCards> _parser = new pb::MessageParser<SpectatorHoleCards>(() => new SpectatorHoleCards());
@@ -4736,7 +4743,7 @@ namespace Com.poker.Core
 
     public sealed partial class InactiveNotice : pb::IMessage<InactiveNotice>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<InactiveNotice> _parser = new pb::MessageParser<InactiveNotice>(() => new InactiveNotice());
@@ -5126,7 +5133,7 @@ namespace Com.poker.Core
 
     public sealed partial class WaitVoteRequest : pb::IMessage<WaitVoteRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<WaitVoteRequest> _parser = new pb::MessageParser<WaitVoteRequest>(() => new WaitVoteRequest());
@@ -5559,7 +5566,7 @@ namespace Com.poker.Core
 
     public sealed partial class WaitVoteResponse : pb::IMessage<WaitVoteResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<WaitVoteResponse> _parser = new pb::MessageParser<WaitVoteResponse>(() => new WaitVoteResponse());
@@ -5863,7 +5870,7 @@ namespace Com.poker.Core
 
     public sealed partial class WaitVoteResult : pb::IMessage<WaitVoteResult>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<WaitVoteResult> _parser = new pb::MessageParser<WaitVoteResult>(() => new WaitVoteResult());
@@ -6339,7 +6346,7 @@ namespace Com.poker.Core
 
     public sealed partial class RejoinRequest : pb::IMessage<RejoinRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<RejoinRequest> _parser = new pb::MessageParser<RejoinRequest>(() => new RejoinRequest());
@@ -6557,7 +6564,7 @@ namespace Com.poker.Core
 
     public sealed partial class RejoinResponse : pb::IMessage<RejoinResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<RejoinResponse> _parser = new pb::MessageParser<RejoinResponse>(() => new RejoinResponse());
@@ -6947,7 +6954,7 @@ namespace Com.poker.Core
 
     public sealed partial class LeaveTableRequest : pb::IMessage<LeaveTableRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<LeaveTableRequest> _parser = new pb::MessageParser<LeaveTableRequest>(() => new LeaveTableRequest());
@@ -7165,7 +7172,7 @@ namespace Com.poker.Core
 
     public sealed partial class LeaveTableResponse : pb::IMessage<LeaveTableResponse>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<LeaveTableResponse> _parser = new pb::MessageParser<LeaveTableResponse>(() => new LeaveTableResponse());
@@ -7426,7 +7433,7 @@ namespace Com.poker.Core
 
     public sealed partial class TableSnapshot : pb::IMessage<TableSnapshot>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<TableSnapshot> _parser = new pb::MessageParser<TableSnapshot>(() => new TableSnapshot());
@@ -8130,7 +8137,7 @@ namespace Com.poker.Core
 
     public sealed partial class PokerTableInfo : pb::IMessage<PokerTableInfo>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<PokerTableInfo> _parser = new pb::MessageParser<PokerTableInfo>(() => new PokerTableInfo());
@@ -9251,7 +9258,7 @@ namespace Com.poker.Core
 
     public sealed partial class PokerTableList : pb::IMessage<PokerTableList>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<PokerTableList> _parser = new pb::MessageParser<PokerTableList>(() => new PokerTableList());
@@ -9454,7 +9461,7 @@ namespace Com.poker.Core
 
     public sealed partial class PlayerState : pb::IMessage<PlayerState>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<PlayerState> _parser = new pb::MessageParser<PlayerState>(() => new PlayerState());
@@ -9887,7 +9894,7 @@ namespace Com.poker.Core
 
     public sealed partial class DealHoleCards : pb::IMessage<DealHoleCards>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<DealHoleCards> _parser = new pb::MessageParser<DealHoleCards>(() => new DealHoleCards());
@@ -10133,7 +10140,7 @@ namespace Com.poker.Core
 
     public sealed partial class CommunityCards : pb::IMessage<CommunityCards>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<CommunityCards> _parser = new pb::MessageParser<CommunityCards>(() => new CommunityCards());
@@ -10420,9 +10427,399 @@ namespace Com.poker.Core
 
     }
 
+    public sealed partial class RoundEndNotice : pb::IMessage<RoundEndNotice>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+#endif
+    {
+        private static readonly pb::MessageParser<RoundEndNotice> _parser = new pb::MessageParser<RoundEndNotice>(() => new RoundEndNotice());
+        private pb::UnknownFieldSet _unknownFields;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pb::MessageParser<RoundEndNotice> Parser { get { return _parser; } }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[28]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public RoundEndNotice()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public RoundEndNotice(RoundEndNotice other) : this()
+        {
+            tableId_ = other.tableId_;
+            completedStreet_ = other.completedStreet_;
+            nextStreet_ = other.nextStreet_;
+            delaySeconds_ = other.delaySeconds_;
+            nextStreetUnixMs_ = other.nextStreetUnixMs_;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public RoundEndNotice Clone()
+        {
+            return new RoundEndNotice(this);
+        }
+
+        /// <summary>Field number for the "table_id" field.</summary>
+        public const int TableIdFieldNumber = 1;
+        private string tableId_ = "";
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public string TableId
+        {
+            get { return tableId_; }
+            set
+            {
+                tableId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+            }
+        }
+
+        /// <summary>Field number for the "completed_street" field.</summary>
+        public const int CompletedStreetFieldNumber = 2;
+        private global::Com.poker.Core.TableState completedStreet_ = global::Com.poker.Core.TableState.Unspecified;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public global::Com.poker.Core.TableState CompletedStreet
+        {
+            get { return completedStreet_; }
+            set
+            {
+                completedStreet_ = value;
+            }
+        }
+
+        /// <summary>Field number for the "next_street" field.</summary>
+        public const int NextStreetFieldNumber = 3;
+        private global::Com.poker.Core.TableState nextStreet_ = global::Com.poker.Core.TableState.Unspecified;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public global::Com.poker.Core.TableState NextStreet
+        {
+            get { return nextStreet_; }
+            set
+            {
+                nextStreet_ = value;
+            }
+        }
+
+        /// <summary>Field number for the "delay_seconds" field.</summary>
+        public const int DelaySecondsFieldNumber = 4;
+        private uint delaySeconds_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public uint DelaySeconds
+        {
+            get { return delaySeconds_; }
+            set
+            {
+                delaySeconds_ = value;
+            }
+        }
+
+        /// <summary>Field number for the "next_street_unix_ms" field.</summary>
+        public const int NextStreetUnixMsFieldNumber = 5;
+        private ulong nextStreetUnixMs_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public ulong NextStreetUnixMs
+        {
+            get { return nextStreetUnixMs_; }
+            set
+            {
+                nextStreetUnixMs_ = value;
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override bool Equals(object other)
+        {
+            return Equals(other as RoundEndNotice);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool Equals(RoundEndNotice other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+            if (TableId != other.TableId) return false;
+            if (CompletedStreet != other.CompletedStreet) return false;
+            if (NextStreet != other.NextStreet) return false;
+            if (DelaySeconds != other.DelaySeconds) return false;
+            if (NextStreetUnixMs != other.NextStreetUnixMs) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (TableId.Length != 0) hash ^= TableId.GetHashCode();
+            if (CompletedStreet != global::Com.poker.Core.TableState.Unspecified) hash ^= CompletedStreet.GetHashCode();
+            if (NextStreet != global::Com.poker.Core.TableState.Unspecified) hash ^= NextStreet.GetHashCode();
+            if (DelaySeconds != 0) hash ^= DelaySeconds.GetHashCode();
+            if (NextStreetUnixMs != 0UL) hash ^= NextStreetUnixMs.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+            output.WriteRawMessage(this);
+#else
+      if (TableId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(TableId);
+      }
+      if (CompletedStreet != global::Com.poker.Core.TableState.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) CompletedStreet);
+      }
+      if (NextStreet != global::Com.poker.Core.TableState.Unspecified) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) NextStreet);
+      }
+      if (DelaySeconds != 0) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(DelaySeconds);
+      }
+      if (NextStreetUnixMs != 0UL) {
+        output.WriteRawTag(40);
+        output.WriteUInt64(NextStreetUnixMs);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+#endif
+        }
+
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output)
+        {
+            if (TableId.Length != 0)
+            {
+                output.WriteRawTag(10);
+                output.WriteString(TableId);
+            }
+            if (CompletedStreet != global::Com.poker.Core.TableState.Unspecified)
+            {
+                output.WriteRawTag(16);
+                output.WriteEnum((int)CompletedStreet);
+            }
+            if (NextStreet != global::Com.poker.Core.TableState.Unspecified)
+            {
+                output.WriteRawTag(24);
+                output.WriteEnum((int)NextStreet);
+            }
+            if (DelaySeconds != 0)
+            {
+                output.WriteRawTag(32);
+                output.WriteUInt32(DelaySeconds);
+            }
+            if (NextStreetUnixMs != 0UL)
+            {
+                output.WriteRawTag(40);
+                output.WriteUInt64(NextStreetUnixMs);
+            }
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(ref output);
+            }
+        }
+#endif
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (TableId.Length != 0)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeStringSize(TableId);
+            }
+            if (CompletedStreet != global::Com.poker.Core.TableState.Unspecified)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeEnumSize((int)CompletedStreet);
+            }
+            if (NextStreet != global::Com.poker.Core.TableState.Unspecified)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeEnumSize((int)NextStreet);
+            }
+            if (DelaySeconds != 0)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeUInt32Size(DelaySeconds);
+            }
+            if (NextStreetUnixMs != 0UL)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeUInt64Size(NextStreetUnixMs);
+            }
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(RoundEndNotice other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+            if (other.TableId.Length != 0)
+            {
+                TableId = other.TableId;
+            }
+            if (other.CompletedStreet != global::Com.poker.Core.TableState.Unspecified)
+            {
+                CompletedStreet = other.CompletedStreet;
+            }
+            if (other.NextStreet != global::Com.poker.Core.TableState.Unspecified)
+            {
+                NextStreet = other.NextStreet;
+            }
+            if (other.DelaySeconds != 0)
+            {
+                DelaySeconds = other.DelaySeconds;
+            }
+            if (other.NextStreetUnixMs != 0UL)
+            {
+                NextStreetUnixMs = other.NextStreetUnixMs;
+            }
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+            input.ReadRawMessage(this);
+#else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            TableId = input.ReadString();
+            break;
+          }
+          case 16: {
+            CompletedStreet = (global::Com.poker.Core.TableState) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            NextStreet = (global::Com.poker.Core.TableState) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            DelaySeconds = input.ReadUInt32();
+            break;
+          }
+          case 40: {
+            NextStreetUnixMs = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+#endif
+        }
+
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+                        break;
+                    case 10:
+                        {
+                            TableId = input.ReadString();
+                            break;
+                        }
+                    case 16:
+                        {
+                            CompletedStreet = (global::Com.poker.Core.TableState)input.ReadEnum();
+                            break;
+                        }
+                    case 24:
+                        {
+                            NextStreet = (global::Com.poker.Core.TableState)input.ReadEnum();
+                            break;
+                        }
+                    case 32:
+                        {
+                            DelaySeconds = input.ReadUInt32();
+                            break;
+                        }
+                    case 40:
+                        {
+                            NextStreetUnixMs = input.ReadUInt64();
+                            break;
+                        }
+                }
+            }
+        }
+#endif
+
+    }
+
     public sealed partial class ActionRequest : pb::IMessage<ActionRequest>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<ActionRequest> _parser = new pb::MessageParser<ActionRequest>(() => new ActionRequest());
@@ -10435,7 +10832,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[28]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[29]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10726,7 +11123,7 @@ namespace Com.poker.Core
 
     public sealed partial class ActionResult : pb::IMessage<ActionResult>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<ActionResult> _parser = new pb::MessageParser<ActionResult>(() => new ActionResult());
@@ -10739,7 +11136,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[29]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[30]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11202,7 +11599,7 @@ namespace Com.poker.Core
 
     public sealed partial class ActionBroadcast : pb::IMessage<ActionBroadcast>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<ActionBroadcast> _parser = new pb::MessageParser<ActionBroadcast>(() => new ActionBroadcast());
@@ -11215,7 +11612,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[30]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[31]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11635,7 +12032,7 @@ namespace Com.poker.Core
 
     public sealed partial class TurnUpdate : pb::IMessage<TurnUpdate>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<TurnUpdate> _parser = new pb::MessageParser<TurnUpdate>(() => new TurnUpdate());
@@ -11648,7 +12045,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[31]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[32]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12184,7 +12581,7 @@ namespace Com.poker.Core
 
     public sealed partial class SidePot : pb::IMessage<SidePot>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<SidePot> _parser = new pb::MessageParser<SidePot>(() => new SidePot());
@@ -12197,7 +12594,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[32]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[33]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12430,7 +12827,7 @@ namespace Com.poker.Core
 
     public sealed partial class PotUpdate : pb::IMessage<PotUpdate>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<PotUpdate> _parser = new pb::MessageParser<PotUpdate>(() => new PotUpdate());
@@ -12443,7 +12840,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[33]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[34]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12719,7 +13116,7 @@ namespace Com.poker.Core
 
     public sealed partial class StackUpdate : pb::IMessage<StackUpdate>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<StackUpdate> _parser = new pb::MessageParser<StackUpdate>(() => new StackUpdate());
@@ -12732,7 +13129,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[34]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[35]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13023,7 +13420,7 @@ namespace Com.poker.Core
 
     public sealed partial class HandResult : pb::IMessage<HandResult>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<HandResult> _parser = new pb::MessageParser<HandResult>(() => new HandResult());
@@ -13036,7 +13433,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[35]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[36]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13325,7 +13722,7 @@ namespace Com.poker.Core
 
     public sealed partial class Winner : pb::IMessage<Winner>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<Winner> _parser = new pb::MessageParser<Winner>(() => new Winner());
@@ -13338,7 +13735,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[36]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[37]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13657,7 +14054,7 @@ namespace Com.poker.Core
 
     public sealed partial class RevealedHand : pb::IMessage<RevealedHand>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<RevealedHand> _parser = new pb::MessageParser<RevealedHand>(() => new RevealedHand());
@@ -13670,7 +14067,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[37]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[38]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13903,7 +14300,7 @@ namespace Com.poker.Core
 
     public sealed partial class Kick : pb::IMessage<Kick>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<Kick> _parser = new pb::MessageParser<Kick>(() => new Kick());
@@ -13916,7 +14313,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[38]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[39]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14121,7 +14518,7 @@ namespace Com.poker.Core
 
     public sealed partial class Error : pb::IMessage<Error>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<Error> _parser = new pb::MessageParser<Error>(() => new Error());
@@ -14134,7 +14531,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[39]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[40]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14382,7 +14779,7 @@ namespace Com.poker.Core
 
     public sealed partial class Card : pb::IMessage<Card>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-        , pb::IBufferMessage
+      , pb::IBufferMessage
 #endif
     {
         private static readonly pb::MessageParser<Card> _parser = new pb::MessageParser<Card>(() => new Card());
@@ -14395,7 +14792,7 @@ namespace Com.poker.Core
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor
         {
-            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[40]; }
+            get { return global::Com.poker.Core.GameMessageReflection.Descriptor.MessageTypes[41]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

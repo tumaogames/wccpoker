@@ -2428,6 +2428,59 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1254671300}
   m_CullTransparentMesh: 1
+--- !u!1 &1308156650
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1308156652}
+  - component: {fileID: 1308156651}
+  m_Layer: 0
+  m_Name: UIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1308156651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1308156650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20c23b8c1e87cb741bf2bd4afd258054, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  overlay: {fileID: 1361956634}
+  popupRoot: {fileID: 650068166}
+  fadeDuration: 0.25
+  moveDuration: 0.35
+  scaleDuration: 0.35
+  hiddenOffset: {x: 0, y: 150}
+  moveEase: 27
+  scaleEase: 27
+  isOpen: 0
+--- !u!4 &1308156652
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1308156650}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1167.8247, y: 959.34796, z: -6.5137043}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1361956632
 GameObject:
   m_ObjectHideFlags: 0
@@ -3629,12 +3682,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   end: 0
+  gameTokenID: 
   enableSound: 0
   selectedTable: {fileID: 0}
   imageParentContainer: {fileID: 1120935977}
   tablePrefab: {fileID: 8734159816331224758, guid: b1cf82332462a43479c9fc5f37a1738d, type: 3}
   currentScore: 0
   coinText: {fileID: 1220422535}
+  isInitialized: 0
 --- !u!1 &3836256113133397478
 GameObject:
   m_ObjectHideFlags: 0
@@ -3647,7 +3702,7 @@ GameObject:
   - component: {fileID: 3689379908243726149}
   - component: {fileID: 4889188337295128156}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: ArtGameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3733,7 +3788,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc839014c0232914fa530de82434be59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameToken: 091fd2b0-df9e-42ca-8deb-b7a24f290758
+  gameToken: 
   opId: cde5ce9f-8df7-f011-ace1-b2b431609323
 --- !u!4 &7516003126073489446
 Transform:
@@ -3761,3 +3816,4 @@ SceneRoots:
   - {fileID: 4684905732187104220}
   - {fileID: 6872535763684849315}
   - {fileID: 246860431}
+  - {fileID: 1308156652}

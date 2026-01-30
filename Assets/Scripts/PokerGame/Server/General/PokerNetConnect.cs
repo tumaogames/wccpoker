@@ -34,7 +34,10 @@ public class PokerNetConnect : MonoBehaviour
             Debug.LogWarning("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
             return;
         }
-
+        if(ArtGameManager.Instance.gameTokenID != "")
+        {
+            _netInfo.LaunchToken = ArtGameManager.Instance.gameTokenID;
+        }
         GameServerClient.Configure(_netInfo.ServerUrl);
         GameServerClient.ConnectWithLaunchToken(_netInfo.LaunchToken, _netInfo.OperatorPublicId);
     }

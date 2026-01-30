@@ -8,45 +8,85 @@ public class SceneLoader : MonoBehaviour
     [Header("UI")]
     public Image loadingSlider;
 
+    [Header("Popup")]
+    public GameObject tokenPopup;   // ADD THIS
+
     [Header("Scene")]
     public string mainSceneName = "MainScene";
 
     [Header("Options")]
-    public float minLoadTime = 1.5f; // prevents instant flash
+    public float minLoadTime = 1.5f;
+
+    private AsyncOperation loadOp;
+    private bool tokenConfirmed;
+
 
     void Start()
     {
-        StartCoroutine(LoadMainScene());
+        if (tokenPopup != null)
+        {
+            tokenPopup.SetActive(true);
+        }
+        StartCoroutine(WaitForTokenThenLoad());
     }
 
-    IEnumerator LoadMainScene()
+    IEnumerator WaitForTokenThenLoad()
     {
+        // Wait until token is confirmed
+        yield return new WaitUntil(() => tokenConfirmed);
+
+        if (tokenPopup != null)
+        {
+            tokenPopup.SetActive(false);
+        }
+
         float timer = 0f;
 
-        AsyncOperation op = SceneManager.LoadSceneAsync(mainSceneName);
-        op.allowSceneActivation = false;
+        loadOp = SceneManager.LoadSceneAsync(mainSceneName);
+        loadOp.allowSceneActivation = false;
 
-        while (op.progress < 0.9f)
+        while (loadOp.progress < 0.9f)
         {
-            timer += Time.deltaTime;
+            timer += Time.unscaledDeltaTime;
 
-            float progress = Mathf.Clamp01(op.progress / 0.9f);
-            loadingSlider.fillAmount = progress;
+            if (loadingSlider != null)
+            {
+                float progress = Mathf.Clamp01(loadOp.progress / 0.9f);
+                loadingSlider.fillAmount = progress;
+            }
 
             yield return null;
         }
 
         // Force 100%
-        loadingSlider.fillAmount = 1f;
+        if (loadingSlider != null)
+        {
+            loadingSlider.fillAmount = 1f;
+        }
 
         // Ensure minimum load time
         while (timer < minLoadTime)
         {
-            timer += Time.deltaTime;
+            timer += Time.unscaledDeltaTime;
             yield return null;
         }
 
-        op.allowSceneActivation = true;
+        loadOp.allowSceneActivation = true;
+    }
+
+    public void ConfirmToken(string token)
+    {
+        token = token?.Trim();
+        if (string.IsNullOrEmpty(token))
+        {
+            Debug.LogError("ConfirmToken called with empty token.");
+            return;
+        }
+
+        Debug.Log("SceneLoader confirmed token: " + token);
+        TokenManager.EnsureInstance();
+        TokenManager.Instance.SetToken(token);
+        tokenConfirmed = true;
     }
 }
 

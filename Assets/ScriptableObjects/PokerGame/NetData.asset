@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoConnectOnStart: 1
   ServerUrl: ws://51.79.160.227:26001/ws
-  LaunchToken: aeec9393-9e9b-469f-8294-79610f25a0d9
+  LaunchToken: 567c6a9b-1f0f-44b8-b437-7c3118e9f39a
   OperatorPublicId: cde5ce9f-8df7-f011-ace1-b2b431609323
   AutoSpectateOnConnect: 1
   SpectateTableCode: WCC-TBL-POKER-001
