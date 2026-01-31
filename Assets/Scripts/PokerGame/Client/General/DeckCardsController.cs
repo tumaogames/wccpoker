@@ -431,6 +431,8 @@ namespace WCC.Poker.Client
                     yield return new WaitUntil(() => isReached);
                 }
 
+                BankerAnimController.main.PlayDealsCardAnimation();
+
                 yield return null;
             }
         }
@@ -470,6 +472,8 @@ namespace WCC.Poker.Client
                 CardViewUI = _cardList,
                 IsPlaceholder = false,
             });
+
+            BankerAnimController.main.PlayDealsCardAnimation();
         }
 
         void DealFaceDownCards(string playerID, int seat, int count)
