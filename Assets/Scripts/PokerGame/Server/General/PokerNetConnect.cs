@@ -11,7 +11,6 @@ using UnityEngine;
 public class PokerNetConnect : MonoBehaviour
 {
     [SerializeField] PokerNetData _netInfo;
-    [SerializeField] string _debug_tableID;
     public static string OwnerPlayerID;
 
     public static event Action<MsgType, IMessage> OnMessageEvent;
@@ -59,14 +58,14 @@ public class PokerNetConnect : MonoBehaviour
         if (!_netInfo.AutoSpectateOnConnect)
             return;
 
-        if (string.IsNullOrWhiteSpace(_netInfo.SpectateTableCode))
+        if (string.IsNullOrWhiteSpace(_netInfo.BotsTableCode))
         {
             Debug.LogWarning("[BotDump] spectateTableCode is empty.");
             return;
         }
 
         //GameServerClient.SendSpectateStatic(_netInfo.SpectateTableCode);
-        GameServerClient.SendJoinTableStatic(_debug_tableID);
+        GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode);
     }
 
 
