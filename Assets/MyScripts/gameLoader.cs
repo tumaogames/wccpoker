@@ -7,6 +7,7 @@ public class gameLoader : MonoBehaviour
     public string gameToken;
     public string opId;
     public string websocketUrl = "ws://51.79.160.227:26001/ws";
+    string _lastConnectedToken;
     // Start is called before the first frame update
     IEnumerator Start()
     {
@@ -25,8 +26,52 @@ public class gameLoader : MonoBehaviour
         }
 
         gameToken = ArtGameManager.Instance.gameTokenID;
+        ConnectWithToken(gameToken, "start");
+    }
+
+    void OnEnable()
+    {
+        TokenManager.TokenSet += OnTokenSet;
+    }
+
+    void OnDisable()
+    {
+        TokenManager.TokenSet -= OnTokenSet;
+    }
+
+    void OnTokenSet(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return;
+
+        gameToken = token;
+        ConnectWithToken(token, "token-change");
+    }
+
+    void ConnectWithToken(string token, string reason)
+    {
+        if (string.IsNullOrWhiteSpace(opId))
+        {
+            Debug.LogWarning("[gameLoader] opId is empty. Connect skipped.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(websocketUrl))
+        {
+            Debug.LogWarning("[gameLoader] websocketUrl is empty. Connect skipped.");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_lastConnectedToken) && _lastConnectedToken == token)
+        {
+            Debug.Log($"[gameLoader] Token unchanged. Connect skipped ({reason}).");
+            return;
+        }
+
+        _lastConnectedToken = token;
         GameServerClient.Configure(websocketUrl);
-        GameServerClient.ConnectWithLaunchToken(gameToken, opId);
+        GameServerClient.ForceConnectWithLaunchToken(token, opId);
+        Debug.Log($"[gameLoader] Connecting ({reason}) token={token}");
     }
 
     // Update is called once per frame

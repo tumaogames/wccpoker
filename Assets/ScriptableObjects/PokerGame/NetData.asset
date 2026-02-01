@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dad1b98ff9759d4bba7e3b8d90d62d7, type: 3}
   m_Name: NetData
   m_EditorClassIdentifier: 
+  LaunchToken: ec0f51ef-ddf5-4a36-b704-45b27f5c85eb
   AutoConnectOnStart: 1
   ServerUrl: ws://51.79.160.227:26001/ws
-  LaunchToken: 567c6a9b-1f0f-44b8-b437-7c3118e9f39a
   OperatorPublicId: cde5ce9f-8df7-f011-ace1-b2b431609323
   AutoSpectateOnConnect: 1
-  SpectateTableCode: WCC-TBL-POKER-001
+  IsPlayerEnable: 1
+  PlayerTableCode: WCC-TBL-POKER-002
+  BotsTableCode: DEV-BOT-TABLE

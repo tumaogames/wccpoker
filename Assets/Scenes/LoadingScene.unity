@@ -394,6 +394,75 @@ MonoBehaviour:
   tokenPopup: {fileID: 1691686860905906274}
   mainSceneName: MainScene
   minLoadTime: 1.5
+--- !u!1 &2060978477
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2060978479}
+  - component: {fileID: 2060978478}
+  m_Layer: 0
+  m_Name: GameServerClient
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2060978478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2060978477}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e3831198edb4b44aae8981c14b563c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serverUrl: ws://51.79.160.227:26001/ws
+  protocolVersion: 1
+  maxPacketBytes: 32768
+  pingIntervalSec: 15
+  clientVersionOverride: 
+  deviceIdOverride: 
+  autoReconnect: 1
+  reconnectInitialDelaySec: 1
+  reconnectMaxDelaySec: 10
+  reconnectMaxAttempts: 0
+  playerId: 
+  credits: 0
+  sessionId: 
+  tableId: 
+  isConnected: 0
+  lastReceivedSeq: 0
+  resumeWindowSec: 0
+  lastInboundUnixMs: 0
+  lastResumeUnixMs: 0
+  _maxMainThreadActionsPerFrame: 120
+  _catchUpQueueThreshold: 240
+  logIncomingMessages: 0
+  logIncomingPayloadSize: 0
+  logQueueHealth: 0
+  stallWarnSeconds: 5
+--- !u!4 &2060978479
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2060978477}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1042.495, y: 388.1744, z: -8.659715}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &84317589112952603
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2638,3 +2707,4 @@ SceneRoots:
   - {fileID: 1898669413}
   - {fileID: 1737625058}
   - {fileID: 704499121}
+  - {fileID: 2060978479}

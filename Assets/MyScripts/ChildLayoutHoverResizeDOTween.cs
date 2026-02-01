@@ -74,7 +74,10 @@ public class ChildLayoutHoverResizeDOTween :
     public void OnPointerClick(PointerEventData eventData)
     {
         Select();
-
+        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
+        ArtGameManager.Instance.selectedMaxSizeID = GetComponent<ChildTableData>().matchSizeId;
+        ArtGameManager.Instance.selectedMinBuyIn = GetComponent<ChildTableData>().minBuyIn;
+        ArtGameManager.Instance.selectedMaxBuyIn = GetComponent<ChildTableData>().maxBuyIn;
         eventData.Use(); // ⛔ prevents background click
         var client = GameServerClient.Instance;
         if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
@@ -101,9 +104,13 @@ public class ChildLayoutHoverResizeDOTween :
     {
         Debug.Log("DOUBLE CLICK!");
         ArtGameManager.Instance.PopUpSelectPlayer();
-        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
         SetGlobalSharedData();
-        GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
+        if (ArtGameManager.Instance.selectedMaxSizeID <= 0)
+        {
+            Debug.LogWarning("MatchSizeId is invalid. Join skipped.");
+            return;
+        }
+        GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, ArtGameManager.Instance.selectedMaxSizeID);
     }
 
     public void SetGlobalSharedData()

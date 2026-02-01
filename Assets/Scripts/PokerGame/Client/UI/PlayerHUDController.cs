@@ -211,15 +211,29 @@ namespace WCC.Poker.Client
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var remainingMs = m.DeadlineUnixMs > 0 ? Math.Max(0, (long)m.DeadlineUnixMs - nowMs) : 0;
 
-            _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
             _displayStacks[m.PlayerId] = (int)m.Stack;
-            _inGamePlayersRecords[m.PlayerId].SetTurn();
+            if (_inGamePlayersRecords.TryGetValue(m.PlayerId, out var hud))
+            {
+                hud.UpdateChipsAmount((int)m.Stack);
+                hud.SetTurn();
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerHUD] TurnUpdate for unknown player {m.PlayerId}. Waiting for snapshot.");
+            }
         }
 
         void OnStackUpdate(StackUpdate m)
         {
-            _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
             _displayStacks[m.PlayerId] = (int)m.Stack;
+            if (_inGamePlayersRecords.TryGetValue(m.PlayerId, out var hud))
+            {
+                hud.UpdateChipsAmount((int)m.Stack);
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerHUD] StackUpdate for unknown player {m.PlayerId}. Waiting for snapshot.");
+            }
         }
 
         void OnHandResult(HandResult m)

@@ -35,6 +35,7 @@ namespace WCC.Poker.Client
         [SerializeField] Color _ownPlayerNameTextColor;
         [SerializeField] GameObject _turnHightlightGO;
 
+        [SerializeField] GameObject _tagBG;
         [SerializeField] GameObject[] _tagIcons;
 
         [Header("[EVENTS]")]
@@ -45,7 +46,6 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent _onTurnCountdownEndEvent;
 
         bool _isOwner;
-        string _playerID;
         int _seatIndex = -1;
         readonly static WaitForSeconds _waitForSeconds1 = new(1f);
 
@@ -65,7 +65,6 @@ namespace WCC.Poker.Client
         /// <param name="amount"></param>
         public void InititalizePlayerHUDUI(string id, string playerName, bool isMine, int level, Sprite profile, int amount)
         {
-            _playerID = id;
             _playerNameText.text = playerName;
             _isOwner = isMine;
             _levelText.text = $"{level}";
@@ -194,6 +193,8 @@ namespace WCC.Poker.Client
         {
             foreach(var j in _tagIcons) j.SetActive(false);
             _tagIcons[i].SetActive(e);
+
+            _tagBG.SetActive(e);
         }
 
         public void SetTag(PlayerHUDController.TagType tagType, bool e) => SetEnableTag((int)tagType, e);

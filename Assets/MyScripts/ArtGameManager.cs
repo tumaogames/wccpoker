@@ -10,6 +10,9 @@ public class ArtGameManager : MonoBehaviour
 {
     public string selectedTableID;
     public string selectedTableCode;
+    public int selectedMaxSizeID;
+    public long selectedMinBuyIn;
+    public long selectedMaxBuyIn;
     public string selectedTable;
     public string playerID;
     public static ArtGameManager Instance;
@@ -196,6 +199,14 @@ public class ArtGameManager : MonoBehaviour
         childTableDataInfo.childTableCode = tableItem.TableCode;
         childTableDataInfo.minPlayers = tableItem.MinPlayersToStart;
         childTableDataInfo.maxPlayers = tableItem.MaxPlayers;
+        childTableDataInfo.minBuyIn = tableItem.MinBuyIn;
+        childTableDataInfo.maxBuyIn = tableItem.MaxBuyIn;
+        if (!int.TryParse(tableItem.TableId, out var matchSizeId))
+        {
+            Debug.LogWarning($"[LobbySample] Invalid match size id '{tableItem.TableId}' for table {tableItem.TableCode}.");
+            matchSizeId = 0;
+        }
+        childTableDataInfo.matchSizeId = matchSizeId;
         childTableDataInfo.ChildSetText();
     }
 

@@ -6,6 +6,9 @@ using UnityEngine;
 public class ChildTableData : MonoBehaviour
 {
     public string childTableCode;
+    public int matchSizeId;
+    public long minBuyIn;
+    public long maxBuyIn;
     public int minPlayers;
     public int maxPlayers;
 
