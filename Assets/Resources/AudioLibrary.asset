@@ -39,3 +39,15 @@ MonoBehaviour:
   - Key: Actions
     AudioClip:
     - {fileID: 8300000, guid: 2c914e37ac97f6749a917864abdf23fc, type: 3}
+  - Key: BankerTip
+    AudioClip:
+    - {fileID: 8300000, guid: 62d9eeda34edadd4496d0b0fce3778b2, type: 3}
+    - {fileID: 8300000, guid: 69fa9a834f80e244ab0b644f967ce6bf, type: 3}
+    - {fileID: 8300000, guid: 1bd32fad27d60674e9fb1a67ed194d3a, type: 3}
+    - {fileID: 8300000, guid: b2b99410cf43e624baf9ff140f2d2d58, type: 3}
+    - {fileID: 8300000, guid: cfff4462ad98ff147bc58032761ebac0, type: 3}
+    - {fileID: 8300000, guid: dafa26fdd9b1c444e8f52486a68161db, type: 3}
+    - {fileID: 8300000, guid: 1ae7c808950e8c24fa67078995935b6f, type: 3}
+    - {fileID: 8300000, guid: 2ef0c3fc3e4cacf46a91128993cd7254, type: 3}
+    - {fileID: 8300000, guid: 138ff6e764413a34d9aa207de54684fe, type: 3}
+    - {fileID: 8300000, guid: 750828c469395974b9aafb1d27e4c5c5, type: 3}

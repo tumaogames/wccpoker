@@ -706,12 +706,12 @@ public sealed class GameServerClient : MonoBehaviour
                         //sharedData.myPlayerID = playerId;
                         Debug.Log($"{playerId} Credit: {credits}");
                         Debug.Log("myPlayerID:" + playerId);
-                        if (ArtGameManager.Instance != null)
-                        {
-                            ArtGameManager.Instance.playerID = playerId;
-                            if (ArtGameManager.Instance.coinText != null)
-                                ArtGameManager.Instance.coinText.text = "Php " + credits;
-                        }
+                        //if (ArtGameManager.Instance != null)
+                        //{
+                        //    ArtGameManager.Instance.playerID = playerId;
+                        //    if (ArtGameManager.Instance.coinText != null)
+                        //        ArtGameManager.Instance.coinText.text = "Php " + credits;
+                        //}
                         // RENDER: update player HUD (player id, session, credits, protocol).
                         // Example:
                         // - show connect success toast
@@ -740,8 +740,8 @@ public sealed class GameServerClient : MonoBehaviour
                         TableListReceived?.Invoke(tableList);
                         MessageReceived?.Invoke(msgType, tableList);
                         Debug.Log("Recieved table list with " + tableList.Tables.Count + " tables.");
-                        if (ArtGameManager.Instance != null)
-                            ArtGameManager.Instance.GenerateTable(tableList);
+                        //if (ArtGameManager.Instance != null)
+                        //    ArtGameManager.Instance.GenerateTable(tableList);
 
                         // RENDER: build table list UI.
                         // Example:
