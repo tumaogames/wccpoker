@@ -129,7 +129,9 @@ public class PokerNetConnect : MonoBehaviour
             return;
         }
 
-        var matchSizeId = ArtGameManager.Instance != null ? ArtGameManager.Instance.selectedMaxSizeID : 0;
+        var matchSizeId = sharedData.mySelectedMatchSizeID;
+        if (matchSizeId <= 0 && ArtGameManager.Instance != null)
+            matchSizeId = ArtGameManager.Instance.selectedMaxSizeID;
         if (!_isPlayerEnable && matchSizeId <= 0)
             matchSizeId = _defaultBotsMatchSizeId;
 
@@ -139,8 +141,7 @@ public class PokerNetConnect : MonoBehaviour
             return;
         }
 
-        if (ArtGameManager.Instance != null)
-            Debug.Log(ArtGameManager.Instance.selectedMaxSizeID + " " + tableCode);
+        Debug.Log(matchSizeId + " " + tableCode);
         GameServerClient.SendJoinTableStatic(tableCode, matchSizeId);
         _joinRequested = true;
         Debug.Log($"[PokerNetConnect] Join requested ({reason}) table={tableCode} matchSizeId={matchSizeId}");
