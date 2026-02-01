@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dad1b98ff9759d4bba7e3b8d90d62d7, type: 3}
+  m_Name: NetData
+  m_EditorClassIdentifier: 
+  AutoConnectOnStart: 1
+  ServerUrl: ws://51.79.160.227:26001/ws
+  LaunchToken: 231c72ca-d0c9-4f8f-8cb1-b0bd06320239
+  OperatorPublicId: cde5ce9f-8df7-f011-ace1-b2b431609323
+  AutoSpectateOnConnect: 1
+  SpectateTableCode: WCC-TBL-POKER-001

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad88a0488c19531469395e4a58cbb68f, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: 
+  Infos:
+  - Key: Chips_Bet
+    AudioClip:
+    - {fileID: 8300000, guid: 197e0fdc592093e4faf43296d5a31100, type: 3}
+    - {fileID: 8300000, guid: 1933f0a1d6096aa4eaca4329925fb3b7, type: 3}
+    - {fileID: 8300000, guid: d26bde1b32071a942b0349f7d8a5e15f, type: 3}
+  - Key: Chips_Pot
+    AudioClip:
+    - {fileID: 8300000, guid: cfecda13d67422c45b301179633ba8a2, type: 3}
+  - Key: Cards
+    AudioClip:
+    - {fileID: 8300000, guid: ffe8b1c7094391749bbfb97274e99a7a, type: 3}
+    - {fileID: 8300000, guid: 87a349a2fdfd3ec42bbe588160156789, type: 3}
