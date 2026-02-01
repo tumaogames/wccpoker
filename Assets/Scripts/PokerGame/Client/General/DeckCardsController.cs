@@ -26,6 +26,9 @@ namespace WCC.Poker.Client
         [Header("[PREFAB]")]
         [SerializeField] CardView _cardViewPrefab;
 
+        [Header("[CARD]")]
+        [SerializeField] float _cardSize = 0.56f;
+
         [Header("[CONTAINERS]")]
         [SerializeField] Transform _deckTableGroup;
         [SerializeField] Transform _bankerPosition;
@@ -33,8 +36,6 @@ namespace WCC.Poker.Client
 
         [Header("[PLAYER-TABLES]")]
         [SerializeField] Transform[] _playerTablePositions;
-        [SerializeField] float _otherPlayerCardsSize = 0.8f;
-        [SerializeField] float _playerCardsSize = 1.3f;
 
         readonly List<CardView> _cardViewList_onPlayers = new();
         readonly List<CardView> _cardViewList_onCommunity = new();
@@ -48,7 +49,6 @@ namespace WCC.Poker.Client
         bool _pendingClearAfterShowdown = false;
 
         //DEBUG TEXT
-        [SerializeField] TMP_Text _debugRoundNameText;
         [SerializeField] bool _logDealWarnings = true;
         [SerializeField] bool _logHandSummary = false;
         [SerializeField] bool _logStateTransitions = false;
@@ -118,7 +118,7 @@ namespace WCC.Poker.Client
             for (int i = 0; i < _cardViewList_onPlayers.Count; i++)
             {
                 _cardViewList_onPlayers[i].transform.SetParent(_deckTableGroup);
-                _cardViewList_onPlayers[i].transform.localScale = new Vector2(0.56f, 0.56f);
+                _cardViewList_onPlayers[i].transform.localScale = new Vector2(_cardSize, _cardSize);
                 _cardViewList_onPlayers[i].transform.DOMove(_deckTableGroup.position, 0.1f).SetEase(Ease.InOutSine).OnComplete(null);
                 AudioManager.main.PlayAudio("Cards", 0);
 
@@ -128,7 +128,7 @@ namespace WCC.Poker.Client
             for (int i = 0; i < _cardViewList_onCommunity.Count; i++)
             {
                 _cardViewList_onCommunity[i].transform.SetParent(_deckTableGroup);
-                _cardViewList_onCommunity[i].transform.localScale = new Vector2(0.56f, 0.56f);
+                _cardViewList_onCommunity[i].transform.localScale = new Vector2(_cardSize, _cardSize);
                 _cardViewList_onCommunity[i].transform.DOMove(_deckTableGroup.position, 0.1f).SetEase(Ease.InOutSine).OnComplete(null);
 
                 yield return null;
@@ -138,7 +138,7 @@ namespace WCC.Poker.Client
             {
                 var isReached = false;
 
-                _cardViewList_onPlayers[i].transform.localScale = new Vector2(0.56f, 0.56f);
+                _cardViewList_onPlayers[i].transform.localScale = new Vector2(_cardSize, _cardSize);
                 _cardViewList_onPlayers[i].transform.DOMove(_bankerPosition.position, 0.03f).SetEase(Ease.InSine).OnComplete(() =>
                 {
                     isReached = true;
@@ -152,7 +152,7 @@ namespace WCC.Poker.Client
             {
                 var isReached = false;
 
-                _cardViewList_onCommunity[i].transform.localScale = new Vector2(0.56f, 0.56f);
+                _cardViewList_onCommunity[i].transform.localScale = new Vector2(_cardSize, _cardSize);
                 _cardViewList_onCommunity[i].transform.DOMove(_bankerPosition.position, 0.1f).SetEase(Ease.InSine).OnComplete(() =>
                 {
                     isReached = true;
@@ -190,8 +190,6 @@ namespace WCC.Poker.Client
         {
             if (_logStateTransitions && _lastTableState != m.State)
                 Debug.Log($"TableState transition: {_lastTableState} -> {m.State}");
-
-            _debugRoundNameText.text = $"Round Status: {m.State}";
 
             if (m.CommunityCards != null && m.CommunityCards.Count > 0)
             {
@@ -369,7 +367,6 @@ namespace WCC.Poker.Client
 
         }
 
-
         void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, UnityAction isReachedCallback)
         {
             var card = Instantiate(_cardViewPrefab, _deckTableGroup);
@@ -386,7 +383,7 @@ namespace WCC.Poker.Client
             {
                 card.transform.SetParent(cardViewParent);
                 card.transform.position = cardViewParent.position;
-                card.transform.localScale = new Vector2(0.56f, 0.56f);
+                card.transform.localScale = new Vector2(_cardSize, _cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
                 isReachedCallback();
@@ -399,7 +396,7 @@ namespace WCC.Poker.Client
             .OnComplete(() =>
             {
                 card.transform.SetParent(cardViewParent);
-                card.transform.localScale = new Vector2(0.56f, 0.56f);
+                card.transform.localScale = new Vector2(_cardSize, _cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
                 isReachedCallback();
@@ -408,6 +405,7 @@ namespace WCC.Poker.Client
 
         IEnumerator DealCardsForCommunity(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> infoList)
         {
+            BankerAnimController.main.PlayDealsCardAnimation();
             for (int i = 0; i < infoList.Count; i++)
             {
                 var key = CardKey(infoList[i]);
@@ -430,15 +428,13 @@ namespace WCC.Poker.Client
 
                     yield return new WaitUntil(() => isReached);
                 }
-
-                BankerAnimController.main.PlayDealsCardAnimation();
-
                 yield return null;
             }
+            BankerAnimController.main.StopDealsCardAnimation();
         }
 
 
-        void DealCardsForPlayers(string playerID, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> playerCards, int seat)
+        async void DealCardsForPlayers(string playerID, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> playerCards, int seat)
         {
             if (seat < 0 || seat >= _playerTablePositions.Length)
             {
@@ -446,6 +442,8 @@ namespace WCC.Poker.Client
                     Debug.LogWarning($"Invalid seat index {seat} for player {playerID}. Cards not dealt.");
                 return;
             }
+
+            BankerAnimController.main.PlayDealsCardAnimation();
 
             AudioManager.main.PlayAudio("Cards", 1);
             List<CardView> _cardList = new();
@@ -473,7 +471,9 @@ namespace WCC.Poker.Client
                 IsPlaceholder = false,
             });
 
-            BankerAnimController.main.PlayDealsCardAnimation();
+            await Task.Delay(500);
+
+            BankerAnimController.main.StopDealsCardAnimation();
         }
 
         void DealFaceDownCards(string playerID, int seat, int count)

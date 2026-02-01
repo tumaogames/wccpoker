@@ -16,16 +16,16 @@ namespace WCC.Poker.Client
         [SerializeField] Animator _bankerHairAnimator;
 
         [Button]
-        public void PlayDealsCardAnimation()
-        {
-            _bankerBodyAnimator.SetTrigger("Deals");
-            _bankerHairAnimator.SetTrigger("Change");
-        }
+        public void PlayDealsCardAnimation() => DealingAnimation(true);
+
 
         [Button]
-        public void PlayHappyAnimation()
-        {
+        public void StopDealsCardAnimation() => DealingAnimation(false);
 
+        void DealingAnimation(bool e)
+        {
+            _bankerBodyAnimator.SetBool("DealStyle1", e);
+            _bankerHairAnimator.SetBool("Wind", e);
         }
     }
 }

@@ -290,6 +290,21 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendJoinTable(tableIdValue);
     }
 
+    public static void SendJoinTableStatic(string tableIdValue, int matchSizeId)
+    {
+        Instance.SendJoinTable(tableIdValue, matchSizeId);
+    }
+
+    public void SendJoinTable(string tableIdValue, int matchSizeId)
+    {
+        var req = new JoinTableRequest
+        {
+            TableId = tableIdValue ?? "",
+            MatchSizeId = matchSizeId
+        };
+        SendPacket(MsgType.JoinTableRequest, req);
+    }
+
     public static void SendBuyInStatic(string tableIdValue, long amount)
     {
         Instance.SendBuyIn(tableIdValue, amount);
@@ -1134,6 +1149,7 @@ public sealed class GameServerClient : MonoBehaviour
         if (IsCatchingUp && _mainThreadQueue.Count <= _catchUpQueueThreshold / 2)
             IsCatchingUp = false;
     }
+
 }
 
 /*
