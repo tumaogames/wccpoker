@@ -24,6 +24,11 @@ public class PokerNetConnect : MonoBehaviour
     public static event Action<MsgType, IMessage> OnMessageEvent;
     bool _joinRequested;
     bool _hasSnapshot;
+    string _lastKnownTableId;
+    bool _deferJoinUntilRoundEnd;
+    string _pendingJoinTableCode;
+    int _pendingJoinMatchSizeId;
+    bool _awaitingRoundReset;
 
     void Awake()
     {
@@ -35,10 +40,18 @@ public class PokerNetConnect : MonoBehaviour
         GameServerClient.MessageReceivedStatic += OnMessage;
         GameServerClient.ConnectResponseReceivedStatic += OnConnect;
         GameServerClient.JoinTableResponseReceivedStatic += OnJoinConnect;
+        GameServerClient.RejoinResponseReceivedStatic += OnRejoin;
         GameServerClient.BuyInResponseReceivedStatic += OnBuyIn;
         OwnerPlayerID = ArtGameManager.Instance != null ? ArtGameManager.Instance.playerID : OwnerPlayerID;
         _joinRequested = false;
         _hasSnapshot = false;
+        _deferJoinUntilRoundEnd = false;
+        _pendingJoinTableCode = "";
+        _pendingJoinMatchSizeId = 0;
+        _awaitingRoundReset = false;
+        var existingTableId = GameServerClient.Instance != null ? GameServerClient.Instance.TableId : "";
+        if (!string.IsNullOrWhiteSpace(existingTableId))
+            _lastKnownTableId = existingTableId;
 
         if (IsSessionReady())
         {
@@ -55,6 +68,7 @@ public class PokerNetConnect : MonoBehaviour
         GameServerClient.MessageReceivedStatic -= OnMessage;
         GameServerClient.ConnectResponseReceivedStatic -= OnConnect;
         GameServerClient.JoinTableResponseReceivedStatic -= OnJoinConnect;
+        GameServerClient.RejoinResponseReceivedStatic -= OnRejoin;
         GameServerClient.BuyInResponseReceivedStatic -= OnBuyIn;
     }
 
@@ -72,14 +86,24 @@ public class PokerNetConnect : MonoBehaviour
 
         if (string.Equals(resp.Message, "already_in_match", StringComparison.OrdinalIgnoreCase))
         {
-            if (!string.IsNullOrEmpty(resp.TableId))
+            if (!string.IsNullOrWhiteSpace(resp.TableId))
+                _lastKnownTableId = resp.TableId;
+
+            _pendingJoinTableCode = GetTargetTableCode();
+            _pendingJoinMatchSizeId = ResolveMatchSizeId();
+            _deferJoinUntilRoundEnd = true;
+            _awaitingRoundReset = false;
+            _joinRequested = false;
+
+            if (!string.IsNullOrWhiteSpace(_pendingJoinTableCode))
             {
-                GameServerClient.SendRejoinStatic(resp.TableId);
-                Debug.Log($"[PokerNetConnect] Rejoin requested tableId={resp.TableId} (already_in_match)");
+                NetworkDebugLogger.LogSend("Spectate", $"tableCode={_pendingJoinTableCode} (already_in_match)");
+                GameServerClient.SendSpectateStatic(_pendingJoinTableCode);
+                Debug.Log($"[PokerNetConnect] already_in_match: spectating table={_pendingJoinTableCode} until round end.");
             }
             else
             {
-                Debug.LogWarning("[PokerNetConnect] already_in_match but tableId is empty. Rejoin skipped.");
+                Debug.LogWarning("[PokerNetConnect] already_in_match but table code is empty. Spectate skipped.");
             }
             return;
         }
@@ -96,6 +120,7 @@ public class PokerNetConnect : MonoBehaviour
         }
 
         GameServerClient.SendBuyInStatic(resp.TableId, minBuyIn);
+        NetworkDebugLogger.LogSend("BuyIn", $"tableId={resp.TableId} amount={minBuyIn}");
         Debug.Log($"[PokerNetConnect] BuyIn requested tableId={resp.TableId} amount={minBuyIn}");
     }
 
@@ -117,10 +142,44 @@ public class PokerNetConnect : MonoBehaviour
             StartCoroutine(EnsureSnapshotAfterBuyIn(resp.TableId));
     }
 
+    void OnRejoin(RejoinResponse resp)
+    {
+        if (resp == null)
+            return;
+
+        if (!resp.Success)
+        {
+            Debug.LogWarning($"[PokerNetConnect] Rejoin failed: {resp.Message}");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(resp.TableId))
+            _lastKnownTableId = resp.TableId;
+
+        if (_isPlayerEnable && resp.Stack <= 0)
+        {
+            var minBuyIn = ArtGameManager.Instance != null ? ArtGameManager.Instance.selectedMinBuyIn : 0;
+            if (minBuyIn > 0 && !string.IsNullOrEmpty(resp.TableId))
+            {
+                GameServerClient.SendBuyInStatic(resp.TableId, minBuyIn);
+                NetworkDebugLogger.LogSend("BuyIn", $"tableId={resp.TableId} amount={minBuyIn} (rejoin)");
+                Debug.Log($"[PokerNetConnect] BuyIn requested tableId={resp.TableId} amount={minBuyIn} (rejoin)");
+            }
+        }
+
+        if (!string.IsNullOrEmpty(resp.TableId) && !_hasSnapshot)
+            StartCoroutine(EnsureSnapshotAfterBuyIn(resp.TableId));
+    }
+
     void TryJoinTable(string reason)
     {
         if (_joinRequested)
             return;
+        if (_deferJoinUntilRoundEnd)
+        {
+            Debug.Log($"[PokerNetConnect] Join deferred until round end ({reason}).");
+            return;
+        }
 
         var tableCode = GetTargetTableCode();
         if (string.IsNullOrWhiteSpace(tableCode))
@@ -129,11 +188,7 @@ public class PokerNetConnect : MonoBehaviour
             return;
         }
 
-        var matchSizeId = sharedData.mySelectedMatchSizeID;
-        if (matchSizeId <= 0 && ArtGameManager.Instance != null)
-            matchSizeId = ArtGameManager.Instance.selectedMaxSizeID;
-        if (!_isPlayerEnable && matchSizeId <= 0)
-            matchSizeId = _defaultBotsMatchSizeId;
+        var matchSizeId = ResolveMatchSizeId();
 
         if (matchSizeId <= 0)
         {
@@ -143,6 +198,7 @@ public class PokerNetConnect : MonoBehaviour
 
         Debug.Log(matchSizeId + " " + tableCode);
         GameServerClient.SendJoinTableStatic(tableCode, matchSizeId);
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={tableCode} matchSizeId={matchSizeId} reason={reason}");
         _joinRequested = true;
         Debug.Log($"[PokerNetConnect] Join requested ({reason}) table={tableCode} matchSizeId={matchSizeId}");
     }
@@ -193,7 +249,58 @@ public class PokerNetConnect : MonoBehaviour
             var m = (TableSnapshot)msg;
             _onPrintRoundStatusEvent?.Invoke($"Round Status: {m.State}");
             _hasSnapshot = true;
+            if (!string.IsNullOrWhiteSpace(m.TableId))
+                _lastKnownTableId = m.TableId;
+
+            if (_deferJoinUntilRoundEnd && _awaitingRoundReset &&
+                (m.State == TableState.Waiting || m.State == TableState.Reset))
+            {
+                Debug.Log("[PokerNetConnect] Table reset detected. Attempting deferred join.");
+                JoinAfterRound("table-reset");
+                _awaitingRoundReset = false;
+            }
         }
+        else if (type == MsgType.HandResult)
+        {
+            if (_deferJoinUntilRoundEnd)
+            {
+                Debug.Log("[PokerNetConnect] HandResult received. Waiting for table reset to join.");
+                _awaitingRoundReset = true;
+            }
+        }
+    }
+
+    int ResolveMatchSizeId()
+    {
+        var matchSizeId = sharedData.mySelectedMatchSizeID;
+        if (matchSizeId <= 0 && ArtGameManager.Instance != null)
+            matchSizeId = ArtGameManager.Instance.selectedMaxSizeID;
+        if (!_isPlayerEnable && matchSizeId <= 0)
+            matchSizeId = _defaultBotsMatchSizeId;
+        return matchSizeId;
+    }
+
+    void JoinAfterRound(string reason)
+    {
+        if (!_deferJoinUntilRoundEnd)
+            return;
+
+        var tableCode = _pendingJoinTableCode;
+        if (string.IsNullOrWhiteSpace(tableCode))
+            tableCode = GetTargetTableCode();
+
+        var matchSizeId = _pendingJoinMatchSizeId > 0 ? _pendingJoinMatchSizeId : ResolveMatchSizeId();
+        if (string.IsNullOrWhiteSpace(tableCode) || matchSizeId <= 0)
+        {
+            Debug.LogWarning("[PokerNetConnect] Deferred join failed (missing table code or matchSizeId).");
+            return;
+        }
+
+        _deferJoinUntilRoundEnd = false;
+        GameServerClient.SendJoinTableStatic(tableCode, matchSizeId);
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={tableCode} matchSizeId={matchSizeId} reason={reason}");
+        _joinRequested = true;
+        Debug.Log($"[PokerNetConnect] Join requested ({reason}) table={tableCode} matchSizeId={matchSizeId}");
     }
 
     IEnumerator EnsureSnapshotAfterBuyIn(string tableId)
@@ -206,6 +313,7 @@ public class PokerNetConnect : MonoBehaviour
         if (!_hasSnapshot)
         {
             GameServerClient.SendRejoinStatic(tableId);
+            NetworkDebugLogger.LogSend("Rejoin", $"tableId={tableId} (no snapshot after buy-in)");
             Debug.Log($"[PokerNetConnect] Rejoin requested tableId={tableId} (no snapshot after buy-in)");
         }
     }

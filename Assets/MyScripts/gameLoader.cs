@@ -69,6 +69,8 @@ public class gameLoader : MonoBehaviour
         }
 
         _lastConnectedToken = token;
+        var tokenLen = string.IsNullOrEmpty(token) ? 0 : token.Length;
+        NetworkDebugLogger.LogSend("Connect", $"url={websocketUrl} opId={opId} tokenLen={tokenLen} reason={reason}");
         GameServerClient.Configure(websocketUrl);
         GameServerClient.ForceConnectWithLaunchToken(token, opId);
         Debug.Log($"[gameLoader] Connecting ({reason}) token={token}");

@@ -101,6 +101,7 @@ public class LayoutHoverResizeDOTween :
         Debug.Log("DOUBLE CLICK!");
         ArtGameManager.Instance.PopUpSelectPlayer();
         ArtGameManager.Instance.selectedTableCode = GetComponent<TableData>().tableCode;
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId=0 (request match sizes)");
         GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
     }
 

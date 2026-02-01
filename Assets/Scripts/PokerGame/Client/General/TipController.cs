@@ -46,6 +46,7 @@ namespace WCC.Poker.Client
 
         void OnClickSendTipButton()
         {
+            NetworkDebugLogger.LogSend("Tip", $"tableId={GameServerClient.Instance.TableId} amount={_tipIF.text}");
             GameServerClient.SendTipStatic(GameServerClient.Instance.TableId, int.Parse(_tipIF.text));
         }
 

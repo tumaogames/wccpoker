@@ -115,6 +115,7 @@ public class ChildLayoutHoverResizeDOTween :
             Debug.LogWarning("MatchSizeId is invalid. Join skipped.");
             return;
         }
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId={matchSizeId} (pre-game)");
         GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, matchSizeId);
     }
 

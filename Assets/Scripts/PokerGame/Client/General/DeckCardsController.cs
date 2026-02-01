@@ -28,6 +28,7 @@ namespace WCC.Poker.Client
 
         [Header("[CARD]")]
         [SerializeField] float _cardSize = 0.56f;
+        [SerializeField] int _maxHoleCardsToDisplay = 2;
 
         [Header("[CONTAINERS]")]
         [SerializeField] Transform _deckTableGroup;
@@ -214,6 +215,8 @@ namespace WCC.Poker.Client
 
                     if (_playerCardsRecords.ContainsKey(p.PlayerId))
                         continue;
+                    if (HasPendingDeal(p.PlayerId))
+                        continue;
 
                     if (_playerSeatRecords.TryGetValue(p.PlayerId, out var seat))
                         DealFaceDownCards(p.PlayerId, seat, 2);
@@ -241,6 +244,8 @@ namespace WCC.Poker.Client
                 var pd = _pendingDeals[i];
                 if (_playerSeatRecords.TryGetValue(pd.playerId, out var seat))
                 {
+                    if (_playerCardsRecords.TryGetValue(pd.playerId, out var existing) && existing.IsPlaceholder)
+                        ClearPlayerCards(pd.playerId);
                     DealCardsForPlayers(pd.playerId, pd.cards, seat);
                     _pendingDeals.RemoveAt(i);
                 }
@@ -265,12 +270,12 @@ namespace WCC.Poker.Client
             if (_playerCardsRecords.TryGetValue(PokerNetConnect.OwnerPlayerID, out var existing) && !existing.IsPlaceholder) return;
             if (existing != null && existing.IsPlaceholder) ClearPlayerCards(PokerNetConnect.OwnerPlayerID);
             if (_playerSeatRecords.TryGetValue(PokerNetConnect.OwnerPlayerID, out var seat))
-                DealCardsForPlayers(PokerNetConnect.OwnerPlayerID, m.Cards, seat);
+                DealCardsForPlayers(PokerNetConnect.OwnerPlayerID, ClampHoleCards(m.Cards), seat);
             else
             {
                 if (_logDealWarnings)
                     Debug.LogWarning($"DealHoleCards before seat known for player {PokerNetConnect.OwnerPlayerID}. Queued.");
-                _pendingDeals.Add((PokerNetConnect.OwnerPlayerID, m.Cards));
+                _pendingDeals.Add((PokerNetConnect.OwnerPlayerID, ClampHoleCards(m.Cards)));
             }
         }
 
@@ -281,12 +286,12 @@ namespace WCC.Poker.Client
             if (_playerCardsRecords.TryGetValue(m.PlayerId, out var existing) && !existing.IsPlaceholder) return;
             if (existing != null && existing.IsPlaceholder) ClearPlayerCards(m.PlayerId);
             if (_playerSeatRecords.TryGetValue(m.PlayerId, out var seat))
-                DealCardsForPlayers(m.PlayerId, m.Cards, seat);
+                DealCardsForPlayers(m.PlayerId, ClampHoleCards(m.Cards), seat);
             else
             {
                 if (_logDealWarnings)
                     Debug.LogWarning($"SpectatorHoleCards before seat known for player {m.PlayerId}. Queued.");
-                _pendingDeals.Add((m.PlayerId, m.Cards));
+                _pendingDeals.Add((m.PlayerId, ClampHoleCards(m.Cards)));
             }
         }
 
@@ -517,6 +522,29 @@ namespace WCC.Poker.Client
             for (int i = 0; i < count; i++)
                 list.Add(new Com.poker.Core.Card { Rank = 2, Suit = 0 });
             return list;
+        }
+
+        Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> ClampHoleCards(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> cards)
+        {
+            if (cards == null)
+                return new Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>();
+            if (_maxHoleCardsToDisplay <= 0 || cards.Count <= _maxHoleCardsToDisplay)
+                return cards;
+
+            var trimmed = new Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>();
+            for (int i = 0; i < _maxHoleCardsToDisplay; i++)
+                trimmed.Add(cards[i]);
+            return trimmed;
+        }
+
+        bool HasPendingDeal(string playerId)
+        {
+            for (int i = 0; i < _pendingDeals.Count; i++)
+            {
+                if (string.Equals(_pendingDeals[i].playerId, playerId, StringComparison.Ordinal))
+                    return true;
+            }
+            return false;
         }
 
         void ClearPlayerCards(string playerID)

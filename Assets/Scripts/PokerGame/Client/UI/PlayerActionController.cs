@@ -74,25 +74,46 @@ namespace WCC.Poker.Client
         }
 
         [Button]
-        public void SetCheckAction_Button() => GameServerClient.SendCheckStatic();
+        public void SetCheckAction_Button()
+        {
+            NetworkDebugLogger.LogSend("Action", "Check");
+            GameServerClient.SendCheckStatic();
+        }
 
         [Button]
         public void SetRaiseAction_Button()
         {
+            NetworkDebugLogger.LogSend("Action", $"Raise amount={_chipsValueVolume.ChipsValue}");
             GameServerClient.SendRaiseStatic(_chipsValueVolume.ChipsValue);
             print($"<color=green>SendRaiseStatic: {_chipsValueVolume.ChipsValue}</color>");
         }
 
         [Button]
-        public void SetCallAction_Button() => GameServerClient.SendCallStatic(50);
+        public void SetCallAction_Button()
+        {
+            NetworkDebugLogger.LogSend("Action", "Call amount=50");
+            GameServerClient.SendCallStatic(50);
+        }
 
         [Button]
-        public void SetFoldAction_Button() => GameServerClient.SendFoldStatic();
+        public void SetFoldAction_Button()
+        {
+            NetworkDebugLogger.LogSend("Action", "Fold");
+            GameServerClient.SendFoldStatic();
+        }
 
         [Button]
-        public void SetAllInAction_Button() => GameServerClient.SendAllInStatic(200);
+        public void SetAllInAction_Button()
+        {
+            NetworkDebugLogger.LogSend("Action", "AllIn amount=200");
+            GameServerClient.SendAllInStatic(200);
+        }
 
         [Button]
-        public void SetBetAction_Button() => GameServerClient.SendBetStatic(60);
+        public void SetBetAction_Button()
+        {
+            NetworkDebugLogger.LogSend("Action", "Bet amount=60");
+            GameServerClient.SendBetStatic(60);
+        }
     }
 }
