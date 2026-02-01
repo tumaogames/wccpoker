@@ -15,6 +15,8 @@ MonoBehaviour:
   Templates:
   - TableName: Default Table
     TableSprite: {fileID: 21300000, guid: 757ed6fffd770ec4999efc3bb7918223, type: 3}
+  - TableName: Standard Green Table
+    TableSprite: {fileID: 21300000, guid: d74b244815872994387fa1c28b018e20, type: 3}
   - TableName: Basketball Table
     TableSprite: {fileID: 21300000, guid: 55548d98a6cb4b04fad75add39970d06, type: 3}
   - TableName: Football Table
