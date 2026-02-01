@@ -16938,6 +16938,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 440cffbf7ba825b4387a7eeeabf6986c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2126539935}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 440cffbf7ba825b4387a7eeeabf6986c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2126539936}
     - targetCorrespondingSourceObject: {fileID: 951011102456138778, guid: 440cffbf7ba825b4387a7eeeabf6986c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 307057657}
@@ -20415,6 +20418,24 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &2126539936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2126539930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3125bac4d672de842aea414c9cde30a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetMaterial: {fileID: 2100000, guid: 44e6cf9538ee67e40ab2e449dfd8745c, type: 2}
+  openEyes: {fileID: 2800000, guid: 477f08aa96de4f449bdcc9d7c3bdffbe, type: 3}
+  closedEyes: {fileID: 2800000, guid: 1fede6ad56544c747ba0f65c81126c9b, type: 3}
+  minBlinkDelay: 3
+  maxBlinkDelay: 6
+  blinkDuration: 0.08
 --- !u!1 &2130239727
 GameObject:
   m_ObjectHideFlags: 0
