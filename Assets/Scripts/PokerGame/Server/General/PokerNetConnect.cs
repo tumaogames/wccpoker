@@ -8,6 +8,7 @@ using Google.Protobuf;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using Com.Poker.Core;
 
 public class PokerNetConnect : MonoBehaviour
 {
@@ -24,23 +25,29 @@ public class PokerNetConnect : MonoBehaviour
 
     void Start()
     {
+        if (_netInfo == null)
+        {
+            Debug.LogError("[BotDump] NetInfo is not assigned. Auto-connect skipped.");
+            return;
+        }
 
         if (!_netInfo.AutoConnectOnStart)
             return;
 
+        var launchToken = _netInfo.LaunchToken;
+        if (ArtGameManager.Instance != null && !string.IsNullOrWhiteSpace(ArtGameManager.Instance.gameTokenID))
+            launchToken = ArtGameManager.Instance.gameTokenID;
+
         if (string.IsNullOrWhiteSpace(_netInfo.ServerUrl) ||
-            string.IsNullOrWhiteSpace(_netInfo.LaunchToken) ||
+            string.IsNullOrWhiteSpace(launchToken) ||
             string.IsNullOrWhiteSpace(_netInfo.OperatorPublicId))
         {
             Debug.LogWarning("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
             return;
         }
-        if(ArtGameManager.Instance.gameTokenID != "")
-        {
-            _netInfo.LaunchToken = ArtGameManager.Instance.gameTokenID;
-        }
+
         GameServerClient.Configure(_netInfo.ServerUrl);
-        GameServerClient.ConnectWithLaunchToken(_netInfo.LaunchToken, _netInfo.OperatorPublicId);
+        GameServerClient.ConnectWithLaunchToken(launchToken, _netInfo.OperatorPublicId);
     }
 
 
@@ -70,7 +77,9 @@ public class PokerNetConnect : MonoBehaviour
         }
         //GameServerClient.SendSpectateStatic(_netInfo.SpectateTableCode);
         //GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode);
-        GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode, 3);
+        var tableCode = GlobalSharedData.MySelectedTableCode;
+        //GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode, 3);
+        GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? tableCode : _netInfo.BotsTableCode, ArtGameManager.Instance.selectedMatchSizeID);
     }
 
 

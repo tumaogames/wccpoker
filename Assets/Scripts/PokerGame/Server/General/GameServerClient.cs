@@ -89,11 +89,10 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<ActionResult> ActionResultReceived;
     public event Action<ActionBroadcast> ActionBroadcastReceived;
     public event Action<TurnUpdate> TurnUpdateReceived;
-    public event Action<RoundEndNotice> RoundEndNoticeReceived;
     public event Action<PotUpdate> PotUpdateReceived;
     public event Action<HandResult> HandResultReceived;
     public event Action<StackUpdate> StackUpdateReceived;
-    public event Action<TipResponse> TipResponseReceived;
+    //public event Action<TipResponse> TipResponseReceived;
     public event Action<JoinTableResponse> JoinTableResponseReceived;
     public event Action<LeaveTableResponse> LeaveTableResponseReceived;
     public event Action<BuyInResponse> BuyInResponseReceived;
@@ -172,17 +171,12 @@ public sealed class GameServerClient : MonoBehaviour
         remove { if (_instance != null) _instance.WaitVoteResultReceived -= value; }
     }
 
-    public static event Action<RoundEndNotice> RoundEndNoticeReceivedStatic
-    {
-        add => Instance.RoundEndNoticeReceived += value;
-        remove { if (_instance != null) _instance.RoundEndNoticeReceived -= value; }
-    }
 
-    public static event Action<TipResponse> TipResponseReceivedStatic
+    /*public static event Action<TipResponse> TipResponseReceivedStatic
     {
         add => Instance.TipResponseReceived += value;
         remove { if (_instance != null) _instance.TipResponseReceived -= value; }
-    }
+    }*/
 
     public static event Action<RejoinResponse> RejoinResponseReceivedStatic
     {
@@ -355,10 +349,10 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendSpectate(tableIdValue);
     }
 
-    public static void SendTipStatic(string tableIdValue, long amount)
+    /*public static void SendTipStatic(string tableIdValue, long amount)
     {
         Instance.SendTip(tableIdValue, amount);
-    }
+    }*/
 
     public static void SendWaitVoteResponseStatic(string tableIdValue, string targetPlayerId, bool wait)
     {
@@ -419,7 +413,7 @@ public sealed class GameServerClient : MonoBehaviour
         SendPacket(MsgType.BuyinRequest, req);
     }
 
-    public void SendTip(string tableIdValue, long amount)
+    /*public void SendTip(string tableIdValue, long amount)
     {
         var req = new TipRequest
         {
@@ -427,7 +421,7 @@ public sealed class GameServerClient : MonoBehaviour
             Amount = amount
         };
         SendPacket(MsgType.TipRequest, req);
-    }
+    }*/
 
     public void SendSpectate(string tableIdValue)
     {
@@ -704,7 +698,7 @@ public sealed class GameServerClient : MonoBehaviour
                         ConnectResponseReceived?.Invoke(connectResponse);
                         MessageReceived?.Invoke(msgType, connectResponse);
                         Debug.Log(playerId + " Credit: " + credits);
-                        ArtGameManager.Instance.coinText.text = "Php " + credits;
+                        //ArtGameManager.Instance.coinText.text = "Php " + credits;
 
                         //sharedData.myPlayerID = playerId;
                         Debug.Log($"{playerId} Credit: {credits}");
@@ -880,23 +874,6 @@ public sealed class GameServerClient : MonoBehaviour
                         // - show call_amount/min_raise/max_raise/stack
                     });
                 break;
-            case MsgType.RoundEndNotice:
-                if (TryParsePayload(payload, RoundEndNotice.Parser, out var roundEnd))
-                {
-                    EnqueueMainThread(() =>
-                    {
-                        RoundEndNoticeReceived?.Invoke(roundEnd);
-                        MessageReceived?.Invoke(msgType, roundEnd);
-
-                        Debug.Log("RoundEndNotice: completed_street=" + roundEnd.CompletedStreet);
-                        // RENDER: show end-of-round animation before next street.
-                        // Example:
-                        // - roundEnd.CompletedStreet
-                        // - roundEnd.DelaySeconds
-                        // - roundEnd.NextStreet
-                    });
-                }
-                break;
             case MsgType.PotUpdate:
                 if (TryParsePayload(payload, PotUpdate.Parser, out var potUpdate))
                     EnqueueMainThread(() =>
@@ -947,7 +924,7 @@ public sealed class GameServerClient : MonoBehaviour
                         // - stackUpdate.Stack
                     });
                 break;
-            case MsgType.TipResponse:
+            /*case MsgType.TipResponse:
                 if (TryParsePayload(payload, TipResponse.Parser, out var tipResp))
                 {
                     EnqueueMainThread(() =>
@@ -956,7 +933,7 @@ public sealed class GameServerClient : MonoBehaviour
                         MessageReceived?.Invoke(msgType, tipResp);
                     });
                 }
-                break;
+                break;*/
             case MsgType.JoinTableResponse:
                 if (TryParsePayload(payload, JoinTableResponse.Parser, out var joinTableResponse))
                 {

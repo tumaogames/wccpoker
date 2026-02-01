@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
 using Com.Poker.Core;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(LayoutElement))]
 public class ChildLayoutHoverResizeDOTween :
@@ -74,7 +75,7 @@ public class ChildLayoutHoverResizeDOTween :
     public void OnPointerClick(PointerEventData eventData)
     {
         Select();
-
+        ArtGameManager.Instance.currentSelectedChildTable = GetComponent<ChildLayoutHoverResizeDOTween>().gameObject;
         eventData.Use(); // ⛔ prevents background click
         var client = GameServerClient.Instance;
         if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
@@ -101,18 +102,20 @@ public class ChildLayoutHoverResizeDOTween :
     {
         Debug.Log("DOUBLE CLICK!");
         ArtGameManager.Instance.PopUpSelectPlayer();
-        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
         SetGlobalSharedData();
-        GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
+        //GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
     }
 
     public void SetGlobalSharedData()
     {
+        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
+        ArtGameManager.Instance.selectedMatchSizeID = GetComponent<ChildTableData>().maxPlayers;
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.gameTokenID;
         GlobalSharedData.MyPlayerID = ArtGameManager.Instance.playerID;
         GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
         GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
+        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMatchSizeID;
         GlobalSharedData.MyOperatorGameID = ArtGameManager.Instance.GameLoader.opId;
         Debug.Log(
         $"[GlobalSharedData SET]\n" +
@@ -121,7 +124,8 @@ public class ChildLayoutHoverResizeDOTween :
         $"MySelectedTableCode: {GlobalSharedData.MySelectedTableCode}\n" +
         $"MyWebsocketUrl: {GlobalSharedData.MyWebsocketUrl}\n" +
         $"MyOperatorGameID: {GlobalSharedData.MyOperatorGameID}"
-    );
+        );
+        SceneManager.LoadScene("PokerGame");
     }
 
     // =====================

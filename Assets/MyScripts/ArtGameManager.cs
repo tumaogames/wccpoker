@@ -12,7 +12,9 @@ public class ArtGameManager : MonoBehaviour
     public string selectedTableCode;
     public string selectedTable;
     public string playerID;
+    public GameObject currentSelectedChildTable;
     public static ArtGameManager Instance;
+    public int selectedMatchSizeID;
     public gameLoader GameLoader;
     public bool end;
     [Header("Runtime Injected Data")]
@@ -220,6 +222,7 @@ public class ArtGameManager : MonoBehaviour
     public void PlayPopUpSelectPlayer()
     {
         //GameServerClient.SendJoinTableStatic(tableCode, 0);
+        currentSelectedChildTable.GetComponent<ChildLayoutHoverResizeDOTween>().SetGlobalSharedData();
         SceneManager.LoadScene("PokerGame");
     }
 }
