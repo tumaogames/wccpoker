@@ -37,6 +37,8 @@ public sealed class GameServerClient : MonoBehaviour
     [SerializeField] bool isConnected;
     [SerializeField] ulong lastReceivedSeq;
     [SerializeField] uint resumeWindowSec;
+    [SerializeField] long lastInboundUnixMs;
+    [SerializeField] long lastResumeUnixMs;
 
     [Header("Main Thread Queue")]
     [SerializeField] int _maxMainThreadActionsPerFrame = 120;
@@ -47,14 +49,11 @@ public sealed class GameServerClient : MonoBehaviour
     public string SessionId => sessionId;
     public string TableId => tableId;
     public bool IsConnected => isConnected;
-    private int matchSizeId_;
+    int _matchSizeId;
     public int MatchSizeId
     {
-        get { return matchSizeId_; }
-        set
-        {
-            matchSizeId_ = value;
-        }
+        get { return _matchSizeId; }
+        set { _matchSizeId = value; }
     }
 
     WebSocket _socket;
@@ -68,6 +67,8 @@ public sealed class GameServerClient : MonoBehaviour
     bool _reconnectPending;
     bool _shouldSendResume;
     ulong _resumeSeq;
+    const int ResumeStallMs = 20000;
+    const int ResumeCooldownMs = 3000;
 
     readonly ConcurrentQueue<byte[]> _recvQueue = new ConcurrentQueue<byte[]>();
     readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
@@ -88,9 +89,11 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<ActionResult> ActionResultReceived;
     public event Action<ActionBroadcast> ActionBroadcastReceived;
     public event Action<TurnUpdate> TurnUpdateReceived;
+    public event Action<RoundEndNotice> RoundEndNoticeReceived;
     public event Action<PotUpdate> PotUpdateReceived;
     public event Action<HandResult> HandResultReceived;
     public event Action<StackUpdate> StackUpdateReceived;
+    public event Action<TipResponse> TipResponseReceived;
     public event Action<JoinTableResponse> JoinTableResponseReceived;
     public event Action<LeaveTableResponse> LeaveTableResponseReceived;
     public event Action<BuyInResponse> BuyInResponseReceived;
@@ -169,6 +172,18 @@ public sealed class GameServerClient : MonoBehaviour
         remove { if (_instance != null) _instance.WaitVoteResultReceived -= value; }
     }
 
+    public static event Action<RoundEndNotice> RoundEndNoticeReceivedStatic
+    {
+        add => Instance.RoundEndNoticeReceived += value;
+        remove { if (_instance != null) _instance.RoundEndNoticeReceived -= value; }
+    }
+
+    public static event Action<TipResponse> TipResponseReceivedStatic
+    {
+        add => Instance.TipResponseReceived += value;
+        remove { if (_instance != null) _instance.TipResponseReceived -= value; }
+    }
+
     public static event Action<RejoinResponse> RejoinResponseReceivedStatic
     {
         add => Instance.RejoinResponseReceived += value;
@@ -216,10 +231,21 @@ public sealed class GameServerClient : MonoBehaviour
             return;
         }
 
+        var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        if (lastInboundUnixMs == 0)
+            lastInboundUnixMs = nowMs;
+
         if (Time.unscaledTime >= _nextPingTime)
         {
             _nextPingTime = Time.unscaledTime + pingIntervalSec;
             SendPing();
+        }
+
+        if (resumeWindowSec > 0 && nowMs - lastInboundUnixMs > ResumeStallMs && nowMs - lastResumeUnixMs > ResumeCooldownMs)
+        {
+            lastResumeUnixMs = nowMs;
+            Debug.LogWarning($"[WS] Inbound stalled. Sending ResumeRequest lastSeq={lastReceivedSeq}");
+            SendResume(lastReceivedSeq);
         }
 
         if (logQueueHealth && stallWarnSeconds > 0f)
@@ -276,6 +302,8 @@ public sealed class GameServerClient : MonoBehaviour
         lastReceivedSeq = 0;
         _seq = 0;
         resumeWindowSec = 0;
+        lastInboundUnixMs = 0;
+        lastResumeUnixMs = 0;
 
         _pendingLaunchToken = launchToken;
         _pendingOperatorPublicId = operatorPublicId;
@@ -325,6 +353,11 @@ public sealed class GameServerClient : MonoBehaviour
     public static void SendSpectateStatic(string tableIdValue)
     {
         Instance.SendSpectate(tableIdValue);
+    }
+
+    public static void SendTipStatic(string tableIdValue, long amount)
+    {
+        Instance.SendTip(tableIdValue, amount);
     }
 
     public static void SendWaitVoteResponseStatic(string tableIdValue, string targetPlayerId, bool wait)
@@ -384,6 +417,16 @@ public sealed class GameServerClient : MonoBehaviour
             Amount = amount
         };
         SendPacket(MsgType.BuyinRequest, req);
+    }
+
+    public void SendTip(string tableIdValue, long amount)
+    {
+        var req = new TipRequest
+        {
+            TableId = tableIdValue ?? "",
+            Amount = amount
+        };
+        SendPacket(MsgType.TipRequest, req);
     }
 
     public void SendSpectate(string tableIdValue)
@@ -619,6 +662,7 @@ public sealed class GameServerClient : MonoBehaviour
         if (packet.Seq != 0)
             lastReceivedSeq = packet.Seq;
 
+        lastInboundUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         return true;
     }
 
@@ -663,8 +707,14 @@ public sealed class GameServerClient : MonoBehaviour
                         ArtGameManager.Instance.coinText.text = "Php " + credits;
 
                         //sharedData.myPlayerID = playerId;
+                        Debug.Log($"{playerId} Credit: {credits}");
                         Debug.Log("myPlayerID:" + playerId);
-                        ArtGameManager.Instance.playerID = playerId;
+                        if (ArtGameManager.Instance != null)
+                        {
+                            ArtGameManager.Instance.playerID = playerId;
+                            if (ArtGameManager.Instance.coinText != null)
+                                ArtGameManager.Instance.coinText.text = "Php " + credits;
+                        }
                         // RENDER: update player HUD (player id, session, credits, protocol).
                         // Example:
                         // - show connect success toast
@@ -693,7 +743,11 @@ public sealed class GameServerClient : MonoBehaviour
                         TableListReceived?.Invoke(tableList);
                         MessageReceived?.Invoke(msgType, tableList);
                         Debug.Log("Recieved table list with " + tableList.Tables.Count + " tables.");
-                        ArtGameManager.Instance.GenerateTable(tableList);
+                        if (ArtGameManager.Instance != null)
+                            ArtGameManager.Instance.GenerateTable(tableList);
+
+                        // RENDER: build table list UI.
+                        // Example:
                         foreach (var table in tableList.Tables)
                         {
                             var code = table.TableCode;
@@ -826,6 +880,23 @@ public sealed class GameServerClient : MonoBehaviour
                         // - show call_amount/min_raise/max_raise/stack
                     });
                 break;
+            case MsgType.RoundEndNotice:
+                if (TryParsePayload(payload, RoundEndNotice.Parser, out var roundEnd))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        RoundEndNoticeReceived?.Invoke(roundEnd);
+                        MessageReceived?.Invoke(msgType, roundEnd);
+
+                        Debug.Log("RoundEndNotice: completed_street=" + roundEnd.CompletedStreet);
+                        // RENDER: show end-of-round animation before next street.
+                        // Example:
+                        // - roundEnd.CompletedStreet
+                        // - roundEnd.DelaySeconds
+                        // - roundEnd.NextStreet
+                    });
+                }
+                break;
             case MsgType.PotUpdate:
                 if (TryParsePayload(payload, PotUpdate.Parser, out var potUpdate))
                     EnqueueMainThread(() =>
@@ -845,6 +916,7 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         HandResultReceived?.Invoke(handResult);
                         MessageReceived?.Invoke(msgType, handResult);
+                        Debug.Log($"[HandResult] table={handResult.TableId} pot={handResult.PotTotal} rake={handResult.RakeAmount} percent={handResult.RakePercent} cap={handResult.RakeCap}");
 
                         // RENDER: show winners and showdown hands.
                         // Example:
@@ -874,6 +946,16 @@ public sealed class GameServerClient : MonoBehaviour
                         // - stackUpdate.PlayerId
                         // - stackUpdate.Stack
                     });
+                break;
+            case MsgType.TipResponse:
+                if (TryParsePayload(payload, TipResponse.Parser, out var tipResp))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        TipResponseReceived?.Invoke(tipResp);
+                        MessageReceived?.Invoke(msgType, tipResp);
+                    });
+                }
                 break;
             case MsgType.JoinTableResponse:
                 if (TryParsePayload(payload, JoinTableResponse.Parser, out var joinTableResponse))
@@ -1163,6 +1245,7 @@ public sealed class GameServerClient : MonoBehaviour
         if (IsCatchingUp && _mainThreadQueue.Count <= _catchUpQueueThreshold / 2)
             IsCatchingUp = false;
     }
+
 }
 
 /*

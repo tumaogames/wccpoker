@@ -6,6 +6,7 @@
 using DG.Tweening;
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace WCC.Poker.Client
 {
@@ -17,6 +18,11 @@ namespace WCC.Poker.Client
         [Header("Values")]
         [SerializeField] private float upValue;
         [SerializeField] private float duration = 0.3f;
+
+        [Header("EVENTS")]
+        [SerializeField] UnityEvent<bool> _onShowEvent;
+        [SerializeField] UnityEvent _onEnableEvent;
+        [SerializeField] UnityEvent _onDisableEvent;
 
         bool _isShown = false;
         float _orgPosY;
@@ -39,6 +45,9 @@ namespace WCC.Poker.Client
             targetRect.DOLocalMove(new Vector3(targetRect.localPosition.x, targetRect.localPosition.y + upValue, targetRect.localPosition.z), duration)
                       .SetEase(Ease.OutCubic);
             _isShown = true;
+
+            _onShowEvent?.Invoke(true);
+            _onEnableEvent?.Invoke();
         }
 
         /// <summary>
@@ -52,6 +61,9 @@ namespace WCC.Poker.Client
             targetRect.DOLocalMove(new Vector3(targetRect.localPosition.x, _orgPosY, targetRect.localPosition.z), duration)
                       .SetEase(Ease.OutCubic);
             _isShown = false;
+
+            _onShowEvent?.Invoke(false);
+            _onDisableEvent?.Invoke();
         }
 
     }

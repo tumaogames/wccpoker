@@ -6,9 +6,6 @@
 using Com.poker.Core;
 using Google.Protobuf;
 using NaughtyAttributes;
-using System;
-using System.Collections.Concurrent;
-using UnityEditor;
 using UnityEngine;
 
 
@@ -17,6 +14,7 @@ namespace WCC.Poker.Client
     public class PlayerActionController : MonoBehaviour
     {
         [SerializeField] BaseAnimation _userButtonActions;
+        [SerializeField] ChipsUIVolume _chipsValueVolume;
 
         [Header("[ACTION-BUTTONS]")]
         [SerializeField] GameObject _foldButton;
@@ -35,8 +33,29 @@ namespace WCC.Poker.Client
                 return;
 
             client.TurnUpdateReceived += OnTurnUpdate;
+
+            PokerNetConnect.OnMessageEvent += OnMessage;
         }
 
+        void OnMessage(MsgType type, IMessage msg)
+        {
+            switch (type)
+            {
+
+                case MsgType.TableSnapshot:
+                    {
+                        var m = (TableSnapshot)msg;
+                        //m.CurrentBet
+                        //m.MinRaise
+                        //r = CurrentBet + MinRaise
+
+                        _chipsValueVolume.SetMinMaxChips((int)m.CurrentBet + (int)m.MinRaise);
+
+                        break;
+                    }
+
+            }
+        }
 
         void OnTurnUpdate(TurnUpdate turn)
         {
@@ -44,11 +63,13 @@ namespace WCC.Poker.Client
 
             if (turn.PlayerId != PokerNetConnect.OwnerPlayerID) return;
 
+            var isAllIn = turn.AllowedActions.Contains(PokerActionType.Raise);
+
             _foldButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Fold));
             _checkButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Check));
             _callButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Call));
             _betButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Bet));
-            _raiseButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Raise));
+            _raiseButton.SetActive(isAllIn);
             _allInButton.SetActive(turn.AllowedActions.Contains(PokerActionType.AllIn));
         }
 
@@ -56,7 +77,11 @@ namespace WCC.Poker.Client
         public void SetCheckAction_Button() => GameServerClient.SendCheckStatic();
 
         [Button]
-        public void SetRaiseAction_Button() => GameServerClient.SendRaiseStatic(100);
+        public void SetRaiseAction_Button()
+        {
+            GameServerClient.SendRaiseStatic(_chipsValueVolume.ChipsValue);
+            print($"<color=green>SendRaiseStatic: {_chipsValueVolume.ChipsValue}</color>");
+        }
 
         [Button]
         public void SetCallAction_Button() => GameServerClient.SendCallStatic(50);

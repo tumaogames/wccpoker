@@ -14,4 +14,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PokerGameScenes/PokerGame.unity
     guid: 133166a4a5ef75f4ebd0b3ff962c1ee1
+  - enabled: 0
+    path: Assets/Scenes/Prototype/SampleScene.unity
+    guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/PokerGameScenes/PokerGame.unity
+    guid: c9320f97f76906346a0514bd86c1992a
   m_configObjects: {}

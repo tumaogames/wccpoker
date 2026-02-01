@@ -1,0 +1,283 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 483fbf1dc1f44b5439c65ed239312f25, type: 3}
+  m_Name: Default_Card
+  m_EditorClassIdentifier: 
+  CardInfos:
+  - CardGroupName: Clubs
+    CardInfos:
+    - CardName: Two Of Clubs
+      CardSprite: {fileID: 1582486708, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 0
+        Suit: 0
+    - CardName: Three Of Clubs
+      CardSprite: {fileID: 1141259645, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 1
+        Suit: 0
+    - CardName: Four Of Clubs
+      CardSprite: {fileID: 17997343, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 2
+        Suit: 0
+    - CardName: Five Of Clubs
+      CardSprite: {fileID: -2110726220, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 3
+        Suit: 0
+    - CardName: Six Of Clubs
+      CardSprite: {fileID: -1785014164, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 4
+        Suit: 0
+    - CardName: Seven Of Clubs
+      CardSprite: {fileID: 2127358067, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 5
+        Suit: 0
+    - CardName: Eight Of Clubs
+      CardSprite: {fileID: 1626552175, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 6
+        Suit: 0
+    - CardName: Nine Of Clubs
+      CardSprite: {fileID: -1776994880, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 7
+        Suit: 0
+    - CardName: Ten Of Clubs
+      CardSprite: {fileID: -1761610843, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 8
+        Suit: 0
+    - CardName: Jack Of Clubs
+      CardSprite: {fileID: 791248030, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 9
+        Suit: 0
+    - CardName: Queen Of Clubs
+      CardSprite: {fileID: -16209086, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 10
+        Suit: 0
+    - CardName: King Of Clubs
+      CardSprite: {fileID: 314326822, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 11
+        Suit: 0
+    - CardName: Ace Of Clubs
+      CardSprite: {fileID: 1890009938, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 12
+        Suit: 0
+  - CardGroupName: Diamonds
+    CardInfos:
+    - CardName: Two Of Diamonds
+      CardSprite: {fileID: 2063797946, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 0
+        Suit: 1
+    - CardName: Three Of Diamonds
+      CardSprite: {fileID: -781689209, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 1
+        Suit: 1
+    - CardName: Four Of Diamonds
+      CardSprite: {fileID: -1478577500, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 2
+        Suit: 1
+    - CardName: Five Of Diamonds
+      CardSprite: {fileID: -905075146, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 3
+        Suit: 1
+    - CardName: Six Of Diamonds
+      CardSprite: {fileID: -1900195814, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 4
+        Suit: 1
+    - CardName: Seven Of Diamonds
+      CardSprite: {fileID: 1062790799, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 5
+        Suit: 1
+    - CardName: Eight Of Diamonds
+      CardSprite: {fileID: -1877274754, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 6
+        Suit: 1
+    - CardName: Nine Of Diamonds
+      CardSprite: {fileID: -1372848081, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 7
+        Suit: 1
+    - CardName: Ten Of Diamonds
+      CardSprite: {fileID: 956400003, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 8
+        Suit: 1
+    - CardName: Jack Of Diamonds
+      CardSprite: {fileID: 1637368269, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 9
+        Suit: 1
+    - CardName: Queen Of Diamonds
+      CardSprite: {fileID: 1891592286, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 10
+        Suit: 1
+    - CardName: King Of Diamonds
+      CardSprite: {fileID: -82834172, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 11
+        Suit: 1
+    - CardName: Ace Of Diamonds
+      CardSprite: {fileID: -230068664, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 12
+        Suit: 1
+  - CardGroupName: Hearts
+    CardInfos:
+    - CardName: Two Of Hearts
+      CardSprite: {fileID: -1880607142, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 0
+        Suit: 2
+    - CardName: Three Of Hearts
+      CardSprite: {fileID: -133268344, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 1
+        Suit: 2
+    - CardName: Four Of Hearts
+      CardSprite: {fileID: 2000514260, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 2
+        Suit: 2
+    - CardName: Five Of Hearts
+      CardSprite: {fileID: 1864601551, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 3
+        Suit: 0
+    - CardName: Six Of Hearts
+      CardSprite: {fileID: 1051358958, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 4
+        Suit: 2
+    - CardName: Seven Of Hearts
+      CardSprite: {fileID: -61700650, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 5
+        Suit: 2
+    - CardName: Eight Of Hearts
+      CardSprite: {fileID: 546257644, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 6
+        Suit: 2
+    - CardName: Nine Of Hearts
+      CardSprite: {fileID: 1772832877, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 7
+        Suit: 2
+    - CardName: Ten Of Hearts
+      CardSprite: {fileID: -1707184861, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 8
+        Suit: 2
+    - CardName: Jack Of Hearts
+      CardSprite: {fileID: 577045695, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 9
+        Suit: 2
+    - CardName: Queen Of Hearts
+      CardSprite: {fileID: 2075111441, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 10
+        Suit: 2
+    - CardName: King Of Hearts
+      CardSprite: {fileID: 2032724041, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 11
+        Suit: 2
+    - CardName: Ace Of Hearts
+      CardSprite: {fileID: 484392788, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 12
+        Suit: 2
+  - CardGroupName: Spades
+    CardInfos:
+    - CardName: Two Of Spades
+      CardSprite: {fileID: 550806514, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 0
+        Suit: 3
+    - CardName: Three Of Spades
+      CardSprite: {fileID: 326014393, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 1
+        Suit: 3
+    - CardName: Four Of Spades
+      CardSprite: {fileID: -1981065765, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 2
+        Suit: 3
+    - CardName: Five Of Spades
+      CardSprite: {fileID: 502260282, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 3
+        Suit: 3
+    - CardName: Six Of Spades
+      CardSprite: {fileID: 679445979, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 4
+        Suit: 3
+    - CardName: Seven Of Spades
+      CardSprite: {fileID: 1451170328, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 5
+        Suit: 3
+    - CardName: Eight Of Spades
+      CardSprite: {fileID: -675322409, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 6
+        Suit: 3
+    - CardName: NIne Of Spades
+      CardSprite: {fileID: 512501783, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 7
+        Suit: 3
+    - CardName: Ten Of Spades
+      CardSprite: {fileID: 1355240896, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 8
+        Suit: 3
+    - CardName: Jack Of Spades
+      CardSprite: {fileID: 730694459, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 9
+        Suit: 3
+    - CardName: Queen Of Spades
+      CardSprite: {fileID: -1654865220, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 10
+        Suit: 3
+    - CardName: King Of Spades
+      CardSprite: {fileID: 281733384, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 11
+        Suit: 3
+    - CardName: Ace Of Spades
+      CardSprite: {fileID: -1154142278, guid: d98cca754e10df747984483166d64d36, type: 3}
+      CardType:
+        Rank: 12
+        Suit: 3

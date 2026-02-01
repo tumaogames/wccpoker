@@ -7,13 +7,14 @@ using Com.poker.Core;
 using Google.Protobuf;
 using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PokerNetConnect : MonoBehaviour
 {
     [SerializeField] PokerNetData _netInfo;
-    [SerializeField] string _debug_tableID;
-    public static string OwnerPlayerID;
+    [SerializeField] UnityEvent<string> _onPrintRoundStatusEvent;
 
+    public static string OwnerPlayerID;
     public static event Action<MsgType, IMessage> OnMessageEvent;
 
     void Awake()
@@ -62,18 +63,27 @@ public class PokerNetConnect : MonoBehaviour
         if (!_netInfo.AutoSpectateOnConnect)
             return;
 
-        if (string.IsNullOrWhiteSpace(_netInfo.SpectateTableCode))
+        if (string.IsNullOrWhiteSpace(_netInfo.BotsTableCode))
         {
             Debug.LogWarning("[BotDump] spectateTableCode is empty.");
             return;
         }
-
         //GameServerClient.SendSpectateStatic(_netInfo.SpectateTableCode);
-        GameServerClient.SendJoinTableStatic(_debug_tableID);
+        //GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode);
+        GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode, 3);
     }
 
 
-    void OnMessage(MsgType type, IMessage msg) => OnMessageEvent?.Invoke(type, msg);
+    void OnMessage(MsgType type, IMessage msg)
+    {
+        OnMessageEvent?.Invoke(type, msg);
+
+        if (type == MsgType.TableSnapshot)
+        {
+            var m = (TableSnapshot)msg;
+            _onPrintRoundStatusEvent?.Invoke($"Round Status: {m.State}");
+        }
+    }
 
     public static string FormatCards(Google.Protobuf.Collections.RepeatedField<Card> cards)
     {
