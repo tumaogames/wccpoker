@@ -345,6 +345,7 @@ MonoBehaviour:
   tokenInput: {fileID: 3242893931672725957}
   sceneLoader: {fileID: 1898669414}
   confirmButton: {fileID: 0}
+  popupRoot: {fileID: 0}
 --- !u!1 &1898669412
 GameObject:
   m_ObjectHideFlags: 0
@@ -1550,7 +1551,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 7880b0979d4bd9045b3b0e3f3b91cb81, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 70e512619533b7048bfc19a3faadb10d, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2573,10 +2574,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5419960187129138092}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 876.4423, y: 876.4423}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: -45.237213}
+  m_SizeDelta: {x: 0, y: 156.6752}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &9154209506094242928
 MonoBehaviour:

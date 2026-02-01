@@ -6,6 +6,9 @@ using TMPro;
 public class TableData : MonoBehaviour
 {
     public string tableName;
+    public string tableCode;
+    public string playerID;
+    public string matchSizeID;
     public long smallBlind;
     public long bigBlind;
     public int maxPlayers;

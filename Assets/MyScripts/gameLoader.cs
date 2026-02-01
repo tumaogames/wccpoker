@@ -6,6 +6,7 @@ public class gameLoader : MonoBehaviour
 {
     public string gameToken;
     public string opId;
+    public string websocketUrl = "ws://51.79.160.227:26001/ws";
     // Start is called before the first frame update
     IEnumerator Start()
     {
@@ -24,9 +25,8 @@ public class gameLoader : MonoBehaviour
         }
 
         gameToken = ArtGameManager.Instance.gameTokenID;
-        GameServerClient.Configure("ws://51.79.160.227:26001/ws");
+        GameServerClient.Configure(websocketUrl);
         GameServerClient.ConnectWithLaunchToken(gameToken, opId);
-        
     }
 
     // Update is called once per frame

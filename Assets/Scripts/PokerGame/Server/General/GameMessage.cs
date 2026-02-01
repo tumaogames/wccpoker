@@ -2538,6 +2538,7 @@ namespace Com.poker.Core
         public JoinTableRequest(JoinTableRequest other) : this()
         {
             tableId_ = other.tableId_;
+            matchSizeId_ = other.matchSizeId_;
             _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
         }
 
@@ -2559,6 +2560,20 @@ namespace Com.poker.Core
             set
             {
                 tableId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+            }
+        }
+
+        /// <summary>Field number for the "match_size_id" field.</summary>
+        public const int MatchSizeIdFieldNumber = 2;
+        private int matchSizeId_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public int MatchSizeId
+        {
+            get { return matchSizeId_; }
+            set
+            {
+                matchSizeId_ = value;
             }
         }
 

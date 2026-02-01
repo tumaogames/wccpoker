@@ -2,9 +2,10 @@
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
+using Com.Poker.Core;
 
 [RequireComponent(typeof(LayoutElement))]
-public class LayoutHoverResizeDOTween :
+public class ChildLayoutHoverResizeDOTween :
     MonoBehaviour,
     IPointerEnterHandler,
     IPointerExitHandler,
@@ -25,7 +26,7 @@ public class LayoutHoverResizeDOTween :
     private float lastClickTime;
 
     // 🔒 Global selection
-    private static LayoutHoverResizeDOTween currentSelected;
+    private static ChildLayoutHoverResizeDOTween currentSelected;
 
     private LayoutElement layoutElement;
     private RectTransform rectTransform;
@@ -96,12 +97,31 @@ public class LayoutHoverResizeDOTween :
         
     }
 
-    void OnDoubleClick()
+    public void OnDoubleClick()
     {
         Debug.Log("DOUBLE CLICK!");
         ArtGameManager.Instance.PopUpSelectPlayer();
-        ArtGameManager.Instance.selectedTableCode = GetComponent<TableData>().tableCode;
+        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
+        SetGlobalSharedData();
         GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
+    }
+
+    public void SetGlobalSharedData()
+    {
+        GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.gameTokenID;
+        GlobalSharedData.MyPlayerID = ArtGameManager.Instance.playerID;
+        GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
+        GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
+        GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
+        GlobalSharedData.MyOperatorGameID = ArtGameManager.Instance.GameLoader.opId;
+        Debug.Log(
+        $"[GlobalSharedData SET]\n" +
+        $"MyPlayerID: {GlobalSharedData.MyPlayerID}\n" +
+        $"MyLaunchToken: {GlobalSharedData.MyLaunchToken}\n" +
+        $"MySelectedTableCode: {GlobalSharedData.MySelectedTableCode}\n" +
+        $"MyWebsocketUrl: {GlobalSharedData.MyWebsocketUrl}\n" +
+        $"MyOperatorGameID: {GlobalSharedData.MyOperatorGameID}"
+    );
     }
 
     // =====================

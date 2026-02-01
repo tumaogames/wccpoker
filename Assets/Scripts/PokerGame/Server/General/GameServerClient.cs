@@ -47,6 +47,15 @@ public sealed class GameServerClient : MonoBehaviour
     public string SessionId => sessionId;
     public string TableId => tableId;
     public bool IsConnected => isConnected;
+    private int matchSizeId_;
+    public int MatchSizeId
+    {
+        get { return matchSizeId_; }
+        set
+        {
+            matchSizeId_ = value;
+        }
+    }
 
     WebSocket _socket;
     string _pendingLaunchToken;
@@ -103,67 +112,67 @@ public sealed class GameServerClient : MonoBehaviour
     public static event Action<MsgType, IMessage> MessageReceivedStatic
     {
         add => Instance.MessageReceived += value;
-        remove => Instance.MessageReceived -= value;
+        remove { if (_instance != null) _instance.MessageReceived -= value; }
     }
 
     public static event Action<ConnectResponse> ConnectResponseReceivedStatic
     {
         add => Instance.ConnectResponseReceived += value;
-        remove => Instance.ConnectResponseReceived -= value;
+        remove { if (_instance != null) _instance.ConnectResponseReceived -= value; }
     }
 
     public static event Action<PokerTableList> TableListReceivedStatic
     {
         add => Instance.TableListReceived += value;
-        remove => Instance.TableListReceived -= value;
+        remove { if (_instance != null) _instance.TableListReceived -= value; }
     }
 
     public static event Action<JoinTableResponse> JoinTableResponseReceivedStatic
     {
         add => Instance.JoinTableResponseReceived += value;
-        remove => Instance.JoinTableResponseReceived -= value;
+        remove { if (_instance != null) _instance.JoinTableResponseReceived -= value; }
     }
 
     public static event Action<BuyInResponse> BuyInResponseReceivedStatic
     {
         add => Instance.BuyInResponseReceived += value;
-        remove => Instance.BuyInResponseReceived -= value;
+        remove { if (_instance != null) _instance.BuyInResponseReceived -= value; }
     }
 
     public static event Action<SpectateResponse> SpectateResponseReceivedStatic
     {
         add => Instance.SpectateResponseReceived += value;
-        remove => Instance.SpectateResponseReceived -= value;
+        remove { if (_instance != null) _instance.SpectateResponseReceived -= value; }
     }
 
     public static event Action<SpectatorHoleCards> SpectatorHoleCardsReceivedStatic
     {
         add => Instance.SpectatorHoleCardsReceived += value;
-        remove => Instance.SpectatorHoleCardsReceived -= value;
+        remove { if (_instance != null) _instance.SpectatorHoleCardsReceived -= value; }
     }
 
     public static event Action<InactiveNotice> InactiveNoticeReceivedStatic
     {
         add => Instance.InactiveNoticeReceived += value;
-        remove => Instance.InactiveNoticeReceived -= value;
+        remove { if (_instance != null) _instance.InactiveNoticeReceived -= value; }
     }
 
     public static event Action<WaitVoteRequest> WaitVoteRequestReceivedStatic
     {
         add => Instance.WaitVoteRequestReceived += value;
-        remove => Instance.WaitVoteRequestReceived -= value;
+        remove { if (_instance != null) _instance.WaitVoteRequestReceived -= value; }
     }
 
     public static event Action<WaitVoteResult> WaitVoteResultReceivedStatic
     {
         add => Instance.WaitVoteResultReceived += value;
-        remove => Instance.WaitVoteResultReceived -= value;
+        remove { if (_instance != null) _instance.WaitVoteResultReceived -= value; }
     }
 
     public static event Action<RejoinResponse> RejoinResponseReceivedStatic
     {
         add => Instance.RejoinResponseReceived += value;
-        remove => Instance.RejoinResponseReceived -= value;
+        remove { if (_instance != null) _instance.RejoinResponseReceived -= value; }
     }
 
     static GameServerClient CreateSingleton()
@@ -242,6 +251,8 @@ public sealed class GameServerClient : MonoBehaviour
         StopReceiver();
         Close();
         _recvSignal?.Dispose();
+        if (_instance == this)
+            _instance = null;
     }
 
     public void SetServerUrl(string url)
@@ -289,6 +300,21 @@ public sealed class GameServerClient : MonoBehaviour
     public static void SendJoinTableStatic(string tableIdValue)
     {
         Instance.SendJoinTable(tableIdValue);
+    }
+
+    public static void SendJoinTableStatic(string tableIdValue, int matchSizeId)
+    {
+        Instance.SendJoinTable(tableIdValue, matchSizeId);
+    }
+
+    public void SendJoinTable(string tableIdValue, int matchSizeId)
+    {
+        var req = new JoinTableRequest
+        {
+            TableId = tableIdValue ?? "",
+            MatchSizeId = matchSizeId
+        };
+        SendPacket(MsgType.JoinTableRequest, req);
     }
 
     public static void SendBuyInStatic(string tableIdValue, long amount)
@@ -638,6 +664,7 @@ public sealed class GameServerClient : MonoBehaviour
 
                         //sharedData.myPlayerID = playerId;
                         Debug.Log("myPlayerID:" + playerId);
+                        ArtGameManager.Instance.playerID = playerId;
                         // RENDER: update player HUD (player id, session, credits, protocol).
                         // Example:
                         // - show connect success toast
