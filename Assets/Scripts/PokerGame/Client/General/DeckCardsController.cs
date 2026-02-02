@@ -43,6 +43,7 @@ namespace WCC.Poker.Client
         readonly List<CardView> _cardViewList_onCommunity = new();
 
         readonly ConcurrentDictionary<int, CardView> _communityCardsRecords = new();
+        readonly ConcurrentDictionary<string, int> _playerServerSeats = new();
         readonly ConcurrentDictionary<string, int> _playerSeatRecords = new();
         readonly ConcurrentDictionary<string, PlayerCardsPack> _playerCardsRecords = new();
         readonly List<(string playerId, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> cards)> _pendingDeals = new();
@@ -50,6 +51,7 @@ namespace WCC.Poker.Client
         bool _inShowdown = false;
         bool _pendingClearAfterShowdown = false;
         int _ownerSeat = -1;
+        int _lastOwnerSeat = -1;
         bool _requestedRejoinThisHand = false;
 
         //DEBUG TEXT
@@ -231,7 +233,13 @@ namespace WCC.Poker.Client
             }
             for (int i = 0; i < m.Players.Count; i++)
             {
+                _playerServerSeats[m.Players[i].PlayerId] = m.Players[i].Seat;
                 _playerSeatRecords[m.Players[i].PlayerId] = MapSeatToIndex(m.Players[i].Seat);
+            }
+            if (_ownerSeat != _lastOwnerSeat)
+            {
+                _lastOwnerSeat = _ownerSeat;
+                RefreshPlayerCardPositions();
             }
 
             if ((m.State == TableState.PreFlop ||
@@ -513,6 +521,7 @@ namespace WCC.Poker.Client
                 CardViewUI = _cardList,
                 IsPlaceholder = false,
             });
+            RebuildPlayerLayout(_playerTablePositions[seat]);
 
             await Task.Delay(500);
 
@@ -553,6 +562,7 @@ namespace WCC.Poker.Client
                 CardViewUI = _cardList,
                 IsPlaceholder = true,
             };
+            RebuildPlayerLayout(_playerTablePositions[seat]);
         }
 
         Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> CreatePlaceholderCards(int count)
@@ -593,6 +603,7 @@ namespace WCC.Poker.Client
             _communityCardsRecords.Clear();
             _playerCardsRecords.Clear();
             _pendingDeals.Clear();
+            _playerServerSeats.Clear();
         }
 
         void SetWinner(string playerID) => OnWinnerEvent?.Invoke(playerID);
@@ -624,6 +635,47 @@ namespace WCC.Poker.Client
             var offset = ownerIndex - (_ownerSeat - 1);
             var mapped = ((seat - 1 + offset) % total + total) % total;
             return mapped;
+        }
+
+        void RefreshPlayerCardPositions()
+        {
+            foreach (var kvp in _playerCardsRecords)
+            {
+                var playerId = kvp.Key;
+                if (!_playerServerSeats.TryGetValue(playerId, out var serverSeat))
+                    continue;
+
+                var mapped = MapSeatToIndex(serverSeat);
+                _playerSeatRecords[playerId] = mapped;
+
+                var target = _playerTablePositions[mapped];
+                if (target == null)
+                    continue;
+
+                var pack = kvp.Value;
+                if (pack?.CardViewUI == null)
+                    continue;
+
+                foreach (var cv in pack.CardViewUI)
+                {
+                    if (cv == null) continue;
+                    cv.transform.SetParent(target, false);
+                    cv.transform.localPosition = Vector3.zero;
+                    cv.transform.localScale = new Vector2(_cardSize, _cardSize);
+                    cv.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                }
+                RebuildPlayerLayout(target);
+            }
+        }
+
+        void RebuildPlayerLayout(Transform target)
+        {
+            if (target == null)
+                return;
+            var rect = target as RectTransform;
+            if (rect == null)
+                return;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
         }
 
         void TryRequestOwnerRejoin(TableSnapshot snapshot)
