@@ -733,7 +733,6 @@ public sealed class GameServerClient : MonoBehaviour
                         Debug.Log(playerId + " Credit: " + credits);
                         ArtGameManager.Instance.coinText.text = "Php " + credits;
 
-                        //sharedData.myPlayerID = playerId;
                         Debug.Log($"{playerId} Credit: {credits}");
                         Debug.Log("myPlayerID:" + playerId);
                         if (ArtGameManager.Instance != null)

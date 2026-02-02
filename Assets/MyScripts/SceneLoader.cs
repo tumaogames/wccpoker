@@ -18,28 +18,62 @@ public class SceneLoader : MonoBehaviour
     public float minLoadTime = 1.5f;
 
     private AsyncOperation loadOp;
-    private bool tokenConfirmed;
-
+    private bool loadStarted;
+    private Coroutine loadRoutine;
 
     void Start()
     {
-        if (tokenPopup != null)
-        {
-            tokenPopup.SetActive(true);
-        }
-        StartCoroutine(WaitForTokenThenLoad());
+        TokenManager.EnsureInstance();
+        TryBeginLoad("start");
     }
 
-    IEnumerator WaitForTokenThenLoad()
+    void OnEnable()
     {
-        // Wait until token is confirmed
-        yield return new WaitUntil(() => tokenConfirmed);
+        TokenManager.EnsureInstance();
+        TokenManager.TokenSet += OnTokenSet;
+    }
+
+    void OnDisable()
+    {
+        TokenManager.TokenSet -= OnTokenSet;
+    }
+
+    void OnTokenSet(string token)
+    {
+        TryBeginLoad("token-set");
+    }
+
+    void TryBeginLoad(string reason)
+    {
+        if (loadStarted)
+            return;
+
+        if (!TokenManager.HasToken())
+        {
+            if (tokenPopup != null && !tokenPopup.activeSelf)
+                tokenPopup.SetActive(true);
+            return;
+        }
 
         if (tokenPopup != null)
         {
             tokenPopup.SetActive(false);
         }
 
+        if (loadRoutine != null)
+            StopCoroutine(loadRoutine);
+        loadRoutine = StartCoroutine(LoadMainScene(reason));
+    }
+
+    IEnumerator LoadMainScene(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(mainSceneName))
+        {
+            Debug.LogError("[SceneLoader] mainSceneName is empty. Load aborted.");
+            yield break;
+        }
+
+        loadStarted = true;
         float timer = 0f;
 
         loadOp = SceneManager.LoadSceneAsync(mainSceneName);
@@ -86,7 +120,7 @@ public class SceneLoader : MonoBehaviour
         Debug.Log("SceneLoader confirmed token: " + token);
         TokenManager.EnsureInstance();
         TokenManager.Instance.SetToken(token);
-        tokenConfirmed = true;
+        TryBeginLoad("confirm");
     }
 }
 

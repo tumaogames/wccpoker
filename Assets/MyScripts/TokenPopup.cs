@@ -89,21 +89,27 @@ public class TokenPopup : MonoBehaviour
 
     public void Confirm()
     {
-        if (sceneLoader == null || tokenInput == null)
+        if (tokenInput == null)
         {
-            Debug.LogError("TokenPopup missing references (sceneLoader or tokenInput).");
+            Debug.LogError("TokenPopup missing tokenInput.");
             return;
         }
 
         var token = tokenInput.text.Trim();
         Debug.Log("TokenPopup Confirm clicked. Token length: " + token.Length);
 
-        TokenManager.EnsureInstance();
-        TokenManager.Instance.SetToken(token);
-        sceneLoader.ConfirmToken(token);
+        if (sceneLoader != null)
+        {
+            sceneLoader.ConfirmToken(token);
+        }
+        else
+        {
+            TokenManager.EnsureInstance();
+            TokenManager.Instance.SetToken(token);
+        }
 
         // Hide the popup UI (not the TokenManager object).
-        if (sceneLoader.tokenPopup != null)
+        if (sceneLoader != null && sceneLoader.tokenPopup != null)
         {
             sceneLoader.tokenPopup.SetActive(false);
         }

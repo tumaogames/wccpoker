@@ -272,7 +272,7 @@ public class PokerNetConnect : MonoBehaviour
 
     int ResolveMatchSizeId()
     {
-        var matchSizeId = sharedData.mySelectedMatchSizeID;
+        var matchSizeId = GlobalSharedData.MySelectedMatchSizeID;
         if (matchSizeId <= 0 && ArtGameManager.Instance != null)
             matchSizeId = ArtGameManager.Instance.selectedMaxSizeID;
         if (!_isPlayerEnable && matchSizeId <= 0)

@@ -78,8 +78,8 @@ public class ChildLayoutHoverResizeDOTween :
         ArtGameManager.Instance.selectedMaxSizeID = GetComponent<ChildTableData>().matchSizeId;
         ArtGameManager.Instance.selectedMinBuyIn = GetComponent<ChildTableData>().minBuyIn;
         ArtGameManager.Instance.selectedMaxBuyIn = GetComponent<ChildTableData>().maxBuyIn;
-        sharedData.mySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
-        sharedData.mySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
+        GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
+        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
         eventData.Use(); // ⛔ prevents background click
         var client = GameServerClient.Instance;
         if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
@@ -107,8 +107,8 @@ public class ChildLayoutHoverResizeDOTween :
         Debug.Log("DOUBLE CLICK!");
         ArtGameManager.Instance.PopUpSelectPlayer();
         SetGlobalSharedData();
-        var matchSizeId = sharedData.mySelectedMatchSizeID > 0
-            ? sharedData.mySelectedMatchSizeID
+        var matchSizeId = GlobalSharedData.MySelectedMatchSizeID > 0
+            ? GlobalSharedData.MySelectedMatchSizeID
             : ArtGameManager.Instance.selectedMaxSizeID;
         if (matchSizeId <= 0)
         {
@@ -117,6 +117,7 @@ public class ChildLayoutHoverResizeDOTween :
         }
         NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId={matchSizeId} (pre-game)");
         GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, matchSizeId);
+        ArtGameManager.Instance.PlayPopUpSelectPlayer();
     }
 
     public void SetGlobalSharedData()
@@ -124,6 +125,7 @@ public class ChildLayoutHoverResizeDOTween :
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.gameTokenID;
         GlobalSharedData.MyPlayerID = ArtGameManager.Instance.playerID;
         GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
+        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
         GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
         GlobalSharedData.MyOperatorGameID = ArtGameManager.Instance.GameLoader.opId;

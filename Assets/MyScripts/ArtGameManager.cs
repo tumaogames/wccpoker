@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Com.poker.Core;
+using Com.Poker.Core;
 using Google.Protobuf;
 using UnityEngine.UI;
 
@@ -31,6 +32,7 @@ public class ArtGameManager : MonoBehaviour
     public int currentScore;
     public TMP_Text coinText;
     public bool isInitialized;
+    string _lastToken;
     public int CurrentScore
     {
         get { return currentScore; }
@@ -52,9 +54,7 @@ public class ArtGameManager : MonoBehaviour
 
     private void OnTokenSet(string token)
     {
-        gameTokenID = token;
-        isInitialized = true;
-        Debug.Log(" GameManager updated token: " + gameTokenID);
+        ApplyToken(token, "event");
     }
 
     private void Awake()
@@ -85,10 +85,23 @@ public class ArtGameManager : MonoBehaviour
         // Safety net: if token arrives after Start or OnEnable missed it, pull once here.
         if (!isInitialized && TokenManager.HasToken())
         {
-            gameTokenID = TokenManager.GetToken();
-            isInitialized = true;
-            Debug.Log(" GameManager late-grabbed token: " + gameTokenID);
+            ApplyToken(TokenManager.GetToken(), "late-grab");
         }
+    }
+
+    void ApplyToken(string token, string reason)
+    {
+        token = token?.Trim();
+        if (string.IsNullOrWhiteSpace(token))
+            return;
+
+        if (_lastToken == token && isInitialized)
+            return;
+
+        _lastToken = token;
+        gameTokenID = token;
+        isInitialized = true;
+        Debug.Log($"[ArtGameManager] Token set ({reason}).");
     }
 
 
@@ -230,8 +243,48 @@ public class ArtGameManager : MonoBehaviour
 
     public void PlayPopUpSelectPlayer()
     {
-        //GameServerClient.SendJoinTableStatic(tableCode, 0);
+        if (!TryGetSelectedTable(out var tableCode, out var matchSizeId))
+        {
+            Debug.LogWarning("[ArtGameManager] Play skipped. Table selection is incomplete.");
+            return;
+        }
+
+        ApplyGlobalSelection(tableCode, matchSizeId);
         SceneManager.LoadScene("PokerGame");
+    }
+
+    bool TryGetSelectedTable(out string tableCode, out int matchSizeId)
+    {
+        tableCode = selectedTableCode;
+        if (string.IsNullOrWhiteSpace(tableCode))
+        {
+            matchSizeId = 0;
+            return false;
+        }
+
+        matchSizeId = selectedMaxSizeID;
+        if (matchSizeId <= 0)
+            matchSizeId = GlobalSharedData.MySelectedMatchSizeID;
+
+        return matchSizeId > 0;
+    }
+
+    void ApplyGlobalSelection(string tableCode, int matchSizeId)
+    {
+        GlobalSharedData.MyPlayerID = playerID;
+        GlobalSharedData.MySelectedTableCode = tableCode;
+        GlobalSharedData.MySelectedMatchSizeID = matchSizeId;
+
+        if (GameLoader != null)
+        {
+            GlobalSharedData.MyLaunchToken = GameLoader.gameToken;
+            GlobalSharedData.MyWebsocketUrl = GameLoader.websocketUrl;
+            GlobalSharedData.MyOperatorGameID = GameLoader.opId;
+        }
+        else
+        {
+            GlobalSharedData.MyLaunchToken = gameTokenID;
+        }
     }
 }
 
