@@ -189,8 +189,8 @@ namespace WCC.Poker.Client
                 _betThisRound[p.PlayerId] = (int)p.BetThisRound;
             }
 
-            PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
             RefreshPlayerPositions();
+            PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
 
             if (m.State == TableState.Reset)
             {
@@ -221,6 +221,7 @@ namespace WCC.Poker.Client
                 _ownerSeat = m.Seat;
                 _playerServerSeats[m.PlayerId] = m.Seat;
                 RefreshPlayerPositions();
+                PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
             }
 
             print($"<color=green>SERVER TIME: {remainingMs} | DeadlineUnixMs: {m.DeadlineUnixMs}</color>");

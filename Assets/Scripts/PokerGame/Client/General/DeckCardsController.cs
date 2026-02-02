@@ -50,6 +50,7 @@ namespace WCC.Poker.Client
         bool _inShowdown = false;
         bool _pendingClearAfterShowdown = false;
         int _ownerSeat = -1;
+        bool _requestedRejoinThisHand = false;
 
         //DEBUG TEXT
         [SerializeField] bool _logDealWarnings = true;
@@ -82,6 +83,7 @@ namespace WCC.Poker.Client
             _lastTableState = TableState.Unspecified;
             _inShowdown = false;
             _pendingClearAfterShowdown = false;
+            _requestedRejoinThisHand = false;
         }
 
         #region DEBUG
@@ -257,6 +259,7 @@ namespace WCC.Poker.Client
                     _pendingClearAfterShowdown = true;
                 else
                     ClearAllCardsImmediate();
+                _requestedRejoinThisHand = false;
             }
             if (m.State == TableState.Reset)
             {
@@ -264,9 +267,15 @@ namespace WCC.Poker.Client
                     _pendingClearAfterShowdown = true;
                 else
                     ClearAllCardsImmediate();
+                _requestedRejoinThisHand = false;
             }
 
             _lastTableState = m.State;
+
+            if (m.State == TableState.PreFlop)
+                _requestedRejoinThisHand = false;
+
+            TryRequestOwnerRejoin(m);
 
             for (int i = _pendingDeals.Count - 1; i >= 0; i--)
             {
@@ -615,6 +624,30 @@ namespace WCC.Poker.Client
             var offset = ownerIndex - (_ownerSeat - 1);
             var mapped = ((seat - 1 + offset) % total + total) % total;
             return mapped;
+        }
+
+        void TryRequestOwnerRejoin(TableSnapshot snapshot)
+        {
+            if (_requestedRejoinThisHand)
+                return;
+
+            if (snapshot == null)
+                return;
+
+            if (snapshot.State != TableState.Flop &&
+                snapshot.State != TableState.Turn &&
+                snapshot.State != TableState.River)
+                return;
+
+            var ownerId = PokerNetConnect.OwnerPlayerID;
+            if (string.IsNullOrEmpty(ownerId))
+                return;
+
+            if (!_playerCardsRecords.TryGetValue(ownerId, out var pack) || pack == null || pack.IsPlaceholder)
+            {
+                _requestedRejoinThisHand = true;
+                GameServerClient.SendRejoinStatic(snapshot.TableId);
+            }
         }
     }
 }
