@@ -19,22 +19,22 @@ namespace WCC.Core
         /// <summary>
         /// Token provided during game launch authentication.
         /// </summary>
-        public static string LaunchToken;
+        public static string LaunchToken = "?";
 
         /// <summary>
         /// Backend server base URL.
         /// </summary>
-        public static string ServerURL;
+        public static string ServerURL = "?";
 
         /// <summary>
         /// Operator identifier.
         /// </summary>
-        public static string OperatorPublicID;
+        public static string OperatorPublicID = "?";
 
         /// <summary>
         /// Unique table session code.
         /// </summary>
-        public static string TableCode;
+        public static string TableCode = "?";
 
         /// <summary>
         /// Match size configuration ID.

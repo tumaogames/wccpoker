@@ -22,15 +22,18 @@ public class PokerNetConnect : MonoBehaviour
 
     void Start()
     {
-        if(!HasConnection()) return;
-       
+        if (!HasConnection())
+            return;
+
         var isVault = IsVautActive();
+        if (!isVault && !_netInfo.AutoConnectOnStart)
+            return;
 
         ConfigureGame(
             isVault ? PokerSharedVault.LaunchToken : _netInfo.LaunchToken,
             isVault ? PokerSharedVault.ServerURL : _netInfo.ServerUrl,
             isVault ? PokerSharedVault.OperatorPublicID : _netInfo.OperatorPublicId
-            );
+        );
     }
 
     #region LISTENERS
@@ -57,9 +60,6 @@ public class PokerNetConnect : MonoBehaviour
     {
         OwnerPlayerID = resp.PlayerId;
 
-        if (!_netInfo.AutoSpectateOnConnect && !IsVautActive())
-            return;
-
         ConnectToTable();
     }
 
@@ -70,12 +70,29 @@ public class PokerNetConnect : MonoBehaviour
             var sampleTestMatchSizeId = 3;
             var localTableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
             var vaultTBCode = PokerSharedVault.TableCode ?? localTableCode;
-            var matchSizeID = PokerSharedVault.MatchSizeId == -1 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;
+            var matchSizeID = PokerSharedVault.MatchSizeId >= 0 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;
             GameServerClient.SendJoinTableStatic(vaultTBCode, matchSizeID);
+            return;
         }
+
+        if (!_netInfo.AutoSpectateOnConnect)
+            return;
+
+        var tableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
+        if (string.IsNullOrWhiteSpace(tableCode))
+        {
+            Debug.LogWarning("[BotDump] table code is empty. Auto-join skipped.");
+            return;
+        }
+
+        GameServerClient.SendJoinTableStatic(tableCode, 3);
     }
 
-    bool IsVautActive() => PokerSharedVault.TableCode != string.Empty && PokerSharedVault.LaunchToken != string.Empty && PokerSharedVault.MatchSizeId != -1;
+    bool IsVautActive()
+        => PokerSharedVault.TableCode != "?" &&
+           PokerSharedVault.LaunchToken != "?" &&
+           PokerSharedVault.ServerURL != "?" &&
+           PokerSharedVault.OperatorPublicID != "?";
 
     void OnMessage(MsgType type, IMessage msg)
     {
@@ -117,17 +134,6 @@ public class PokerNetConnect : MonoBehaviour
 
     bool HasConnection()
     {
-        if (!_netInfo.AutoConnectOnStart && !IsVautActive())
-            return false;
-
-        if (string.IsNullOrWhiteSpace(_netInfo.ServerUrl) ||
-            string.IsNullOrWhiteSpace(_netInfo.LaunchToken) ||
-            string.IsNullOrWhiteSpace(_netInfo.OperatorPublicId))
-        {
-            Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
-            return false;
-        }
-
         if (IsVautActive())
         {
             if (string.IsNullOrWhiteSpace(PokerSharedVault.ServerURL) ||
@@ -137,6 +143,18 @@ public class PokerNetConnect : MonoBehaviour
                 Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
                 return false;
             }
+            return true;
+        }
+
+        if (!_netInfo.AutoConnectOnStart)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(_netInfo.ServerUrl) ||
+            string.IsNullOrWhiteSpace(_netInfo.LaunchToken) ||
+            string.IsNullOrWhiteSpace(_netInfo.OperatorPublicId))
+        {
+            Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
+            return false;
         }
 
         return true;
