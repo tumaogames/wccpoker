@@ -49,16 +49,20 @@ public sealed class GameServerClient : MonoBehaviour
     public string SessionId => sessionId;
     public string TableId => tableId;
     public bool IsConnected => isConnected;
-    int _matchSizeId;
+    private int matchSizeId_;
     public int MatchSizeId
     {
-        get { return _matchSizeId; }
-        set { _matchSizeId = value; }
+        get { return matchSizeId_; }
+        set
+        {
+            matchSizeId_ = value;
+        }
     }
 
     WebSocket _socket;
     string _pendingLaunchToken;
     string _pendingOperatorPublicId;
+    bool _isConnecting;
     ulong _seq;
     float _nextPingTime;
     float _nextReconnectTime;
@@ -295,6 +299,12 @@ public sealed class GameServerClient : MonoBehaviour
             return;
         }
 
+        if (_isConnecting || isConnected || (_socket != null && _socket.IsOpen))
+        {
+            Debug.LogWarning("GameServerClient: connect skipped (already connecting/connected).");
+            return;
+        }
+
         // reset local session state before a fresh connect
         playerId = string.Empty;
         sessionId = string.Empty;
@@ -308,6 +318,7 @@ public sealed class GameServerClient : MonoBehaviour
         _pendingLaunchToken = launchToken;
         _pendingOperatorPublicId = operatorPublicId;
         ResetReconnectState();
+        _isConnecting = true;
         Open();
     }
 
@@ -325,6 +336,11 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.Connect(launchToken, operatorPublicId);
     }
 
+    public static void ForceConnectWithLaunchToken(string launchToken, string operatorPublicId)
+    {
+        Instance.ForceConnect(launchToken, operatorPublicId);
+    }
+
     public static void SendJoinTableStatic(string tableIdValue)
     {
         Instance.SendJoinTable(tableIdValue);
@@ -332,6 +348,7 @@ public sealed class GameServerClient : MonoBehaviour
 
     public static void SendJoinTableStatic(string tableIdValue, int matchSizeId)
     {
+        Debug.Log("sending to server");
         Instance.SendJoinTable(tableIdValue, matchSizeId);
     }
 
@@ -401,12 +418,19 @@ public sealed class GameServerClient : MonoBehaviour
         _socket.Close();
         _socket = null;
         isConnected = false;
+        _isConnecting = false;
     }
 
     public void SendJoinTable(string tableIdValue)
     {
         var req = new JoinTableRequest { TableId = tableIdValue ?? "" };
         SendPacket(MsgType.JoinTableRequest, req);
+    }
+
+    public void ForceConnect(string launchToken, string operatorPublicId)
+    {
+        Close();
+        Connect(launchToken, operatorPublicId);
     }
 
     public void SendBuyIn(string tableIdValue, long amount)
@@ -529,6 +553,7 @@ public sealed class GameServerClient : MonoBehaviour
     void OnClosed(WebSocket ws, ushort code, string message)
     {
         isConnected = false;
+        _isConnecting = false;
         Debug.LogWarning($"GameServerClient: disconnected code={code} message={message}");
         ScheduleReconnect($"closed ({code}) {message}");
     }
@@ -536,6 +561,7 @@ public sealed class GameServerClient : MonoBehaviour
     void OnError(WebSocket ws, string reason)
     {
         isConnected = false;
+        _isConnecting = false;
         Debug.LogWarning("GameServerClient: socket error " + reason);
         ScheduleReconnect($"error {reason}");
     }
@@ -695,6 +721,7 @@ public sealed class GameServerClient : MonoBehaviour
                         sessionId = connectResponse.SessionId;
                         credits = connectResponse.Credits;
                         resumeWindowSec = connectResponse.ResumeWindowSec;
+                        _isConnecting = false;
                         if (_shouldSendResume && _resumeSeq > 0)
                         {
                             Debug.Log($"GameServerClient: sending resume lastSeq={_resumeSeq}.");
@@ -703,6 +730,9 @@ public sealed class GameServerClient : MonoBehaviour
                         }
                         ConnectResponseReceived?.Invoke(connectResponse);
                         MessageReceived?.Invoke(msgType, connectResponse);
+                        Debug.Log(playerId + " Credit: " + credits);
+                        //ArtGameManager.Instance.coinText.text = "Php " + credits;
+
                         //sharedData.myPlayerID = playerId;
                         Debug.Log($"{playerId} Credit: {credits}");
                         Debug.Log("myPlayerID:" + playerId);
@@ -960,6 +990,7 @@ public sealed class GameServerClient : MonoBehaviour
                 {
                     EnqueueMainThread(() =>
                     {
+                        Debug.Log("server response join" + msgType + joinTableResponse);
                         if (joinTableResponse.Success)
                             tableId = joinTableResponse.TableId;
                         JoinTableResponseReceived?.Invoke(joinTableResponse);

@@ -3815,7 +3815,7 @@ GameObject:
   - component: {fileID: 381683636}
   - component: {fileID: 381683635}
   m_Layer: 5
-  m_Name: Card (6)
+  m_Name: Card (D)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8869,6 +8869,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cardViewPrefab: {fileID: 2473193915766406212, guid: 102130d9a16dff943a3b013b57b60ab3, type: 3}
   _cardSize: 0.58
+  _communityCardsPositions:
+  - {fileID: 1023486403}
+  - {fileID: 1043563193}
+  - {fileID: 1870367153}
+  - {fileID: 381683634}
+  - {fileID: 1201181986}
   _deckTableGroup: {fileID: 244342986}
   _bankerPosition: {fileID: 988483952}
   _communityTableContainer: {fileID: 1743183865}
@@ -10839,7 +10845,7 @@ GameObject:
   - component: {fileID: 1023486405}
   - component: {fileID: 1023486404}
   m_Layer: 5
-  m_Name: Card (3)
+  m_Name: Card (A)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11164,7 +11170,7 @@ GameObject:
   - component: {fileID: 1043563195}
   - component: {fileID: 1043563194}
   m_Layer: 5
-  m_Name: Card (4)
+  m_Name: Card (B)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12900,7 +12906,7 @@ GameObject:
   - component: {fileID: 1201181988}
   - component: {fileID: 1201181987}
   m_Layer: 5
-  m_Name: Card (7)
+  m_Name: Card (E)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20123,7 +20129,7 @@ GameObject:
   - component: {fileID: 1870367155}
   - component: {fileID: 1870367154}
   m_Layer: 5
-  m_Name: Card (5)
+  m_Name: Card (C)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
