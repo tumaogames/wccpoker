@@ -1508,6 +1508,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73821792c4b82814a94d21101fe0e222, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  resetOnContentChange: 1
+  useEndOfFrame: 1
 --- !u!1 &473185105
 GameObject:
   m_ObjectHideFlags: 0
@@ -2436,8 +2438,8 @@ MonoBehaviour:
   m_Padding:
     m_Left: 80
     m_Right: 80
-    m_Top: 0
-    m_Bottom: 0
+    m_Top: 20
+    m_Bottom: 10
   m_ChildAlignment: 4
   m_Spacing: 40
   m_ChildForceExpandWidth: 0
@@ -2605,6 +2607,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73821792c4b82814a94d21101fe0e222, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  resetOnContentChange: 1
+  useEndOfFrame: 1
 --- !u!1 &1013837839
 GameObject:
   m_ObjectHideFlags: 0
@@ -4843,6 +4847,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectedTableID: 
   selectedTableCode: 
+  selectedMaxSizeID: 0
+  selectedMinBuyIn: 0
+  selectedMaxBuyIn: 0
   selectedTable: 
   playerID: 
   GameLoader: {fileID: 6872535763684849316}
@@ -4857,6 +4864,8 @@ MonoBehaviour:
   currentScore: 0
   coinText: {fileID: 1220422535}
   isInitialized: 0
+  usePooling: 1
+  clearTablesOnRefresh: 1
 --- !u!1 &3836256113133397478
 GameObject:
   m_ObjectHideFlags: 0

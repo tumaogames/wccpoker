@@ -7,10 +7,13 @@ public class ScrollRectInitializer : MonoBehaviour
 {
     [Header("Behavior")]
     [SerializeField] bool resetOnContentChange = true;
+    [SerializeField] bool snapOnFirstContentChangeOnly = true;
     [SerializeField] bool useEndOfFrame = true;
 
     ScrollRect scrollRect;
     Coroutine snapRoutine;
+    bool disableAfterSnap;
+    ScrollRectContentWatcher watcher;
 
     void Awake()
     {
@@ -44,7 +47,7 @@ public class ScrollRectInitializer : MonoBehaviour
         if (!resetOnContentChange || scrollRect == null || scrollRect.content == null)
             return;
 
-        var watcher = scrollRect.content.GetComponent<ScrollRectContentWatcher>();
+        watcher = scrollRect.content.GetComponent<ScrollRectContentWatcher>();
         if (watcher == null)
             watcher = scrollRect.content.gameObject.AddComponent<ScrollRectContentWatcher>();
         watcher.Bind(this);
@@ -77,6 +80,13 @@ public class ScrollRectInitializer : MonoBehaviour
         }
 
         scrollRect.horizontalNormalizedPosition = 0f;
+        if (disableAfterSnap)
+        {
+            resetOnContentChange = false;
+            disableAfterSnap = false;
+            if (watcher != null)
+                watcher.enabled = false;
+        }
         snapRoutine = null;
     }
 
@@ -84,6 +94,8 @@ public class ScrollRectInitializer : MonoBehaviour
     {
         if (!resetOnContentChange)
             return;
+        if (snapOnFirstContentChangeOnly)
+            disableAfterSnap = true;
         ScheduleSnap();
     }
 
@@ -98,16 +110,6 @@ public class ScrollRectInitializer : MonoBehaviour
         }
 
         void OnTransformChildrenChanged()
-        {
-            owner?.NotifyContentChanged();
-        }
-
-        void OnTransformParentChanged()
-        {
-            owner?.NotifyContentChanged();
-        }
-
-        void OnRectTransformDimensionsChange()
         {
             owner?.NotifyContentChanged();
         }
