@@ -124,29 +124,29 @@ public class ArtGameManager : MonoBehaviour
         //AudioManager.Instance.PlayMusic("BGM");
     }
 
-    public void GenerateTable(PokerTableList tableInfo)
-    {
-        if (IsMatchSizeList(tableInfo))
+        public void GenerateTable(PokerTableList tableInfo)
         {
-            //Eto yong part na mag gegenerate ng match size options sa UI
-            //Debug.Log($"[LobbySample] MatchSize list for table={selectedTableCode} count={tableInfo.Tables.Count}");
-            ChildClear(imageSelectContainer);
-            foreach (var t in tableInfo.Tables)
+            if (IsMatchSizeList(tableInfo))
             {
-                Debug.Log($"  matchSizeId={t.TableId} maxPlayers={t.MaxPlayers} minStart={t.MinPlayersToStart}");
-                //dito mo add yung UI spawn code for match size options
-                SelectSpawn(t);
+                //Eto yong part na mag gegenerate ng match size options sa UI
+                //Debug.Log($"[LobbySample] MatchSize list for table={selectedTableCode} count={tableInfo.Tables.Count}");
+                ChildClear(imageSelectContainer);
+                foreach (var t in tableInfo.Tables)
+                {
+                    Debug.Log($"  matchSizeId={t.TableId} maxPlayers={t.MaxPlayers} minStart={t.MinPlayersToStart}");
+                    //dito mo add yung UI spawn code for match size options
+                    SelectSpawn(t);
+                }
+            }
+            else
+            {
+                //Eto yong part na mag gegenreate ng table sa UI
+                foreach (var item in tableInfo.Tables)
+                {
+                    Spawn(item);
+                }
             }
         }
-        else
-        {
-            //Eto yong part na mag gegenreate ng table sa UI
-            foreach (var item in tableInfo.Tables)
-            {
-                Spawn(item);
-            }
-        }
-    }
     static bool IsMatchSizeList(PokerTableList list)
     {
         if (list == null || list.Tables == null || list.Tables.Count == 0)

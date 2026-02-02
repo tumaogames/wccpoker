@@ -29,6 +29,7 @@ namespace WCC.Poker.Client
         [Space]
 
         [SerializeField] Sprite[] _sampleAvatars;
+        [SerializeField] int _fallbackTurnTimeSeconds = 20;
 
         [Space]
 
@@ -52,6 +53,8 @@ namespace WCC.Poker.Client
         string _last_dealerId = "?";
         string _last_sbId = "?";
         string _last_bbId = "?";
+        static long _serverTimeOffsetMs;
+        const long ServerOffsetSnapThresholdMs = 2000;
 
         #region EDITOR
         private void OnValidate()
@@ -84,18 +87,6 @@ namespace WCC.Poker.Client
 
             TableBetController.OnPotChipsMovedToWinner += OnPotChipsMovedToWinner;
         }
-
-        #region DEBUG
-        [Space(20)]
-        public int Debug_inGamePlayersRecords;
-        public int Debug_playersHUDList;
-
-        private void Update()
-        {
-            Debug_inGamePlayersRecords = _inGamePlayersRecords.Count;
-            Debug_playersHUDList = _playersHUDList.Count;
-        }
-        #endregion DEBUG
 
         void OnActionBroadcast(ActionBroadcast m)
         {
@@ -208,12 +199,57 @@ namespace WCC.Poker.Client
 
         void OnTurnUpdate(TurnUpdate m)
         {
-            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var remainingMs = m.DeadlineUnixMs > 0 ? Math.Max(0, (long)m.DeadlineUnixMs - nowMs) : 0;
+            var remainingMs = GetRemainingTurnMs(m.DeadlineUnixMs);
 
             _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
             _displayStacks[m.PlayerId] = (int)m.Stack;
-            _inGamePlayersRecords[m.PlayerId].SetTurn();
+            _inGamePlayersRecords[m.PlayerId].SetTurn(remainingMs);
+
+            print($"<color=green>SERVER TIME: {remainingMs} | DeadlineUnixMs: {m.DeadlineUnixMs}</color>");
+        }
+
+        void OnPong(Pong m)
+        {
+            var serverMs = NormalizeUnixMs(m.TimestampUnixMs);
+            if (serverMs <= 0)
+                return;
+
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var offset = (long)serverMs - nowMs;
+            if (Math.Abs(offset) >= ServerOffsetSnapThresholdMs)
+                _serverTimeOffsetMs = offset;
+            else if (Math.Abs(_serverTimeOffsetMs) < ServerOffsetSnapThresholdMs)
+                _serverTimeOffsetMs = 0;
+        }
+
+        long GetRemainingTurnMs(ulong deadlineUnixMs)
+        {
+            var deadlineMs = NormalizeUnixMs(deadlineUnixMs);
+            if (deadlineMs <= 0)
+                return 0;
+
+            var localNowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var nowMs = localNowMs + _serverTimeOffsetMs;
+            var remaining = (long)deadlineMs - nowMs;
+            if (remaining > 0)
+                return remaining;
+
+            if (_fallbackTurnTimeSeconds > 0)
+            {
+                var turnMs = (long)_fallbackTurnTimeSeconds * 1000L;
+                _serverTimeOffsetMs = (long)deadlineMs - turnMs - localNowMs;
+                remaining = (long)deadlineMs - (localNowMs + _serverTimeOffsetMs);
+                return Math.Max(0, remaining);
+            }
+
+            return 0;
+        }
+
+        static ulong NormalizeUnixMs(ulong unixValue)
+        {
+            if (unixValue == 0)
+                return 0;
+            return unixValue < 1000000000000UL ? unixValue * 1000UL : unixValue;
         }
 
         void OnStackUpdate(StackUpdate m)
@@ -250,6 +286,7 @@ namespace WCC.Poker.Client
                 case MsgType.ActionBroadcast: OnActionBroadcast((ActionBroadcast)msg); break;
                 case MsgType.TableSnapshot: OnTableSnapshot((TableSnapshot)msg); break;
                 case MsgType.TurnUpdate: OnTurnUpdate((TurnUpdate)msg); break;
+                case MsgType.Pong: OnPong((Pong)msg); break;
                 case MsgType.StackUpdate: OnStackUpdate((StackUpdate)msg); break;
                 case MsgType.HandResult: OnHandResult((HandResult)msg); break;
             }

@@ -101,8 +101,19 @@ namespace WCC.Poker.Client
         [NaughtyAttributes.Button]
         public void SetTurn([Optional] Action callback)
         {
+            SetTurn(0, callback);
+        }
+
+        public void SetTurn(long remainingMs, [Optional] Action callback)
+        {
+            if (_timerCoroutine != null)
+            {
+                StopCoroutine(_timerCoroutine);
+                _timerCoroutine = null;
+            }
+
             _turnHightlightGO.SetActive(true);
-            _timerCoroutine = StartCoroutine(TurnTime(() =>
+            _timerCoroutine = StartCoroutine(TurnTime(remainingMs, () =>
             {
                 _turnHightlightGO.SetActive(false);
                 ChangeTheWarningImageAlpha(0f);
@@ -145,11 +156,21 @@ namespace WCC.Poker.Client
         [NaughtyAttributes.Button] public void Debug_SetNotOwner() => CheckOwner(false);
         #endregion DEBUG-ONLY
 
-        IEnumerator TurnTime(UnityAction callback)
+        IEnumerator TurnTime(long remainingMs, UnityAction callback)
         {
             _turnGroupGO.SetActive(true);
 
-            float duration = 10f;
+            if (remainingMs <= 0)
+            {
+                _turnLoadingImgFill.fillAmount = 0f;
+                _countdownTimeText.text = "0";
+                _turnGroupGO.SetActive(false);
+                _onTurnWarningBoolEvent?.Invoke(false);
+                callback();
+                yield break;
+            }
+
+            float duration = Mathf.Max(0.1f, remainingMs / 1000f);
             float timeLeft = duration;
             var triggered30 = false;
             var triggered50 = false;
@@ -158,7 +179,7 @@ namespace WCC.Poker.Client
 
             while (timeLeft > 0f)
             {
-                timeLeft -= Time.deltaTime;
+                timeLeft -= Time.unscaledDeltaTime;
 
                 float percent = timeLeft / duration;
 

@@ -2035,6 +2035,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 215816885}
     m_Modifications:
+    - target: {fileID: 84407304328048342, guid: ace689f5290f9294ead4c5d85b194bec, type: 3}
+      propertyPath: m_Volume
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 84407304328048342, guid: ace689f5290f9294ead4c5d85b194bec, type: 3}
+      propertyPath: m_audioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 20c412eb42694f04ebb1dc301ec85f0e, type: 3}
     - target: {fileID: 1864160960717892298, guid: ace689f5290f9294ead4c5d85b194bec, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -8932,8 +8940,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cc4b0a278f22ed94e97c703d51dc84f6, type: 3}
   - {fileID: 21300000, guid: fe8b319c78e7ca14fad26b95dbc521e0, type: 3}
   - {fileID: 21300000, guid: 1a7f92f97e1af0f47b54fddfae3bb51f, type: 3}
-  Debug_inGamePlayersRecords: 0
-  Debug_playersHUDList: 0
+  _fallbackTurnTimeSeconds: 10
 --- !u!4 &841922924
 Transform:
   m_ObjectHideFlags: 0
