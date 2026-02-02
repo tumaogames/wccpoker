@@ -176,7 +176,7 @@ namespace WCC.Poker.Client
                 yield break;
             }
 
-            float duration = Mathf.Max(0.1f, remainingMs / 1000f);
+            float duration = 10f;
             float timeLeft = duration;
             var triggered30 = false;
             var triggered50 = false;
