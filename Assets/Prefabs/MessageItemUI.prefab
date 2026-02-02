@@ -445,6 +445,7 @@ GameObject:
   - component: {fileID: 3470968560735462679}
   - component: {fileID: 2416257639414889178}
   - component: {fileID: 123984510564655484}
+  - component: {fileID: 6690677682958648484}
   m_Layer: 5
   m_Name: MessageItemUI
   m_TagString: Untagged
@@ -472,7 +473,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 650.92, y: 82.823}
+  m_SizeDelta: {x: 596.1848, y: 82.823}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2416257639414889178
 CanvasRenderer:
@@ -511,7 +512,21 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 52.43
+  m_PixelsPerUnitMultiplier: 78.4
+--- !u!114 &6690677682958648484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8194621453363498034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0106208392b4b754ea4a9d9e4e99d204, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerNameText: {fileID: 5689470905725707175}
+  _messageText: {fileID: 6798479420592492405}
 --- !u!1 &9151495222378215205
 GameObject:
   m_ObjectHideFlags: 0
