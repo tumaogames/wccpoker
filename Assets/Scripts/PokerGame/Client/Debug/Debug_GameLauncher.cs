@@ -12,6 +12,9 @@ using WCC.Core;
 
 namespace WCC.Poker.Client
 {
+    /// <summary>
+    /// This class ay para lang ma test
+    /// </summary>
     public class Debug_GameLauncher : MonoBehaviour
     {
         [SerializeField] TMP_InputField _url_inputboxIF;
@@ -22,6 +25,11 @@ namespace WCC.Poker.Client
 
         [SerializeField] string _sceneToLoad = "PokerGame";
 
+        /// <summary>
+        /// Add listener of the button
+        /// Add listener of the token input
+        /// Setup all game info for the shared vaut
+        /// </summary>
         private void Start()
         {
             _enterButton.onClick.AddListener(async () =>
@@ -39,11 +47,18 @@ namespace WCC.Poker.Client
             _token_inputboxIF.onValueChanged.AddListener(OnChangeInput);
         }
 
+        /// <summary>
+        /// Para mag enable/disable ng button interaction
+        /// </summary>
+        /// <param name="inputValue"></param>
         void OnChangeInput(string inputValue)
         {
             _enterButton.interactable = inputValue != string.Empty && inputValue.Length >= 8 && _url_inputboxIF.text.Length > 0 && _operator_inputboxIF.text.Length > 0 && _matchsizeid_inputboxIF.text.Length > 0;
         }
 
+        /// <summary>
+        /// Para direct mag load ng scene
+        /// </summary>
         void LoadNewScene()
         {
             SceneManager.LoadScene(_sceneToLoad);
