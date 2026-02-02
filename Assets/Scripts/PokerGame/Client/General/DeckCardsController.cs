@@ -37,6 +37,7 @@ namespace WCC.Poker.Client
 
         [Header("[PLAYER-TABLES]")]
         [SerializeField] Transform[] _playerTablePositions;
+        [SerializeField] int _ownerSeatIndex = 4;
 
         readonly List<CardView> _cardViewList_onPlayers = new();
         readonly List<CardView> _cardViewList_onCommunity = new();
@@ -48,6 +49,7 @@ namespace WCC.Poker.Client
         TableState _lastTableState = TableState.Unspecified;
         bool _inShowdown = false;
         bool _pendingClearAfterShowdown = false;
+        int _ownerSeat = -1;
 
         //DEBUG TEXT
         [SerializeField] bool _logDealWarnings = true;
@@ -191,17 +193,28 @@ namespace WCC.Poker.Client
             if (_logStateTransitions && _lastTableState != m.State)
                 Debug.Log($"TableState transition: {_lastTableState} -> {m.State}");
 
+            if (m.State == TableState.PreFlop && _communityCardsRecords.Count > 0)
+                ClearAllCardsImmediate();
+
             if (m.CommunityCards != null && m.CommunityCards.Count > 0)
             {
                 StartCoroutine(DealCardsForCommunity(m.CommunityCards));
             }
 
+            var ownerId = PokerNetConnect.OwnerPlayerID;
+            _ownerSeat = -1;
             for (int i = 0; i < m.Players.Count; i++)
             {
-                _playerSeatRecords[m.Players[i].PlayerId] = m.Players[i].Seat - 1;
+                if (!string.IsNullOrEmpty(ownerId) && m.Players[i].PlayerId == ownerId)
+                    _ownerSeat = m.Players[i].Seat;
+            }
+            for (int i = 0; i < m.Players.Count; i++)
+            {
+                _playerSeatRecords[m.Players[i].PlayerId] = MapSeatToIndex(m.Players[i].Seat);
             }
 
-            if (_lastTableState != m.State && m.State == TableState.PreFlop)
+            if (m.State == TableState.PreFlop &&
+                (_lastTableState != m.State || _playerCardsRecords.Count == 0))
             {
                 foreach (var p in m.Players)
                 {
@@ -556,5 +569,20 @@ namespace WCC.Poker.Client
         void SetWinner(string playerID) => OnWinnerEvent?.Invoke(playerID);
 
         static int CardKey(Com.poker.Core.Card card) => (card.Rank << 2) | (card.Suit & 0x3);
+
+        int MapSeatToIndex(int seat)
+        {
+            var total = _playerTablePositions.Length;
+            if (total == 0)
+                return 0;
+
+            var ownerIndex = Mathf.Clamp(_ownerSeatIndex, 0, total - 1);
+            if (_ownerSeat <= 0)
+                return Mathf.Clamp(seat - 1, 0, total - 1);
+
+            var offset = ownerIndex - (_ownerSeat - 1);
+            var mapped = ((seat - 1 + offset) % total + total) % total;
+            return mapped;
+        }
     }
 }

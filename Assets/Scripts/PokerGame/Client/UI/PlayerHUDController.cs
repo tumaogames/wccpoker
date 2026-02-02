@@ -25,6 +25,7 @@ namespace WCC.Poker.Client
         [Space]
 
         [SerializeField] int _maxPlayers = 3;
+        [SerializeField] int _ownerSeatIndex = 4;
 
         [Space]
 
@@ -39,12 +40,11 @@ namespace WCC.Poker.Client
 
         public event Action<ConcurrentDictionary<string, PlayerHUD_UI>> PlayerHUDListListenerEvent;
 
-        int _playerIndex = 4;
-
         readonly ConcurrentDictionary<string, PlayerHUD_UI> _inGamePlayersRecords = new();
         readonly ConcurrentDictionary<string, int> _displayStacks = new();
         readonly ConcurrentDictionary<string, int> _betThisRound = new();
         readonly ConcurrentDictionary<string, int> _pendingWinAmounts = new();
+        readonly ConcurrentDictionary<string, int> _playerServerSeats = new();
 
         TableState _currentTableState;
 
@@ -55,6 +55,7 @@ namespace WCC.Poker.Client
         string _last_bbId = "?";
         static long _serverTimeOffsetMs;
         const long ServerOffsetSnapThresholdMs = 2000;
+        int _ownerSeat = -1;
 
         #region EDITOR
         private void OnValidate()
@@ -124,9 +125,13 @@ namespace WCC.Poker.Client
             var dealerId = "?";
             var sbId = "?";
             var bbId = "?";
+            var ownerId = PokerNetConnect.OwnerPlayerID;
 
             foreach (var p in m.Players)
             {
+                _playerServerSeats[p.PlayerId] = p.Seat;
+                if (!string.IsNullOrEmpty(ownerId) && p.PlayerId == ownerId)
+                    _ownerSeat = p.Seat;
                 if (p.Seat == m.DealerSeat)
                 {
                     if (_inGamePlayersRecords.ContainsKey(_last_dealerId))
@@ -178,12 +183,13 @@ namespace WCC.Poker.Client
             foreach (var p in m.Players)
             {
                 if (!_inGamePlayersRecords.ContainsKey(p.PlayerId))
-                    SummonPlayerHUDUI(p.Seat - 1, $"P-{p.PlayerId}-{p.Seat}", p.PlayerId, (int)p.Stack);
+                    SummonPlayerHUDUI(p.Seat, $"P-{p.PlayerId}-{p.Seat}", p.PlayerId, (int)p.Stack);
                 _displayStacks[p.PlayerId] = (int)p.Stack;
                 _betThisRound[p.PlayerId] = (int)p.BetThisRound;
             }
 
             PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
+            RefreshPlayerPositions();
 
             if (m.State == TableState.Reset)
             {
@@ -204,6 +210,13 @@ namespace WCC.Poker.Client
             _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
             _displayStacks[m.PlayerId] = (int)m.Stack;
             _inGamePlayersRecords[m.PlayerId].SetTurn(remainingMs);
+
+            if (m.PlayerId == PokerNetConnect.OwnerPlayerID && m.Seat != _ownerSeat)
+            {
+                _ownerSeat = m.Seat;
+                _playerServerSeats[m.PlayerId] = m.Seat;
+                RefreshPlayerPositions();
+            }
 
             print($"<color=green>SERVER TIME: {remainingMs} | DeadlineUnixMs: {m.DeadlineUnixMs}</color>");
         }
@@ -302,12 +315,43 @@ namespace WCC.Poker.Client
             _playersHUDList.Add(p);
             _inGamePlayersRecords.TryAdd(playerID, p);
 
-            p.transform.localPosition = seat == _playerIndex ? _playersTablePositions[_playerIndex].localPosition : _playersTablePositions[seat].localPosition;
+            var mappedIndex = MapSeatToIndex(seat);
+            p.transform.localPosition = _playersTablePositions[mappedIndex].localPosition;
 
-            p.InititalizePlayerHUDUI(playerID, playerName, seat == _playerIndex, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], stackAmount);
-            p.SetSeatIndex(seat);
+            var isOwner = playerID == PokerNetConnect.OwnerPlayerID;
+            p.InititalizePlayerHUDUI(playerID, playerName, isOwner, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], stackAmount);
+            p.SetSeatIndex(mappedIndex);
             
-            if(seat == _playerIndex && _currentPlayerHUD == null) _currentPlayerHUD = p;
+            if (playerID == PokerNetConnect.OwnerPlayerID) _currentPlayerHUD = p;
+        }
+
+        void RefreshPlayerPositions()
+        {
+            foreach (var kvp in _inGamePlayersRecords)
+            {
+                var playerId = kvp.Key;
+                var hud = kvp.Value;
+                if (!_playerServerSeats.TryGetValue(playerId, out var seat))
+                    continue;
+                var mappedIndex = MapSeatToIndex(seat);
+                hud.transform.localPosition = _playersTablePositions[mappedIndex].localPosition;
+                hud.SetSeatIndex(mappedIndex);
+            }
+        }
+
+        int MapSeatToIndex(int seat)
+        {
+            var total = _playersTablePositions.Length;
+            if (total == 0)
+                return 0;
+
+            var ownerIndex = Mathf.Clamp(_ownerSeatIndex, 0, total - 1);
+            if (_ownerSeat <= 0)
+                return Mathf.Clamp(seat - 1, 0, total - 1);
+
+            var offset = ownerIndex - (_ownerSeat - 1);
+            var mapped = ((seat - 1 + offset) % total + total) % total;
+            return mapped;
         }
     }
 }
