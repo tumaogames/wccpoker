@@ -280,6 +280,8 @@ namespace WCC.Poker.Client
 
             _lastTableState = m.State;
 
+            EnsureOwnerCardsOpen();
+
             if (m.State == TableState.PreFlop)
                 _requestedRejoinThisHand = false;
 
@@ -321,6 +323,8 @@ namespace WCC.Poker.Client
                     Debug.LogWarning($"DealHoleCards before seat known for player {PokerNetConnect.OwnerPlayerID}. Queued.");
                 _pendingDeals.Add((PokerNetConnect.OwnerPlayerID, m.Cards));
             }
+
+            EnsureOwnerCardsOpen();
         }
 
         void OnSpectatorHoleCards(SpectatorHoleCards m)
@@ -337,6 +341,8 @@ namespace WCC.Poker.Client
                     Debug.LogWarning($"SpectatorHoleCards before seat known for player {m.PlayerId}. Queued.");
                 _pendingDeals.Add((m.PlayerId, m.Cards));
             }
+
+            EnsureOwnerCardsOpen();
         }
 
         async void OnHandResult(HandResult m)
@@ -493,6 +499,23 @@ namespace WCC.Poker.Client
                 return;
             }
 
+            if (_playerCardsRecords.TryGetValue(playerID, out var existing) && existing != null)
+            {
+                if (existing.IsPlaceholder)
+                {
+                    ClearPlayerCards(playerID);
+                }
+                else if (IsSameCards(existing.Cards, playerCards))
+                {
+                    EnsureOwnerCardsOpen();
+                    return;
+                }
+                else
+                {
+                    ClearPlayerCards(playerID);
+                }
+            }
+
             BankerAnimController.main.PlayDealsCardAnimation();
 
             AudioManager.main.PlayAudio("Cards", 1);
@@ -586,6 +609,19 @@ namespace WCC.Poker.Client
             }
         }
 
+        static bool IsSameCards(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> a,
+            Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> b)
+        {
+            if (a == null || b == null) return false;
+            if (a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++)
+            {
+                if (a[i].Rank != b[i].Rank || a[i].Suit != b[i].Suit)
+                    return false;
+            }
+            return true;
+        }
+
 
         void ClearAllCardsImmediate()
         {
@@ -635,6 +671,25 @@ namespace WCC.Poker.Client
             var offset = ownerIndex - (_ownerSeat - 1);
             var mapped = ((seat - 1 + offset) % total + total) % total;
             return mapped;
+        }
+
+        void EnsureOwnerCardsOpen()
+        {
+            var ownerId = PokerNetConnect.OwnerPlayerID;
+            if (string.IsNullOrEmpty(ownerId))
+                return;
+
+            if (!_playerCardsRecords.TryGetValue(ownerId, out var pack) || pack?.CardViewUI == null)
+                return;
+
+            if (pack.IsPlaceholder)
+                return;
+
+            foreach (var cv in pack.CardViewUI)
+            {
+                if (cv == null) continue;
+                cv.SetOpenCard();
+            }
         }
 
         void RefreshPlayerCardPositions()
