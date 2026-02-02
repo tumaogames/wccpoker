@@ -74,6 +74,16 @@ namespace WCC.Poker.Client
 
         void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
 
+        void OnEnable()
+        {
+            ClearAllCardsImmediate();
+            _playerSeatRecords.Clear();
+            _pendingDeals.Clear();
+            _lastTableState = TableState.Unspecified;
+            _inShowdown = false;
+            _pendingClearAfterShowdown = false;
+        }
+
         #region DEBUG
         [Space(20)]
         public int Debug_communityCardsRecords;
@@ -222,16 +232,16 @@ namespace WCC.Poker.Client
                 _playerSeatRecords[m.Players[i].PlayerId] = MapSeatToIndex(m.Players[i].Seat);
             }
 
-            if (m.State == TableState.PreFlop &&
+            if ((m.State == TableState.PreFlop ||
+                 m.State == TableState.Flop ||
+                 m.State == TableState.Turn ||
+                 m.State == TableState.River) &&
                 (_lastTableState != m.State || _playerCardsRecords.Count == 0))
             {
                 foreach (var p in m.Players)
                 {
                     if (p.Status == PlayerStatus.SittingOut ||
                         p.Status == PlayerStatus.Disconnected)
-                        continue;
-
-                    if (p.PlayerId == PokerNetConnect.OwnerPlayerID)
                         continue;
 
                     if (_playerCardsRecords.ContainsKey(p.PlayerId))
