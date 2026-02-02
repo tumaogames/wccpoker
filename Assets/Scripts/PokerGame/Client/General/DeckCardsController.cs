@@ -28,6 +28,7 @@ namespace WCC.Poker.Client
 
         [Header("[CARD]")]
         [SerializeField] float _cardSize = 0.56f;
+        [SerializeField] Transform[] _commCardsPosition;
 
         [Header("[CONTAINERS]")]
         [SerializeField] Transform _deckTableGroup;
@@ -54,7 +55,6 @@ namespace WCC.Poker.Client
         [SerializeField] bool _logStateTransitions = false;
 
         public static event Action<string> OnWinnerEvent;
-
         
         [Serializable]
         class PlayerCardsPack
@@ -367,7 +367,7 @@ namespace WCC.Poker.Client
 
         }
 
-        void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, UnityAction isReachedCallback)
+        void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, float cardSize, UnityAction isReachedCallback)
         {
             var card = Instantiate(_cardViewPrefab, _deckTableGroup);
 
@@ -383,7 +383,7 @@ namespace WCC.Poker.Client
             {
                 card.transform.SetParent(cardViewParent);
                 card.transform.position = cardViewParent.position;
-                card.transform.localScale = new Vector2(_cardSize, _cardSize);
+                card.transform.localScale = new Vector2(cardSize, cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
                 isReachedCallback();
@@ -396,7 +396,7 @@ namespace WCC.Poker.Client
             .OnComplete(() =>
             {
                 card.transform.SetParent(cardViewParent);
-                card.transform.localScale = new Vector2(_cardSize, _cardSize);
+                card.transform.localScale = new Vector2(cardSize, cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
                 isReachedCallback();
@@ -413,13 +413,14 @@ namespace WCC.Poker.Client
                 {
 
                     var isReached = false;
-
+                    var targetposition = _commCardsPosition[_communityCardsRecords.Count];
                     InstantiateCard(true,
                         false,
                         GlobalHawk.TranslateCardRank(infoList[i].Rank),
                         (GlobalHawk.Suit)infoList[i].Suit,
-                        _communityTableContainer,
+                        targetposition,
                         out var cardView,
+                        1f,
                         () => isReached = true);
 
 
@@ -458,6 +459,7 @@ namespace WCC.Poker.Client
                     (GlobalHawk.Suit)playerCards[j].Suit,
                     _playerTablePositions[seat],
                     out var cardView,
+                    _cardSize,
                     () => { });
 
                 _cardViewList_onPlayers.Add(cardView);
@@ -497,6 +499,7 @@ namespace WCC.Poker.Client
                     (GlobalHawk.Suit)dummyCards[j].Suit,
                     _playerTablePositions[seat],
                     out var cardView,
+                    _cardSize,
                     () => { });
 
                 _cardViewList_onPlayers.Add(cardView);

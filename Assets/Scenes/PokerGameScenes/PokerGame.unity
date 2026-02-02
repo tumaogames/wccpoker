@@ -8869,7 +8869,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cardViewPrefab: {fileID: 2473193915766406212, guid: 102130d9a16dff943a3b013b57b60ab3, type: 3}
   _cardSize: 0.58
-  _communityCardsPositions:
+  _commCardsPosition:
   - {fileID: 1023486403}
   - {fileID: 1043563193}
   - {fileID: 1870367153}
