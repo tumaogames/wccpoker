@@ -171,6 +171,22 @@ public class ChildLayoutHoverResizeDOTween :
         ArtGameManager.Instance.selectedTable = null;
     }
 
+    public static bool TryConfirmSelected()
+    {
+        if (currentSelected == null)
+            return false;
+
+        var client = GameServerClient.Instance;
+        if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
+        {
+            Debug.LogWarning("Not connected yet.");
+            return false;
+        }
+
+        currentSelected.OnDoubleClick();
+        return true;
+    }
+
     // =====================
     // ANIMATION
     // =====================

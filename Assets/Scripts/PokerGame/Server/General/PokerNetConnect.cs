@@ -15,6 +15,7 @@ public class PokerNetConnect : MonoBehaviour
 {
     [SerializeField] UnityEvent<string> _onPrintRoundStatusEvent;
     [Header("Join Settings (no connection here)")]
+    [SerializeField] bool _autoJoinOnEnable = true;
     [SerializeField] bool _isPlayerEnable = true;
     [SerializeField] string _playerTableCode = "";
     [SerializeField] string _botsTableCode = "DEV-BOT-TABLE";
@@ -53,6 +54,12 @@ public class PokerNetConnect : MonoBehaviour
         if (!string.IsNullOrWhiteSpace(existingTableId))
             _lastKnownTableId = existingTableId;
 
+        if (!_autoJoinOnEnable)
+        {
+            Debug.Log("[PokerNetConnect] Auto-join disabled on enable.");
+            return;
+        }
+
         if (IsSessionReady())
         {
             TryJoinTable("already-connected");
@@ -76,6 +83,11 @@ public class PokerNetConnect : MonoBehaviour
     {
         Debug.Log("On Connect inside");
         OwnerPlayerID = resp.PlayerId;
+        if (!_autoJoinOnEnable)
+        {
+            Debug.Log("[PokerNetConnect] Auto-join disabled on connect.");
+            return;
+        }
         TryJoinTable("connect");
     }
 

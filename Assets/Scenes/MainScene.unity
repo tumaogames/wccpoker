@@ -1265,7 +1265,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3689379908243726149}
         m_TargetAssemblyTypeName: ArtGameManager, Assembly-CSharp
-        m_MethodName: PlayPopUpSelectPlayer
+        m_MethodName: PlaySelectedChildTable
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1742,7 +1742,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3689379908243726149}
         m_TargetAssemblyTypeName: ArtGameManager, Assembly-CSharp
-        m_MethodName: PopUpSelectPlayer
+        m_MethodName: SelectNow
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

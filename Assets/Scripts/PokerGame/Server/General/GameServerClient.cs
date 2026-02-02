@@ -71,6 +71,7 @@ public sealed class GameServerClient : MonoBehaviour
     bool _reconnectPending;
     bool _shouldSendResume;
     ulong _resumeSeq;
+    bool _suppressNextReconnect;
     const int ResumeStallMs = 20000;
     const int ResumeCooldownMs = 3000;
 
@@ -419,6 +420,12 @@ public sealed class GameServerClient : MonoBehaviour
         _socket = null;
         isConnected = false;
         _isConnecting = false;
+    }
+
+    public void CloseAndSuppressReconnect()
+    {
+        _suppressNextReconnect = true;
+        Close();
     }
 
     public void SendJoinTable(string tableIdValue)
@@ -1195,6 +1202,12 @@ public sealed class GameServerClient : MonoBehaviour
 
     void ScheduleReconnect(string reason)
     {
+        if (_suppressNextReconnect)
+        {
+            _suppressNextReconnect = false;
+            return;
+        }
+
         if (!autoReconnect)
             return;
 

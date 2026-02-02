@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -33,6 +34,13 @@ public class ArtGameManager : MonoBehaviour
     public TMP_Text coinText;
     public bool isInitialized;
     string _lastToken;
+    [Header("Performance")]
+    [SerializeField] bool usePooling = true;
+    [SerializeField] bool clearTablesOnRefresh = true;
+    readonly List<GameObject> _activeTables = new List<GameObject>();
+    readonly List<GameObject> _activeSelectTables = new List<GameObject>();
+    readonly Dictionary<GameObject, Queue<GameObject>> _pool = new Dictionary<GameObject, Queue<GameObject>>();
+    Transform _poolRoot;
     public int CurrentScore
     {
         get { return currentScore; }
@@ -78,14 +86,20 @@ public class ArtGameManager : MonoBehaviour
 
 
         ChangeState(GameState.MainMenu);
+        StartCoroutine(WaitForToken());
     }
 
-    private void Update()
+    IEnumerator WaitForToken()
     {
         // Safety net: if token arrives after Start or OnEnable missed it, pull once here.
-        if (!isInitialized && TokenManager.HasToken())
+        while (!isInitialized)
         {
-            ApplyToken(TokenManager.GetToken(), "late-grab");
+            if (TokenManager.HasToken())
+            {
+                ApplyToken(TokenManager.GetToken(), "late-grab");
+                yield break;
+            }
+            yield return null;
         }
     }
 
@@ -140,6 +154,9 @@ public class ArtGameManager : MonoBehaviour
 
     public void GenerateTable(PokerTableList tableInfo)
     {
+        if (tableInfo == null || tableInfo.Tables == null)
+            return;
+
         if (IsMatchSizeList(tableInfo))
         {
             //Eto yong part na mag gegenerate ng match size options sa UI
@@ -155,6 +172,8 @@ public class ArtGameManager : MonoBehaviour
         else
         {
             //Eto yong part na mag gegenreate ng table sa UI
+            if (clearTablesOnRefresh)
+                ClearTables();
             foreach (var item in tableInfo.Tables)
             {
                 Spawn(item);
@@ -181,15 +200,14 @@ public class ArtGameManager : MonoBehaviour
 
     public void Spawn(PokerTableInfo tableItem)
     {
-        GameObject instance = Instantiate(tablePrefab, imageParentContainer);
+        GameObject instance = GetFromPool(tablePrefab, imageParentContainer, _activeTables);
+        if (instance == null)
+            return;
         RectTransform rt = instance.GetComponent<RectTransform>();
-        // Reset transform so it fits correctly
-        rt.localScale = Vector3.one;
-        rt.localRotation = Quaternion.identity;
-        rt.anchoredPosition = Vector2.zero;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
+        ResetRectTransform(rt);
         var tableDataInfo = instance.GetComponent<TableData>();
+        if (tableDataInfo == null)
+            return;
         tableDataInfo.tableName = tableItem.TableName;
         tableDataInfo.tableCode = tableItem.TableCode;
         tableDataInfo.smallBlind = tableItem.SmallBlind;
@@ -200,15 +218,14 @@ public class ArtGameManager : MonoBehaviour
 
     public void SelectSpawn(PokerTableInfo tableItem)
     {
-        GameObject instance = Instantiate(selectTablePrefab, imageSelectContainer);
+        GameObject instance = GetFromPool(selectTablePrefab, imageSelectContainer, _activeSelectTables);
+        if (instance == null)
+            return;
         RectTransform rt = instance.GetComponent<RectTransform>();
-        // Reset transform so it fits correctly
-        rt.localScale = Vector3.one;
-        rt.localRotation = Quaternion.identity;
-        rt.anchoredPosition = Vector2.zero;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
+        ResetRectTransform(rt);
         var childTableDataInfo = instance.GetComponent<ChildTableData>();
+        if (childTableDataInfo == null)
+            return;
         childTableDataInfo.childTableCode = tableItem.TableCode;
         childTableDataInfo.minPlayers = tableItem.MinPlayersToStart;
         childTableDataInfo.maxPlayers = tableItem.MaxPlayers;
@@ -225,15 +242,137 @@ public class ArtGameManager : MonoBehaviour
 
     public void ChildClear(RectTransform content)
     {
-        for (int i = content.childCount - 1; i >= 0; i--)
+        ClearList(_activeSelectTables, content);
+    }
+
+    void ClearTables()
+    {
+        ClearList(_activeTables, imageParentContainer);
+    }
+
+    void ClearList(List<GameObject> list, RectTransform fallbackParent)
+    {
+        if (list.Count == 0 && fallbackParent != null)
         {
-            Destroy(content.GetChild(i).gameObject);
+            for (int i = fallbackParent.childCount - 1; i >= 0; i--)
+            {
+                ReturnToPool(fallbackParent.GetChild(i).gameObject);
+            }
+            return;
         }
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            ReturnToPool(list[i]);
+        }
+        list.Clear();
+    }
+
+    GameObject GetFromPool(GameObject prefab, RectTransform parent, List<GameObject> activeList)
+    {
+        if (prefab == null || parent == null)
+            return null;
+
+        GameObject instance = null;
+        if (usePooling && _pool.TryGetValue(prefab, out var queue))
+        {
+            while (queue.Count > 0 && instance == null)
+            {
+                instance = queue.Dequeue();
+            }
+        }
+
+        if (instance == null)
+        {
+            instance = Instantiate(prefab, parent);
+            if (usePooling)
+                TagPooledItem(instance, prefab);
+        }
+        else
+        {
+            instance.transform.SetParent(parent, false);
+            instance.SetActive(true);
+        }
+
+        activeList.Add(instance);
+        return instance;
+    }
+
+    void ReturnToPool(GameObject instance)
+    {
+        if (instance == null)
+            return;
+
+        if (!usePooling)
+        {
+            Destroy(instance);
+            return;
+        }
+
+        var pooled = instance.GetComponent<PooledUIItem>();
+        if (pooled == null || pooled.prefab == null)
+        {
+            Destroy(instance);
+            return;
+        }
+
+        if (!_pool.TryGetValue(pooled.prefab, out var queue))
+        {
+            queue = new Queue<GameObject>();
+            _pool[pooled.prefab] = queue;
+        }
+
+        EnsurePoolRoot();
+        instance.SetActive(false);
+        instance.transform.SetParent(_poolRoot, false);
+        queue.Enqueue(instance);
+    }
+
+    void TagPooledItem(GameObject instance, GameObject prefab)
+    {
+        if (instance == null)
+            return;
+
+        var pooled = instance.GetComponent<PooledUIItem>();
+        if (pooled == null)
+            pooled = instance.AddComponent<PooledUIItem>();
+        pooled.prefab = prefab;
+    }
+
+    void EnsurePoolRoot()
+    {
+        if (_poolRoot != null)
+            return;
+
+        var go = new GameObject("UIItemPool");
+        go.SetActive(false);
+        _poolRoot = go.transform;
+        _poolRoot.SetParent(transform, false);
+    }
+
+    static void ResetRectTransform(RectTransform rt)
+    {
+        if (rt == null)
+            return;
+
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+        rt.anchoredPosition = Vector2.zero;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
     }
 
     public void PopUpSelectPlayer()
     {
         selecPlayerNow.SetActive(true);
+    }
+
+    public void SelectNow()
+    {
+        if (LayoutHoverResizeDOTween.TryConfirmSelected())
+            return;
+
+        Debug.LogWarning("[ArtGameManager] Select Now clicked but no table is selected.");
     }
 
     public void ClosePopUpSelectPlayer()
@@ -251,6 +390,14 @@ public class ArtGameManager : MonoBehaviour
 
         ApplyGlobalSelection(tableCode, matchSizeId);
         SceneManager.LoadScene("PokerGame");
+    }
+
+    public void PlaySelectedChildTable()
+    {
+        if (ChildLayoutHoverResizeDOTween.TryConfirmSelected())
+            return;
+
+        Debug.LogWarning("[ArtGameManager] Play clicked but no child table is selected.");
     }
 
     bool TryGetSelectedTable(out string tableCode, out int matchSizeId)
