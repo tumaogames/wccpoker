@@ -8,6 +8,7 @@ using Google.Protobuf;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using WCC.Core;
 
 public class PokerNetConnect : MonoBehaviour
 {
@@ -17,30 +18,22 @@ public class PokerNetConnect : MonoBehaviour
     public static string OwnerPlayerID;
     public static event Action<MsgType, IMessage> OnMessageEvent;
 
-    void Awake()
-    {
-        Application.runInBackground = true;
-    }
+    void Awake() => Application.runInBackground = true;
 
     void Start()
     {
+        if(!HasConnection()) return;
+       
+        var isVault = IsVautActive();
 
-        if (!_netInfo.AutoConnectOnStart)
-            return;
-
-        if (string.IsNullOrWhiteSpace(_netInfo.ServerUrl) ||
-            string.IsNullOrWhiteSpace(_netInfo.LaunchToken) ||
-            string.IsNullOrWhiteSpace(_netInfo.OperatorPublicId))
-        {
-            Debug.LogWarning("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
-            return;
-        }
-
-        GameServerClient.Configure(_netInfo.ServerUrl);
-        GameServerClient.ConnectWithLaunchToken(_netInfo.LaunchToken, _netInfo.OperatorPublicId);
+        ConfigureGame(
+            isVault ? PokerSharedVault.LaunchToken : _netInfo.LaunchToken,
+            isVault ? PokerSharedVault.ServerURL : _netInfo.ServerUrl,
+            isVault ? PokerSharedVault.OperatorPublicID : _netInfo.OperatorPublicId
+            );
     }
 
-
+    #region LISTENERS
     void OnEnable()
     {
         GameServerClient.MessageReceivedStatic += OnMessage;
@@ -52,24 +45,37 @@ public class PokerNetConnect : MonoBehaviour
         GameServerClient.MessageReceivedStatic -= OnMessage;
         GameServerClient.ConnectResponseReceivedStatic -= OnConnect;
     }
+    #endregion LISTENERS
+
+    void ConfigureGame(string launchToken, string serverURL, string operatorPublicID)
+    {
+        GameServerClient.Configure(serverURL);
+        GameServerClient.ConnectWithLaunchToken(launchToken, operatorPublicID);
+    }
 
     void OnConnect(ConnectResponse resp)
     {
         OwnerPlayerID = resp.PlayerId;
 
-        if (!_netInfo.AutoSpectateOnConnect)
+        if (!_netInfo.AutoSpectateOnConnect && !IsVautActive())
             return;
 
-        if (string.IsNullOrWhiteSpace(_netInfo.BotsTableCode))
-        {
-            Debug.LogWarning("[BotDump] spectateTableCode is empty.");
-            return;
-        }
-        //GameServerClient.SendSpectateStatic(_netInfo.SpectateTableCode);
-        //GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode);
-        GameServerClient.SendJoinTableStatic(_netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode, 3);
+        ConnectToTable();
     }
 
+    void ConnectToTable()
+    {
+        if (IsVautActive())
+        {
+            var sampleTestMatchSizeId = 3;
+            var localTableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
+            var vaultTBCode = PokerSharedVault.TableCode ?? localTableCode;
+            var matchSizeID = PokerSharedVault.MatchSizeId == -1 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;
+            GameServerClient.SendJoinTableStatic(vaultTBCode, matchSizeID);
+        }
+    }
+
+    bool IsVautActive() => PokerSharedVault.TableCode != string.Empty && PokerSharedVault.LaunchToken != string.Empty && PokerSharedVault.MatchSizeId != -1;
 
     void OnMessage(MsgType type, IMessage msg)
     {
@@ -107,5 +113,32 @@ public class PokerNetConnect : MonoBehaviour
         };
         string s = c.Suit switch { 0 => "C", 1 => "D", 2 => "H", 3 => "S", _ => "?" };
         return r + "_" + s;
+    }
+
+    bool HasConnection()
+    {
+        if (!_netInfo.AutoConnectOnStart && !IsVautActive())
+            return false;
+
+        if (string.IsNullOrWhiteSpace(_netInfo.ServerUrl) ||
+            string.IsNullOrWhiteSpace(_netInfo.LaunchToken) ||
+            string.IsNullOrWhiteSpace(_netInfo.OperatorPublicId))
+        {
+            Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
+            return false;
+        }
+
+        if (IsVautActive())
+        {
+            if (string.IsNullOrWhiteSpace(PokerSharedVault.ServerURL) ||
+                string.IsNullOrWhiteSpace(PokerSharedVault.LaunchToken) ||
+                string.IsNullOrWhiteSpace(PokerSharedVault.OperatorPublicID))
+            {
+                Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
+                return false;
+            }
+        }
+
+        return true;
     }
 }
