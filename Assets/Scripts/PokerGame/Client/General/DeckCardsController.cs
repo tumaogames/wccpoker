@@ -184,8 +184,17 @@ namespace WCC.Poker.Client
                 case MsgType.DealHoleCards: OnDealHoleCards((DealHoleCards)msg); break;
                 case MsgType.CommunityCards: OnCommunityCards((CommunityCards)msg); break;
                 case MsgType.SpectatorHoleCards: OnSpectatorHoleCards((SpectatorHoleCards)msg); break;
+                case MsgType.ActionBroadcast: OnActionBroadcast((ActionBroadcast)msg); break;
                 case MsgType.HandResult: OnHandResult((HandResult)msg); break;
             }
+        }
+
+        void OnActionBroadcast(ActionBroadcast m)
+        {
+            if (m.Action != PokerActionType.Fold)
+                return;
+
+            SetPlayerCardsSleep(m.PlayerId, true);
         }
 
         void OnTableSnapshot(TableSnapshot m)
@@ -548,6 +557,7 @@ namespace WCC.Poker.Client
             }
         }
 
+
         void ClearAllCardsImmediate()
         {
             foreach (var cv in _cardViewList_onPlayers)
@@ -569,6 +579,18 @@ namespace WCC.Poker.Client
         void SetWinner(string playerID) => OnWinnerEvent?.Invoke(playerID);
 
         static int CardKey(Com.poker.Core.Card card) => (card.Rank << 2) | (card.Suit & 0x3);
+
+        void SetPlayerCardsSleep(string playerID, bool isSleep)
+        {
+            if (!_playerCardsRecords.TryGetValue(playerID, out var pack) || pack?.CardViewUI == null)
+                return;
+
+            foreach (var cv in pack.CardViewUI)
+            {
+                if (cv == null) continue;
+                cv.SetSleepCard(isSleep);
+            }
+        }
 
         int MapSeatToIndex(int seat)
         {

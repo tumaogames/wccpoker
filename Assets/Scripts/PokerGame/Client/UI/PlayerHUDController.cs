@@ -98,6 +98,7 @@ namespace WCC.Poker.Client
                 _inGamePlayersRecords[m.PlayerId].SetActionBroadcast($"{m.Action}");
 
                 if (m.Action == PokerActionType.Check) AudioManager.main.PlayAudio("Actions", 0);
+                _inGamePlayersRecords[m.PlayerId].SetFoldedState(m.Action == PokerActionType.Fold);
             }
 
             if (!_inGamePlayersRecords.ContainsKey(m.PlayerId)) return;
@@ -195,11 +196,15 @@ namespace WCC.Poker.Client
             {
                 foreach (var p in _inGamePlayersRecords)
                     p.Value.SetEnableActionHolder(false);
+                foreach (var p in _inGamePlayersRecords)
+                    p.Value.SetFoldedState(false);
             }
             if (m.State == TableState.Waiting)
             {
                 foreach (var p in _inGamePlayersRecords)
                     p.Value.SetEnableActionHolder(false);
+                foreach (var p in _inGamePlayersRecords)
+                    p.Value.SetFoldedState(false);
             }
         }
 

@@ -44,6 +44,9 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent<bool> _isOwnerBoolEvent;
         [SerializeField] UnityEvent<bool> _onTurnWarningBoolEvent;
         [SerializeField] UnityEvent _onTurnCountdownEndEvent;
+        [SerializeField] UnityEvent<bool> _onFoldingActionBoolEvent;
+        [SerializeField] UnityEvent _isFoldActionEvent;
+        [SerializeField] UnityEvent _isUnfoldActionEvent;
 
         bool _isOwner;
         int _seatIndex = -1;
@@ -227,5 +230,15 @@ namespace WCC.Poker.Client
         }
 
         public void SetEnableActionHolder(bool enable) => _actionHolder.SetActive(enable);
+
+      
+        public void SetFoldedState(bool isFolded)
+        {
+            _onFoldingActionBoolEvent?.Invoke(isFolded);
+            UnityEvent actEvent = isFolded ? _isFoldActionEvent : _isUnfoldActionEvent;
+            actEvent?.Invoke();
+
+            print($"<color=blue>SetFoldedState at PlayerHUD_UI.cs</color>");
+        }
     }
 }
