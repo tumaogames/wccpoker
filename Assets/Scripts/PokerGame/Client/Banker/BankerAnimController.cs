@@ -15,28 +15,39 @@ namespace WCC.Poker.Client
     {
         [SerializeField] Animator _bankerBodyAnimator;
         [SerializeField] Animator _bankerHairAnimator;
+        
+        readonly static int _dealStyle1 = Animator.StringToHash("DealStyle1");
+        readonly static int _dealStyle2 = Animator.StringToHash("DealStyle2");
+        readonly static int _windHair = Animator.StringToHash("Wind");
+        readonly static int _tip = Animator.StringToHash("Tip");
 
         [Button]
-        public void PlayDealsCardAnimation() => DealingAnimation(true);
+        public void PlayDealsCardAnimation() => DealingAnimation(_dealStyle1, true);
 
 
         [Button]
-        public void StopDealsCardAnimation() => DealingAnimation(false);
+        public void StopDealsCardAnimation() => DealingAnimation(_dealStyle1, false);
 
-        void DealingAnimation(bool e)
+        void DealingAnimation(int key, bool e)
         {
-            _bankerBodyAnimator.SetBool("DealStyle1", e);
-            _bankerHairAnimator.SetBool("Wind", e);
+            _bankerBodyAnimator.SetBool(key, e);
+            _bankerHairAnimator.SetBool(_windHair, e);
         }
 
         [Button]
         public async void PlayHappyTip()
         {
-            _bankerBodyAnimator.SetTrigger("Tip");
-            _bankerHairAnimator.SetBool("Wind", true);
+            _bankerBodyAnimator.SetTrigger(_tip);
+            _bankerHairAnimator.SetBool(_windHair, true);
             await Task.Delay(1000);
-            _bankerHairAnimator.SetBool("Wind", false);
+            _bankerHairAnimator.SetBool(_windHair, false);
         }
 
+
+        [Button]
+        public void PlayGetCardsAnimation() => DealingAnimation(_dealStyle2, true);
+
+        [Button]
+        public void StopGetCardsAnimation() => DealingAnimation(_dealStyle2, false);
     }
 }

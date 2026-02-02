@@ -116,6 +116,7 @@ namespace WCC.Poker.Client
         {
             var waitSec = new WaitForSeconds(0.1f);
 
+
             _cardViewList_onPlayers.ForEach(i =>
             {
                 i.SetCloseCard();
@@ -150,6 +151,8 @@ namespace WCC.Poker.Client
                 yield return null;
             }
 
+            BankerAnimController.main.PlayGetCardsAnimation();
+
             for (int i = 0; i < _cardViewList_onPlayers.Count; i++)
             {
                 var isReached = false;
@@ -177,6 +180,8 @@ namespace WCC.Poker.Client
 
                 yield return new WaitUntil(() => isReached);
             }
+
+            BankerAnimController.main.StopGetCardsAnimation();
 
             _cardViewList_onPlayers.Clear();
             _cardViewList_onCommunity.Clear();
