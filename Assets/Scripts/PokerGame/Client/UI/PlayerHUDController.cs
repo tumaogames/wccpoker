@@ -45,6 +45,7 @@ namespace WCC.Poker.Client
         readonly ConcurrentDictionary<string, int> _betThisRound = new();
         readonly ConcurrentDictionary<string, int> _pendingWinAmounts = new();
         readonly ConcurrentDictionary<string, int> _playerServerSeats = new();
+        bool _isSpectatorMode;
 
         TableState _currentTableState;
 
@@ -306,9 +307,39 @@ namespace WCC.Poker.Client
                 case MsgType.TableSnapshot: OnTableSnapshot((TableSnapshot)msg); break;
                 case MsgType.TurnUpdate: OnTurnUpdate((TurnUpdate)msg); break;
                 case MsgType.Pong: OnPong((Pong)msg); break;
+                case MsgType.SpectateResponse: OnSpectateResponse((SpectateResponse)msg); break;
+                case MsgType.JoinTableResponse: OnJoinTableResponse((JoinTableResponse)msg); break;
+                case MsgType.LeaveTableResponse: OnLeaveTableResponse((LeaveTableResponse)msg); break;
                 case MsgType.StackUpdate: OnStackUpdate((StackUpdate)msg); break;
                 case MsgType.HandResult: OnHandResult((HandResult)msg); break;
             }
+        }
+
+        void OnSpectateResponse(SpectateResponse m)
+        {
+            if (!m.Success)
+                return;
+
+            _isSpectatorMode = true;
+            UpdateOwnerSpectatorState();
+        }
+
+        void OnJoinTableResponse(JoinTableResponse m)
+        {
+            if (!m.Success)
+                return;
+
+            _isSpectatorMode = false;
+            UpdateOwnerSpectatorState();
+        }
+
+        void OnLeaveTableResponse(LeaveTableResponse m)
+        {
+            if (!m.Success)
+                return;
+
+            _isSpectatorMode = true;
+            UpdateOwnerSpectatorState();
         }
 
         /// <summary>
@@ -328,7 +359,21 @@ namespace WCC.Poker.Client
             p.InititalizePlayerHUDUI(playerID, playerName, isOwner, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], stackAmount);
             p.SetSeatIndex(mappedIndex);
             
-            if (playerID == PokerNetConnect.OwnerPlayerID) _currentPlayerHUD = p;
+            if (playerID == PokerNetConnect.OwnerPlayerID)
+            {
+                _currentPlayerHUD = p;
+                UpdateOwnerSpectatorState();
+            }
+        }
+
+        void UpdateOwnerSpectatorState()
+        {
+            var ownerId = PokerNetConnect.OwnerPlayerID;
+            if (string.IsNullOrEmpty(ownerId))
+                return;
+
+            if (_inGamePlayersRecords.TryGetValue(ownerId, out var hud))
+                hud.SetSpectatorState(_isSpectatorMode);
         }
 
         void RefreshPlayerPositions()

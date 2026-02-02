@@ -47,6 +47,9 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent<bool> _onFoldingActionBoolEvent;
         [SerializeField] UnityEvent _isFoldActionEvent;
         [SerializeField] UnityEvent _isUnfoldActionEvent;
+        [SerializeField] UnityEvent<bool> _onSpectatorBoolEvent;
+        [SerializeField] UnityEvent _isSpectatorEvent;
+        [SerializeField] UnityEvent _isUnspectatorEvent;
 
         bool _isOwner;
         int _seatIndex = -1;
@@ -239,6 +242,16 @@ namespace WCC.Poker.Client
             actEvent?.Invoke();
 
             print($"<color=blue>SetFoldedState at PlayerHUD_UI.cs</color>");
+        }
+
+        // Spectator mode hook: use this to drive spectator visuals (badge, dim, disable buttons).
+        public void SetSpectatorState(bool isSpectator)
+        {
+            _onSpectatorBoolEvent?.Invoke(isSpectator);
+            UnityEvent actEvent = isSpectator ? _isSpectatorEvent : _isUnspectatorEvent;
+            actEvent?.Invoke();
+
+            print($"<color=blue>SetSpectatorState at PlayerHUD_UI.cs</color>");
         }
     }
 }
