@@ -383,7 +383,7 @@ namespace WCC.Poker.Client
             _cardViewList_onPlayers.ForEach(i => i.SetOpenCard());
 
             foreach (var comCard in _communityCardsRecords)
-                comCard.Value.SetSleepCard(true);
+                comCard.Value.SetSleepCard(!_requestedRejoinThisHand);
 
             string winnerP_ID = string.Empty;
 

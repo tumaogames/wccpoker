@@ -176,7 +176,7 @@ namespace WCC.Poker.Client
                 yield break;
             }
 
-            float duration = 10f;
+            float duration = Mathf.Max(0.1f, remainingMs / 1000f) + 10f;
             float timeLeft = duration;
             var triggered30 = false;
             var triggered50 = false;
@@ -240,6 +240,8 @@ namespace WCC.Poker.Client
             _onFoldingActionBoolEvent?.Invoke(isFolded);
             UnityEvent actEvent = isFolded ? _isFoldActionEvent : _isUnfoldActionEvent;
             actEvent?.Invoke();
+            if (isFolded)
+                ChangeTheWarningImageAlpha(0f);
 
             print($"<color=blue>SetFoldedState at PlayerHUD_UI.cs</color>");
         }
