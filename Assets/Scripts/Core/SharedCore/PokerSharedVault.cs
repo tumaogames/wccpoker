@@ -40,5 +40,7 @@ namespace WCC.Core
         /// Match size configuration ID.
         /// </summary>
         public static int MatchSizeId = -1;
+
+        public static string PlayerID = "?";
     }
 }

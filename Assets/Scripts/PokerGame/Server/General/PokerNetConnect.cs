@@ -34,46 +34,51 @@ public class PokerNetConnect : MonoBehaviour
             isVault ? PokerSharedVault.ServerURL : _netInfo.ServerUrl,
             isVault ? PokerSharedVault.OperatorPublicID : _netInfo.OperatorPublicId
         );
+
+        OwnerPlayerID = PokerSharedVault.PlayerID;
+
+        if (IsVautActive()) ConnectToTable();
     }
 
     #region LISTENERS
     void OnEnable()
     {
         GameServerClient.MessageReceivedStatic += OnMessage;
-        GameServerClient.ConnectResponseReceivedStatic += OnConnect;
+        if (!IsVautActive()) GameServerClient.ConnectResponseReceivedStatic += OnConnect;
+
     }
 
     void OnDisable()
     {
         GameServerClient.MessageReceivedStatic -= OnMessage;
-        GameServerClient.ConnectResponseReceivedStatic -= OnConnect;
+        if (!IsVautActive()) GameServerClient.ConnectResponseReceivedStatic -= OnConnect;
     }
     #endregion LISTENERS
 
     void ConfigureGame(string launchToken, string serverURL, string operatorPublicID)
     {
+        if (IsVautActive()) return;
         GameServerClient.Configure(serverURL);
         GameServerClient.ConnectWithLaunchToken(launchToken, operatorPublicID);
     }
 
     void OnConnect(ConnectResponse resp)
     {
+        if (IsVautActive()) return;
         OwnerPlayerID = resp.PlayerId;
-
         ConnectToTable();
+
     }
 
     void ConnectToTable()
     {
-        if (IsVautActive())
-        {
-            var sampleTestMatchSizeId = 4;
-            var localTableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
-            var vaultTBCode = PokerSharedVault.TableCode ?? localTableCode;
-            var matchSizeID = PokerSharedVault.MatchSizeId >= 0 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;
-            GameServerClient.SendJoinTableStatic(vaultTBCode, matchSizeID);
-            return;
-        }
+        var sampleTestMatchSizeId = 4;
+        var localTableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
+        var vaultTBCode = PokerSharedVault.TableCode != "?" ? PokerSharedVault.TableCode : localTableCode;
+        var matchSizeID = PokerSharedVault.MatchSizeId >= 0 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;
+
+        GameServerClient.SendJoinTableStatic(vaultTBCode, matchSizeID);
+        print($"VAULT: TBCODE:{vaultTBCode} | MatchSIzeid: {matchSizeID}");
 
         if (!_netInfo.AutoSpectateOnConnect)
             return;

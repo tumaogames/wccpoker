@@ -28,6 +28,7 @@ namespace WCC.Poker.Client
 
         GameServerClient client;
         int _currentBet;
+        int _currentStack;
 
         void OnEnable()
         {
@@ -52,13 +53,19 @@ namespace WCC.Poker.Client
                         //m.MinRaise
                         //r = CurrentBet + MinRaise
 
-                        _currentBet = (int)m.CurrentBet;
-                        _raise_chipsValueVolume.SetMinMaxChips((int)m.CurrentBet + (int)m.MinRaise);
-                        _bet_chipsValueVolume.SetMinMaxChips(1);
+                        var f = (int)m.CurrentBet + (int)m.MinRaise;
+                        _currentBet = f;
+                        _raise_chipsValueVolume.SetMinMaxChips(f, _currentStack);
+                        _bet_chipsValueVolume.SetMinMaxChips((int)m.CurrentBet, _currentStack);
 
                         break;
                     }
-
+                case MsgType.TurnUpdate:
+                    {
+                        var m = (TurnUpdate)msg;
+                        _currentStack = (int)m.Stack;
+                        break;
+                    }
             }
         }
 
@@ -91,7 +98,7 @@ namespace WCC.Poker.Client
         public void SetFoldAction_Button() => CloseActionButtons(()=> GameServerClient.SendFoldStatic());
 
         [Button]
-        public void SetAllInAction_Button() => CloseActionButtons(()=> GameServerClient.SendAllInStatic(200));
+        public void SetAllInAction_Button() => CloseActionButtons(()=> GameServerClient.SendAllInStatic(_currentStack));
 
         [Button]
         public void SetBetAction_Button() => CloseActionButtons(() => GameServerClient.SendBetStatic(_bet_chipsValueVolume.ChipsValue));

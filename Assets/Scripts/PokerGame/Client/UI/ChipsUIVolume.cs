@@ -30,9 +30,10 @@ namespace WCC.Poker.Client
 
         public int ChipsValue => _currentAmount;
 
-        public void SetMinMaxChips(int min)
+        public void SetMinMaxChips(int min, int max)
         {
             _minimumChips = min;
+            _maximumChips = max;
         }
 
         private void OnEnable()

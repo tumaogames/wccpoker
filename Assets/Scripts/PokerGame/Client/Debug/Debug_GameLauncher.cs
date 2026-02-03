@@ -3,6 +3,7 @@
 ////////////////////
 
 
+using Com.poker.Core;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace WCC.Poker.Client
         [SerializeField] TMP_InputField _url_inputboxIF;
         [SerializeField] TMP_InputField _operator_inputboxIF;
         [SerializeField] TMP_InputField _matchsizeid_inputboxIF;
+        [SerializeField] TMP_InputField _tableCode_inputboxIF;
         [SerializeField] TMP_InputField _token_inputboxIF;
         [SerializeField] Button _enterButton;
 
@@ -32,17 +34,21 @@ namespace WCC.Poker.Client
         /// </summary>
         private void Start()
         {
-            _enterButton.onClick.AddListener(async () =>
+            _enterButton.onClick.AddListener( () =>
             {
                 PokerSharedVault.ServerURL = _url_inputboxIF.text;
                 PokerSharedVault.OperatorPublicID = _operator_inputboxIF.text;
                 PokerSharedVault.MatchSizeId = int.Parse(_matchsizeid_inputboxIF.text);
                 PokerSharedVault.LaunchToken = _token_inputboxIF.text;
+                PokerSharedVault.TableCode = _tableCode_inputboxIF.text;
 
                 _enterButton.interactable = false;
-                await Task.Delay(1000);
 
-                LoadNewScene();
+                GameServerClient.Configure(PokerSharedVault.ServerURL);
+                GameServerClient.ConnectWithLaunchToken(PokerSharedVault.LaunchToken, PokerSharedVault.OperatorPublicID);
+
+                print($"A: {PokerSharedVault.ServerURL} | G: {PokerSharedVault.OperatorPublicID}");
+
             });
             _token_inputboxIF.onValueChanged.AddListener(OnChangeInput);
         }
@@ -63,5 +69,26 @@ namespace WCC.Poker.Client
         {
             SceneManager.LoadScene(_sceneToLoad);
         }
+
+        void OnEnable()
+        {
+            GameServerClient.ConnectResponseReceivedStatic += OnConnect;
+            
+           
+        }
+
+        void OnDisable()
+        {
+            GameServerClient.ConnectResponseReceivedStatic -= OnConnect;
+        }
+
+
+        async void OnConnect(ConnectResponse resp)
+        {
+            PokerSharedVault.PlayerID = resp.PlayerId;
+            await Task.Delay(1000);
+            LoadNewScene();
+        }
+
     }
 }

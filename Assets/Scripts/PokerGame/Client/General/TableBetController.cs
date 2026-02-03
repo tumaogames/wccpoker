@@ -210,7 +210,7 @@ namespace WCC.Poker.Client
 
         void OnActionBroadcast(ActionBroadcast m)
         {
-            if (m.Action == PokerActionType.Bet || m.Action == PokerActionType.AllIn || m.Action == PokerActionType.Call)
+            if (m.Action == PokerActionType.Bet || m.Action == PokerActionType.AllIn || m.Action == PokerActionType.Call || m.Action == PokerActionType.Raise)
                 SetBetPlayer((int)m.CurrentBet, m.PlayerId);
         }
 
