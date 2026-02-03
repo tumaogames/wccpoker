@@ -14,7 +14,6 @@ public class ScrollRectInitializer : MonoBehaviour
     Coroutine snapRoutine;
     bool disableAfterSnap;
     ScrollRectContentWatcher watcher;
-    private ScrollRect scrollRect;
 
     void Awake()
     {
@@ -114,7 +113,5 @@ public class ScrollRectInitializer : MonoBehaviour
         {
             owner?.NotifyContentChanged();
         }
-
-        scrollRect.horizontalNormalizedPosition = 0f;
     }
 }

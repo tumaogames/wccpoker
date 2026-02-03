@@ -19,25 +19,38 @@ namespace WCC.Poker.Client
         [SerializeField] ChipsUIVolume _bet_chipsValueVolume;
 
         [Header("[ACTION-BUTTONS]")]
+        [SerializeField] GameObject _actionsRoot;
         [SerializeField] GameObject _foldButton;
         [SerializeField] GameObject _checkButton;
         [SerializeField] GameObject _callButton;
         [SerializeField] GameObject _betButton;
         [SerializeField] GameObject _raiseButton;
         [SerializeField] GameObject _allInButton;
+        [SerializeField] bool _logTurnDebug = false;
+        [SerializeField] bool _debugShowAllWhenEmpty = false;
 
-        GameServerClient client;
         int _currentBet;
+
+        GameServerClient _client;
 
         void OnEnable()
         {
-            client = GameServerClient.Instance;
-            if (client == null)
-                return;
-
-            client.TurnUpdateReceived += OnTurnUpdate;
+            _client = GameServerClient.Instance;
+            if (_client != null)
+                _client.TurnUpdateReceived += OnTurnUpdate;
 
             PokerNetConnect.OnMessageEvent += OnMessage;
+        }
+
+        void OnDisable()
+        {
+            if (_client != null)
+            {
+                _client.TurnUpdateReceived -= OnTurnUpdate;
+                _client = null;
+            }
+
+            PokerNetConnect.OnMessageEvent -= OnMessage;
         }
 
         void OnMessage(MsgType type, IMessage msg)
@@ -58,24 +71,64 @@ namespace WCC.Poker.Client
 
                         break;
                     }
+                case MsgType.TurnUpdate:
+                    OnTurnUpdate((TurnUpdate)msg);
+                    break;
 
             }
         }
 
         void OnTurnUpdate(TurnUpdate turn)
         {
-            _userButtonActions.PlayAnimation(turn.PlayerId == PokerNetConnect.OwnerPlayerID ? "PlayActionButtonGoUp" : "PlayActionButtonGoDown");
+            var ownerId = PokerNetConnect.OwnerPlayerID;
+            if (string.IsNullOrEmpty(ownerId) && _client != null)
+                ownerId = _client.PlayerId;
+            var isOwnerTurn = turn.PlayerId == ownerId;
+            if (_userButtonActions != null)
+                _userButtonActions.PlayAnimation(isOwnerTurn ? "PlayActionButtonGoUp" : "PlayActionButtonGoDown");
 
-            if (turn.PlayerId != PokerNetConnect.OwnerPlayerID) return;
+            if (_actionsRoot != null)
+                _actionsRoot.SetActive(isOwnerTurn);
+
+            if (!isOwnerTurn)
+            {
+                SetAllButtonsActive(false);
+                return;
+            }
+
+            if (_logTurnDebug)
+            {
+                var allowed = turn.AllowedActions == null ? "null" : string.Join(",", turn.AllowedActions);
+                Debug.Log($"[ActionButtons] turn player={turn.PlayerId} owner={PokerNetConnect.OwnerPlayerID} allowed=[{allowed}]");
+            }
+
+            if (turn.AllowedActions == null || turn.AllowedActions.Count == 0)
+            {
+                if (_debugShowAllWhenEmpty)
+                    SetAllButtonsActive(true);
+                else
+                    SetAllButtonsActive(false);
+                return;
+            }
 
             var isAllIn = turn.AllowedActions.Contains(PokerActionType.Raise);
 
-            _foldButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Fold));
-            _checkButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Check));
-            _callButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Call));
-            _betButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Bet));
-            _raiseButton.SetActive(isAllIn);
-            _allInButton.SetActive(turn.AllowedActions.Contains(PokerActionType.AllIn));
+            if (_foldButton != null) _foldButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Fold));
+            if (_checkButton != null) _checkButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Check));
+            if (_callButton != null) _callButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Call));
+            if (_betButton != null) _betButton.SetActive(turn.AllowedActions.Contains(PokerActionType.Bet));
+            if (_raiseButton != null) _raiseButton.SetActive(isAllIn);
+            if (_allInButton != null) _allInButton.SetActive(turn.AllowedActions.Contains(PokerActionType.AllIn));
+        }
+
+        void SetAllButtonsActive(bool state)
+        {
+            if (_foldButton != null) _foldButton.SetActive(state);
+            if (_checkButton != null) _checkButton.SetActive(state);
+            if (_callButton != null) _callButton.SetActive(state);
+            if (_betButton != null) _betButton.SetActive(state);
+            if (_raiseButton != null) _raiseButton.SetActive(state);
+            if (_allInButton != null) _allInButton.SetActive(state);
         }
 
         [Button]
@@ -84,7 +137,6 @@ namespace WCC.Poker.Client
             NetworkDebugLogger.LogSend("Action", "Check");
             GameServerClient.SendCheckStatic();
         }
-        public void SetCheckAction_Button() => CloseActionButtons(() => GameServerClient.SendCheckStatic());
 
         [Button]
         public void SetRaiseAction_Button() => CloseActionButtons(() => GameServerClient.SendRaiseStatic(_raise_chipsValueVolume.ChipsValue));
@@ -103,40 +155,8 @@ namespace WCC.Poker.Client
 
         void CloseActionButtons(UnityAction callback)
         {
-            NetworkDebugLogger.LogSend("Action", $"Raise amount={_chipsValueVolume.ChipsValue}");
-            GameServerClient.SendRaiseStatic(_chipsValueVolume.ChipsValue);
-            print($"<color=green>SendRaiseStatic: {_chipsValueVolume.ChipsValue}</color>");
+            _userButtonActions.PlayAnimation("PlayActionButtonGoDown");
+            callback?.Invoke();
         }
-
-        [Button]
-        public void SetCallAction_Button()
-        {
-            NetworkDebugLogger.LogSend("Action", "Call amount=50");
-            GameServerClient.SendCallStatic(50);
-        }
-
-        [Button]
-        public void SetFoldAction_Button()
-        {
-            NetworkDebugLogger.LogSend("Action", "Fold");
-            GameServerClient.SendFoldStatic();
-        }
-
-        [Button]
-        public void SetAllInAction_Button()
-        {
-            NetworkDebugLogger.LogSend("Action", "AllIn amount=200");
-            GameServerClient.SendAllInStatic(200);
-        }
-
-        [Button]
-        public void SetBetAction_Button()
-        {
-            NetworkDebugLogger.LogSend("Action", "Bet amount=60");
-            GameServerClient.SendBetStatic(60);
-        }
-        _userButtonActions.PlayAnimation("PlayActionButtonGoDown");
-            callback();
     }
-}
 }

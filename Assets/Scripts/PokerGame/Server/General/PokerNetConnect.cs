@@ -9,8 +9,6 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-using Com.Poker.Core;
-using WCC.Core;
 
 public class PokerNetConnect : MonoBehaviour
 {
@@ -20,7 +18,9 @@ public class PokerNetConnect : MonoBehaviour
     [SerializeField] bool _isPlayerEnable = true;
     [SerializeField] string _playerTableCode = "";
     [SerializeField] string _botsTableCode = "DEV-BOT-TABLE";
+    [SerializeField] int _playerMatchSizeId = 0;
     [SerializeField] int _defaultBotsMatchSizeId = 3;
+    [SerializeField] long _playerMinBuyIn = 0;
 
     public static string OwnerPlayerID;
     public static event Action<MsgType, IMessage> OnMessageEvent;
@@ -32,25 +32,11 @@ public class PokerNetConnect : MonoBehaviour
     int _pendingJoinMatchSizeId;
     bool _awaitingRoundReset;
 
-    void Awake() => Application.runInBackground = true;
-
-    void Start()
+    void Awake()
     {
-        if (!HasConnection())
-            return;
-
-        var isVault = IsVautActive();
-        if (!isVault && !_netInfo.AutoConnectOnStart)
-            return;
-
-        ConfigureGame(
-            isVault ? PokerSharedVault.LaunchToken : _netInfo.LaunchToken,
-            isVault ? PokerSharedVault.ServerURL : _netInfo.ServerUrl,
-            isVault ? PokerSharedVault.OperatorPublicID : _netInfo.OperatorPublicId
-        );
+        Application.runInBackground = true;
     }
 
-    #region LISTENERS
     void OnEnable()
     {
         GameServerClient.MessageReceivedStatic += OnMessage;
@@ -58,7 +44,6 @@ public class PokerNetConnect : MonoBehaviour
         GameServerClient.JoinTableResponseReceivedStatic += OnJoinConnect;
         GameServerClient.RejoinResponseReceivedStatic += OnRejoin;
         GameServerClient.BuyInResponseReceivedStatic += OnBuyIn;
-        OwnerPlayerID = ArtGameManager.Instance != null ? ArtGameManager.Instance.playerID : OwnerPlayerID;
         _joinRequested = false;
         _hasSnapshot = false;
         _deferJoinUntilRoundEnd = false;
@@ -92,13 +77,6 @@ public class PokerNetConnect : MonoBehaviour
         GameServerClient.JoinTableResponseReceivedStatic -= OnJoinConnect;
         GameServerClient.RejoinResponseReceivedStatic -= OnRejoin;
         GameServerClient.BuyInResponseReceivedStatic -= OnBuyIn;
-    }
-    #endregion LISTENERS
-
-    void ConfigureGame(string launchToken, string serverURL, string operatorPublicID)
-    {
-        GameServerClient.Configure(serverURL);
-        GameServerClient.ConnectWithLaunchToken(launchToken, operatorPublicID);
     }
 
     void OnConnect(ConnectResponse resp)
@@ -146,7 +124,7 @@ public class PokerNetConnect : MonoBehaviour
             return;
 
         // Auto-buy-in so the server can start the hand.
-        var minBuyIn = ArtGameManager.Instance != null ? ArtGameManager.Instance.selectedMinBuyIn : 0;
+        var minBuyIn = _playerMinBuyIn;
         if (minBuyIn <= 0)
         {
             Debug.LogWarning("[PokerNetConnect] MinBuyIn not set. Buy-in skipped.");
@@ -192,7 +170,7 @@ public class PokerNetConnect : MonoBehaviour
 
         if (_isPlayerEnable && resp.Stack <= 0)
         {
-            var minBuyIn = ArtGameManager.Instance != null ? ArtGameManager.Instance.selectedMinBuyIn : 0;
+            var minBuyIn = _playerMinBuyIn;
             if (minBuyIn > 0 && !string.IsNullOrEmpty(resp.TableId))
             {
                 GameServerClient.SendBuyInStatic(resp.TableId, minBuyIn);
@@ -241,8 +219,6 @@ public class PokerNetConnect : MonoBehaviour
     {
         if (_isPlayerEnable)
         {
-            if (ArtGameManager.Instance != null && !string.IsNullOrWhiteSpace(ArtGameManager.Instance.selectedTableCode))
-                return ArtGameManager.Instance.selectedTableCode;
             return _playerTableCode;
         }
 
@@ -271,40 +247,8 @@ public class PokerNetConnect : MonoBehaviour
 
         if (!_joinRequested)
             Debug.LogWarning("[PokerNetConnect] Join skipped (no session after timeout).");
-
-        ConnectToTable();
     }
 
-    void ConnectToTable()
-    {
-        if (IsVautActive())
-        {
-            var sampleTestMatchSizeId = 3;
-            var localTableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
-            var vaultTBCode = PokerSharedVault.TableCode ?? localTableCode;
-            var matchSizeID = PokerSharedVault.MatchSizeId >= 0 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;
-            GameServerClient.SendJoinTableStatic(vaultTBCode, matchSizeID);
-            return;
-        }
-
-        if (!_netInfo.AutoSpectateOnConnect)
-            return;
-
-        var tableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
-        if (string.IsNullOrWhiteSpace(tableCode))
-        {
-            Debug.LogWarning("[BotDump] table code is empty. Auto-join skipped.");
-            return;
-        }
-
-        GameServerClient.SendJoinTableStatic(tableCode, 3);
-    }
-
-    bool IsVautActive()
-        => PokerSharedVault.TableCode != "?" &&
-           PokerSharedVault.LaunchToken != "?" &&
-           PokerSharedVault.ServerURL != "?" &&
-           PokerSharedVault.OperatorPublicID != "?";
 
     void OnMessage(MsgType type, IMessage msg)
     {
@@ -338,9 +282,7 @@ public class PokerNetConnect : MonoBehaviour
 
     int ResolveMatchSizeId()
     {
-        var matchSizeId = GlobalSharedData.MySelectedMatchSizeID;
-        if (matchSizeId <= 0 && ArtGameManager.Instance != null)
-            matchSizeId = ArtGameManager.Instance.selectedMaxSizeID;
+        var matchSizeId = _isPlayerEnable ? _playerMatchSizeId : 0;
         if (!_isPlayerEnable && matchSizeId <= 0)
             matchSizeId = _defaultBotsMatchSizeId;
         return matchSizeId;
@@ -409,33 +351,5 @@ public class PokerNetConnect : MonoBehaviour
         };
         string s = c.Suit switch { 0 => "C", 1 => "D", 2 => "H", 3 => "S", _ => "?" };
         return r + "_" + s;
-    }
-
-    bool HasConnection()
-    {
-        if (IsVautActive())
-        {
-            if (string.IsNullOrWhiteSpace(PokerSharedVault.ServerURL) ||
-                string.IsNullOrWhiteSpace(PokerSharedVault.LaunchToken) ||
-                string.IsNullOrWhiteSpace(PokerSharedVault.OperatorPublicID))
-            {
-                Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
-                return false;
-            }
-            return true;
-        }
-
-        if (!_netInfo.AutoConnectOnStart)
-            return false;
-
-        if (string.IsNullOrWhiteSpace(_netInfo.ServerUrl) ||
-            string.IsNullOrWhiteSpace(_netInfo.LaunchToken) ||
-            string.IsNullOrWhiteSpace(_netInfo.OperatorPublicId))
-        {
-            Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
-            return false;
-        }
-
-        return true;
     }
 }

@@ -218,12 +218,12 @@ namespace WCC.Poker.Client
             {
                 hud.UpdateChipsAmount((int)m.Stack);
                 hud.SetTurn();
+                hud.SetTurn(remainingMs);
             }
             else
             {
                 Debug.LogWarning($"[PlayerHUD] TurnUpdate for unknown player {m.PlayerId}. Waiting for snapshot.");
             }
-            _inGamePlayersRecords[m.PlayerId].SetTurn(remainingMs);
 
             if (m.PlayerId == PokerNetConnect.OwnerPlayerID && m.Seat != _ownerSeat)
             {
@@ -363,12 +363,21 @@ namespace WCC.Poker.Client
         /// <param name="i"></param>
         void SummonPlayerHUDUI(int seat, string playerName, string playerID, int stackAmount)
         {
+            if (_playerHUDPrefab == null || _playersContainer == null)
+            {
+                Debug.LogWarning("[PlayerHUD] Missing prefab or container. HUD spawn skipped.");
+                return;
+            }
+
             var p = Instantiate(_playerHUDPrefab, _playersContainer);
             _playersHUDList.Add(p);
             _inGamePlayersRecords.TryAdd(playerID, p);
 
             var mappedIndex = MapSeatToIndex(seat);
-            p.transform.localPosition = _playersTablePositions[mappedIndex].localPosition;
+            if (TryGetSeatTransform(mappedIndex, out var seatTransform))
+                p.transform.localPosition = seatTransform.localPosition;
+            else
+                Debug.LogWarning($"[PlayerHUD] Seat position missing for index {mappedIndex}. HUD will use default position.");
 
             var isOwner = playerID == PokerNetConnect.OwnerPlayerID;
             p.InititalizePlayerHUDUI(playerID, playerName, isOwner, 1, _sampleAvatars[UnityEngine.Random.Range(1, _sampleAvatars.Length)], stackAmount);
@@ -400,9 +409,22 @@ namespace WCC.Poker.Client
                 if (!_playerServerSeats.TryGetValue(playerId, out var seat))
                     continue;
                 var mappedIndex = MapSeatToIndex(seat);
-                hud.transform.localPosition = _playersTablePositions[mappedIndex].localPosition;
+                if (TryGetSeatTransform(mappedIndex, out var seatTransform))
+                    hud.transform.localPosition = seatTransform.localPosition;
                 hud.SetSeatIndex(mappedIndex);
             }
+        }
+
+        bool TryGetSeatTransform(int mappedIndex, out Transform seatTransform)
+        {
+            seatTransform = null;
+            if (_playersTablePositions == null || _playersTablePositions.Length == 0)
+                return false;
+            if (mappedIndex < 0 || mappedIndex >= _playersTablePositions.Length)
+                return false;
+
+            seatTransform = _playersTablePositions[mappedIndex];
+            return seatTransform != null;
         }
 
         int MapSeatToIndex(int seat)

@@ -28,22 +28,5 @@ public class TableData : MonoBehaviour
             blindTxt.text = "Php " + smallBlind + " / Php " + bigBlind;
         if (buyInTxt != null)
             buyInTxt.text = "Buy In: Php " + minBuy + " - Php " + maxBuy;
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
-    public void SetText()
-    {
-        tableNameTxt.text = tableName;
-        blindTxt.text = "Php " + smallBlind + " / " + "Php " + bigBlind;
-        buyInTxt.text = "Buy In: Php " + minBuy + " - " + "Php " + maxBuy;
     }
 }

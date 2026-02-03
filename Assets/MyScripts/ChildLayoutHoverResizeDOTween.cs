@@ -132,7 +132,7 @@ public class ChildLayoutHoverResizeDOTween :
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
         GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
         ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
-        ArtGameManager.Instance.selectedMatchSizeID = GetComponent<ChildTableData>().maxPlayers;
+        ArtGameManager.Instance.selectedMatchSizeID = GetComponent<ChildTableData>().matchSizeId;
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.gameTokenID;
         GlobalSharedData.MyPlayerID = ArtGameManager.Instance.playerID;
         GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
@@ -148,7 +148,6 @@ public class ChildLayoutHoverResizeDOTween :
         $"MyWebsocketUrl: {GlobalSharedData.MyWebsocketUrl}\n" +
         $"MyOperatorGameID: {GlobalSharedData.MyOperatorGameID}"
     );
-        );
         SceneManager.LoadScene("PokerGame");
     }
 

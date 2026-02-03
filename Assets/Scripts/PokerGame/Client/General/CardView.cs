@@ -24,9 +24,10 @@ namespace WCC.Poker.Client
 
         public void InitializeCarView(CardData.CardsInfo cardInfo, Transform parent)
         {
-            _closeCardSprite = _cardImage.sprite;
+            if (_cardImage != null)
+                _closeCardSprite = _cardImage.sprite;
             _cardInfo = cardInfo;
-            _parentLocalRotation = parent.localRotation;
+            _parentLocalRotation = parent != null ? parent.localRotation : Quaternion.identity;
         }
        
         public void SetOpenCard()
@@ -35,7 +36,9 @@ namespace WCC.Poker.Client
             _flipAnimation.SetFlipAnimation(() =>
             {
                 _cardImage.sprite = _cardInfo.CardSprite;
-                transform.parent.localRotation = Quaternion.Euler(0, 0, 0);
+                var parent = transform.parent;
+                if (parent != null)
+                    parent.localRotation = Quaternion.Euler(0, 0, 0);
             });
             _isOpenCard = true;
         }
@@ -46,7 +49,9 @@ namespace WCC.Poker.Client
             _flipAnimation.SetFlipAnimation(() =>
             {
                 _cardImage.sprite = _closeCardSprite;
-                transform.parent.localRotation = _parentLocalRotation;
+                var parent = transform.parent;
+                if (parent != null)
+                    parent.localRotation = _parentLocalRotation;
             });
             _isOpenCard = false;
         }

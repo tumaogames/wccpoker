@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class gameLoader : MonoBehaviour
@@ -97,13 +96,4 @@ public class gameLoader : MonoBehaviour
         Debug.Log($"[gameLoader] Connecting ({reason}) token={token}");
     }
 
-    GameServerClient.Configure(websocketUrl);
-        GameServerClient.ConnectWithLaunchToken(gameToken, opId);
-    }
-
-// Update is called once per frame
-void Update()
-{
-
-}
 }

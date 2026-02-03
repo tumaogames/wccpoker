@@ -76,10 +76,20 @@ namespace WCC.Poker.Client
             [SerializeField] internal Card[] _cards;
         }
 
-        void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
+        bool _subscribed;
+
+        void Awake()
+        {
+            // Subscription is managed in OnEnable/OnDisable to avoid callbacks after destroy.
+        }
 
         void OnEnable()
         {
+            if (!_subscribed)
+            {
+                PokerNetConnect.OnMessageEvent += OnMessage;
+                _subscribed = true;
+            }
             ClearAllCardsImmediate();
             _playerSeatRecords.Clear();
             _pendingDeals.Clear();
@@ -87,6 +97,15 @@ namespace WCC.Poker.Client
             _inShowdown = false;
             _pendingClearAfterShowdown = false;
             _requestedRejoinThisHand = false;
+        }
+
+        void OnDisable()
+        {
+            if (_subscribed)
+            {
+                PokerNetConnect.OnMessageEvent -= OnMessage;
+                _subscribed = false;
+            }
         }
 
         #region DEBUG
@@ -434,6 +453,22 @@ namespace WCC.Poker.Client
 
         void InstantiateCard(bool isOpenCard, bool useRotation, GlobalHawk.Rank rank, GlobalHawk.Suit suit, Transform cardViewParent, out CardView cardView, float cardSize, UnityAction isReachedCallback)
         {
+            cardView = null;
+            if (_cardViewPrefab == null)
+            {
+                Debug.LogWarning("[DeckCards] Card prefab is missing. Spawn skipped.");
+                isReachedCallback?.Invoke();
+                return;
+            }
+
+            var targetParent = cardViewParent != null ? cardViewParent : _deckTableGroup;
+            if (_deckTableGroup == null || _bankerPosition == null || targetParent == null)
+            {
+                Debug.LogWarning("[DeckCards] Missing card parent/deck/banker. Spawn skipped.");
+                isReachedCallback?.Invoke();
+                return;
+            }
+
             var card = Instantiate(_cardViewPrefab, _deckTableGroup);
 
             AudioManager.main.PlayAudio("Cards", 0);
@@ -441,30 +476,30 @@ namespace WCC.Poker.Client
             cardView = card;
 
             var cardIn = CardLibrary.main.GetCardsInfos().GetCardInfo(rank, suit);
-            card.InitializeCarView(cardIn, cardViewParent);
+            card.InitializeCarView(cardIn, targetParent);
 
             card.transform.position = _bankerPosition.position;
             if (GameServerClient.Instance.IsCatchingUp)
             {
-                card.transform.SetParent(cardViewParent);
-                card.transform.position = cardViewParent.position;
+                card.transform.SetParent(targetParent);
+                card.transform.position = targetParent.position;
                 card.transform.localScale = new Vector2(cardSize, cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
-                isReachedCallback();
+                isReachedCallback?.Invoke();
                 return;
             }
 
             if (useRotation) card.transform.DORotate(new Vector3(0, 0, 120), 0.2f).SetEase(Ease.InOutSine);
-            card.transform.DOMove(cardViewParent.position, 0.3f)
+            card.transform.DOMove(targetParent.position, 0.3f)
             .SetEase(Ease.InOutSine)
             .OnComplete(() =>
             {
-                card.transform.SetParent(cardViewParent);
+                card.transform.SetParent(targetParent != null ? targetParent : _deckTableGroup);
                 card.transform.localScale = new Vector2(cardSize, cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
-                isReachedCallback();
+                isReachedCallback?.Invoke();
             });
         }
 
@@ -478,7 +513,17 @@ namespace WCC.Poker.Client
                 {
 
                     var isReached = false;
+                    if (_commCardsPosition == null || _commCardsPosition.Length == 0 || _communityCardsRecords.Count >= _commCardsPosition.Length)
+                    {
+                        Debug.LogWarning("[DeckCards] Community card position missing. Card skipped.");
+                        continue;
+                    }
                     var targetposition = _commCardsPosition[_communityCardsRecords.Count];
+                    if (targetposition == null)
+                    {
+                        Debug.LogWarning("[DeckCards] Community card target is null. Card skipped.");
+                        continue;
+                    }
                     InstantiateCard(true,
                         false,
                         GlobalHawk.TranslateCardRank(infoList[i].Rank),
@@ -544,8 +589,11 @@ namespace WCC.Poker.Client
                     _cardSize,
                     () => { });
 
-                _cardViewList_onPlayers.Add(cardView);
-                _cardList.Add(cardView);
+                if (cardView != null)
+                {
+                    _cardViewList_onPlayers.Add(cardView);
+                    _cardList.Add(cardView);
+                }
             }
 
             _playerCardsRecords.TryAdd(playerID, new PlayerCardsPack
@@ -585,8 +633,11 @@ namespace WCC.Poker.Client
                     _cardSize,
                     () => { });
 
-                _cardViewList_onPlayers.Add(cardView);
-                _cardList.Add(cardView);
+                if (cardView != null)
+                {
+                    _cardViewList_onPlayers.Add(cardView);
+                    _cardList.Add(cardView);
+                }
             }
 
             _playerCardsRecords[playerID] = new PlayerCardsPack

@@ -40,17 +40,41 @@ namespace WCC.Poker.Client
 
         long _maxStack;
 
-        private void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
+        bool _subscribed;
+
+        private void Awake()
+        {
+            // Subscription managed in OnEnable/OnDisable to avoid callbacks after destroy.
+        }
 
         private void Start()
         {
-            _tipButton.interactable = false;
-            _confirmButton.onClick.AddListener(OnClickSendTipButton);
-            _tipIF.onValueChanged.AddListener(OnChangeListener);
+            if (_tipButton != null)
+                _tipButton.interactable = false;
+            if (_confirmButton != null)
+                _confirmButton.onClick.AddListener(OnClickSendTipButton);
+            if (_tipIF != null)
+                _tipIF.onValueChanged.AddListener(OnChangeListener);
         }
-        void OnEnable() => GameServerClient.TipResponseReceivedStatic += OnTipResponse;
+        void OnEnable()
+        {
+            if (!_subscribed)
+            {
+                PokerNetConnect.OnMessageEvent += OnMessage;
+                _subscribed = true;
+            }
+            GameServerClient.TipResponseReceivedStatic += OnTipResponse;
+        }
 
-        void OnDisable() => GameServerClient.TipResponseReceivedStatic -= OnTipResponse;
+        void OnDisable()
+        {
+            if (_subscribed)
+            {
+                PokerNetConnect.OnMessageEvent -= OnMessage;
+                _subscribed = false;
+            }
+            GameServerClient.TipResponseReceivedStatic -= OnTipResponse;
+        }
 
         void OnTableSnapshot(TableSnapshot m)
         {
@@ -77,7 +101,12 @@ namespace WCC.Poker.Client
             print("OnClickSendTipButton");
         }
 
-        void OnChangeListener(string change) => _confirmButton.interactable = change != string.Empty;
+        void OnChangeListener(string change)
+        {
+            if (_confirmButton == null)
+                return;
+            _confirmButton.interactable = !string.IsNullOrEmpty(change);
+        }
 
         void OnTipResponse(TipResponse resp)
         {
@@ -208,10 +237,11 @@ namespace WCC.Poker.Client
 
         void OnTurnUpdate(TurnUpdate m)
         {
-            if (m.TableId != string.Empty)
-            {
-                _tipButton.interactable = true;
-            }
+            if (string.IsNullOrEmpty(m.TableId))
+                return;
+            if (_tipButton == null)
+                return;
+            _tipButton.interactable = true;
         }
     }
 }
