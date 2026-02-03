@@ -36,6 +36,9 @@ namespace WCC.Poker.Client
         {
             _enterButton.onClick.AddListener( () =>
             {
+                if (!TryBuildVaultValues())
+                    return;
+
                 PokerSharedVault.ServerURL = _url_inputboxIF.text;
                 PokerSharedVault.OperatorPublicID = _operator_inputboxIF.text;
                 PokerSharedVault.MatchSizeId = int.Parse(_matchsizeid_inputboxIF.text);
@@ -51,6 +54,10 @@ namespace WCC.Poker.Client
 
             });
             _token_inputboxIF.onValueChanged.AddListener(OnChangeInput);
+            _url_inputboxIF.onValueChanged.AddListener(OnChangeInput);
+            _operator_inputboxIF.onValueChanged.AddListener(OnChangeInput);
+            _matchsizeid_inputboxIF.onValueChanged.AddListener(OnChangeInput);
+            _tableCode_inputboxIF.onValueChanged.AddListener(OnChangeInput);
         }
 
         /// <summary>
@@ -59,7 +66,7 @@ namespace WCC.Poker.Client
         /// <param name="inputValue"></param>
         void OnChangeInput(string inputValue)
         {
-            _enterButton.interactable = inputValue != string.Empty && inputValue.Length >= 8 && _url_inputboxIF.text.Length > 0 && _operator_inputboxIF.text.Length > 0 && _matchsizeid_inputboxIF.text.Length > 0;
+            _enterButton.interactable = IsInputValid();
         }
 
         /// <summary>
@@ -88,6 +95,28 @@ namespace WCC.Poker.Client
             PokerSharedVault.PlayerID = resp.PlayerId;
             await Task.Delay(1000);
             LoadNewScene();
+        }
+
+        bool IsInputValid()
+        {
+            if (string.IsNullOrWhiteSpace(_token_inputboxIF.text) || _token_inputboxIF.text.Length < 8)
+                return false;
+            if (string.IsNullOrWhiteSpace(_url_inputboxIF.text))
+                return false;
+            if (string.IsNullOrWhiteSpace(_operator_inputboxIF.text))
+                return false;
+            if (string.IsNullOrWhiteSpace(_matchsizeid_inputboxIF.text))
+                return false;
+            if (string.IsNullOrWhiteSpace(_tableCode_inputboxIF.text))
+                return false;
+            return int.TryParse(_matchsizeid_inputboxIF.text, out _);
+        }
+
+        bool TryBuildVaultValues()
+        {
+            if (!IsInputValid())
+                return false;
+            return true;
         }
 
     }

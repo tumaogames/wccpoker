@@ -35,23 +35,22 @@ public class PokerNetConnect : MonoBehaviour
             isVault ? PokerSharedVault.OperatorPublicID : _netInfo.OperatorPublicId
         );
 
-        OwnerPlayerID = PokerSharedVault.PlayerID;
-
-        if (IsVautActive()) ConnectToTable();
+        if (string.IsNullOrEmpty(OwnerPlayerID) && !string.IsNullOrEmpty(PokerSharedVault.PlayerID))
+            OwnerPlayerID = PokerSharedVault.PlayerID;
     }
 
     #region LISTENERS
     void OnEnable()
     {
         GameServerClient.MessageReceivedStatic += OnMessage;
-        if (!IsVautActive()) GameServerClient.ConnectResponseReceivedStatic += OnConnect;
+        GameServerClient.ConnectResponseReceivedStatic += OnConnect;
 
     }
 
     void OnDisable()
     {
         GameServerClient.MessageReceivedStatic -= OnMessage;
-        if (!IsVautActive()) GameServerClient.ConnectResponseReceivedStatic -= OnConnect;
+        GameServerClient.ConnectResponseReceivedStatic -= OnConnect;
     }
     #endregion LISTENERS
 
@@ -64,7 +63,6 @@ public class PokerNetConnect : MonoBehaviour
 
     void OnConnect(ConnectResponse resp)
     {
-        if (IsVautActive()) return;
         OwnerPlayerID = resp.PlayerId;
         ConnectToTable();
 
