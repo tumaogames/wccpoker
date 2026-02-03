@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -20,5 +22,21 @@ public class ChildTableData : MonoBehaviour
             minPlayersTxt.text = "Minimum players: " + minPlayers;
         if (maxPlayersTxt != null)
             maxPlayersTxt.text = "Maximum players: " + maxPlayers;
+        // Start is called before the first frame update
+        void Start()
+        {
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+    public void ChildSetText()
+    {
+        minPlayersTxt.text = "Minimum players:" + minPlayers.ToString();
+        maxPlayersTxt.text = "Maximum players:" + maxPlayers.ToString();
     }
 }

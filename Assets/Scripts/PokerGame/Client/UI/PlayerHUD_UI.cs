@@ -44,6 +44,12 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent<bool> _isOwnerBoolEvent;
         [SerializeField] UnityEvent<bool> _onTurnWarningBoolEvent;
         [SerializeField] UnityEvent _onTurnCountdownEndEvent;
+        [SerializeField] UnityEvent<bool> _onFoldingActionBoolEvent;
+        [SerializeField] UnityEvent _isFoldActionEvent;
+        [SerializeField] UnityEvent _isUnfoldActionEvent;
+        [SerializeField] UnityEvent<bool> _onSpectatorBoolEvent;
+        [SerializeField] UnityEvent _isSpectatorEvent;
+        [SerializeField] UnityEvent _isUnspectatorEvent;
 
         bool _isOwner;
         int _seatIndex = -1;
@@ -101,8 +107,19 @@ namespace WCC.Poker.Client
         [NaughtyAttributes.Button]
         public void SetTurn([Optional] Action callback)
         {
+            SetTurn(0, callback);
+        }
+
+        public void SetTurn(long remainingMs, [Optional] Action callback)
+        {
+            if (_timerCoroutine != null)
+            {
+                StopCoroutine(_timerCoroutine);
+                _timerCoroutine = null;
+            }
+
             _turnHightlightGO.SetActive(true);
-            _timerCoroutine = StartCoroutine(TurnTime(() =>
+            _timerCoroutine = StartCoroutine(TurnTime(remainingMs, () =>
             {
                 _turnHightlightGO.SetActive(false);
                 ChangeTheWarningImageAlpha(0f);
@@ -145,11 +162,21 @@ namespace WCC.Poker.Client
         [NaughtyAttributes.Button] public void Debug_SetNotOwner() => CheckOwner(false);
         #endregion DEBUG-ONLY
 
-        IEnumerator TurnTime(UnityAction callback)
+        IEnumerator TurnTime(long remainingMs, UnityAction callback)
         {
             _turnGroupGO.SetActive(true);
 
-            float duration = 10f;
+            if (remainingMs <= 0)
+            {
+                _turnLoadingImgFill.fillAmount = 0f;
+                _countdownTimeText.text = "0";
+                _turnGroupGO.SetActive(false);
+                _onTurnWarningBoolEvent?.Invoke(false);
+                callback();
+                yield break;
+            }
+
+            float duration = Mathf.Max(0.1f, remainingMs / 1000f) + 10f;
             float timeLeft = duration;
             var triggered30 = false;
             var triggered50 = false;
@@ -158,7 +185,7 @@ namespace WCC.Poker.Client
 
             while (timeLeft > 0f)
             {
-                timeLeft -= Time.deltaTime;
+                timeLeft -= Time.unscaledDeltaTime;
 
                 float percent = timeLeft / duration;
 
@@ -206,5 +233,27 @@ namespace WCC.Poker.Client
         }
 
         public void SetEnableActionHolder(bool enable) => _actionHolder.SetActive(enable);
+
+      
+        public void SetFoldedState(bool isFolded)
+        {
+            _onFoldingActionBoolEvent?.Invoke(isFolded);
+            UnityEvent actEvent = isFolded ? _isFoldActionEvent : _isUnfoldActionEvent;
+            actEvent?.Invoke();
+            if (isFolded)
+                ChangeTheWarningImageAlpha(0f);
+
+            print($"<color=blue>SetFoldedState at PlayerHUD_UI.cs</color>");
+        }
+
+        // Spectator mode hook: use this to drive spectator visuals (badge, dim, disable buttons).
+        public void SetSpectatorState(bool isSpectator)
+        {
+            _onSpectatorBoolEvent?.Invoke(isSpectator);
+            UnityEvent actEvent = isSpectator ? _isSpectatorEvent : _isUnspectatorEvent;
+            actEvent?.Invoke();
+
+            print($"<color=blue>SetSpectatorState at PlayerHUD_UI.cs</color>");
+        }
     }
 }

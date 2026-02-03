@@ -11,6 +11,9 @@ public class TokenPopup : MonoBehaviour
     public Button confirmButton;
     public GameObject popupRoot;
     bool _wired;
+    public SceneLoader sceneLoader;
+    public Button confirmButton;
+    public GameObject popupRoot;
 
     private void Awake()
     {
@@ -21,6 +24,7 @@ public class TokenPopup : MonoBehaviour
     {
         if (!_wired)
             WireReferences();
+        WireReferences();
     }
 
     private void WireReferences()
@@ -118,32 +122,41 @@ public class TokenPopup : MonoBehaviour
         if (tokenInput == null)
         {
             Debug.LogError("TokenPopup missing tokenInput.");
-            return;
-        }
+            if (sceneLoader == null || tokenInput == null)
+            {
+                Debug.LogError("TokenPopup missing references (sceneLoader or tokenInput).");
+                return;
+            }
 
-        var token = tokenInput.text.Trim();
-        Debug.Log("TokenPopup Confirm clicked. Token length: " + token.Length);
+            var token = tokenInput.text.Trim();
+            Debug.Log("TokenPopup Confirm clicked. Token length: " + token.Length);
 
-        if (sceneLoader != null)
-        {
-            sceneLoader.ConfirmToken(token);
-        }
-        else
-        {
-            TokenManager.EnsureInstance();
+            if (sceneLoader != null)
+            {
+                sceneLoader.ConfirmToken(token);
+            }
+            else
+            {
+                TokenManager.EnsureInstance();
+                TokenManager.Instance.SetToken(token);
+            }
+
+            // Hide the popup UI (not the TokenManager object).
+            if (sceneLoader != null && sceneLoader.tokenPopup != null)
+                TokenManager.EnsureInstance();
             TokenManager.Instance.SetToken(token);
-        }
+            sceneLoader.ConfirmToken(token);
 
-        // Hide the popup UI (not the TokenManager object).
-        if (sceneLoader != null && sceneLoader.tokenPopup != null)
-        {
-            sceneLoader.tokenPopup.SetActive(false);
-        }
-        else
-        {
-            gameObject.SetActive(false);
+            // Hide the popup UI (not the TokenManager object).
+            if (sceneLoader.tokenPopup != null)
+            {
+                sceneLoader.tokenPopup.SetActive(false);
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
     }
-}
 
 

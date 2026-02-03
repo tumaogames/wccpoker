@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
 using Com.Poker.Core;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(LayoutElement))]
 public class ChildLayoutHoverResizeDOTween :
@@ -80,6 +81,7 @@ public class ChildLayoutHoverResizeDOTween :
         ArtGameManager.Instance.selectedMaxBuyIn = GetComponent<ChildTableData>().maxBuyIn;
         GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
         GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
+        ArtGameManager.Instance.currentSelectedChildTable = GetComponent<ChildLayoutHoverResizeDOTween>().gameObject;
         eventData.Use(); // ⛔ prevents background click
         var client = GameServerClient.Instance;
         if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
@@ -99,7 +101,7 @@ public class ChildLayoutHoverResizeDOTween :
         {
             lastClickTime = Time.unscaledTime;
         }
-        
+
     }
 
     public void OnDoubleClick()
@@ -118,6 +120,7 @@ public class ChildLayoutHoverResizeDOTween :
         NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId={matchSizeId} (pre-game)");
         GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, matchSizeId);
         ArtGameManager.Instance.PlayPopUpSelectPlayer();
+        //GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
     }
 
     public void SetGlobalSharedData()
@@ -128,6 +131,14 @@ public class ChildLayoutHoverResizeDOTween :
         GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
         GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
+        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
+        ArtGameManager.Instance.selectedMatchSizeID = GetComponent<ChildTableData>().maxPlayers;
+        GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.gameTokenID;
+        GlobalSharedData.MyPlayerID = ArtGameManager.Instance.playerID;
+        GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
+        GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
+        GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
+        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMatchSizeID;
         GlobalSharedData.MyOperatorGameID = ArtGameManager.Instance.GameLoader.opId;
         Debug.Log(
         $"[GlobalSharedData SET]\n" +
@@ -137,6 +148,8 @@ public class ChildLayoutHoverResizeDOTween :
         $"MyWebsocketUrl: {GlobalSharedData.MyWebsocketUrl}\n" +
         $"MyOperatorGameID: {GlobalSharedData.MyOperatorGameID}"
     );
+        );
+        SceneManager.LoadScene("PokerGame");
     }
 
     // =====================

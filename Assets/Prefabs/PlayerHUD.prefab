@@ -110,7 +110,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 267.19995, y: 215.69995}
+  m_AnchoredPosition: {x: 275.4997, y: -29.099827}
   m_SizeDelta: {x: 367.0625, y: 6.2731}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5734394438243844645
@@ -186,7 +186,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -162.3402, y: -126.09991}
+  m_AnchoredPosition: {x: -166.14024, y: 118.90006}
   m_SizeDelta: {x: 112.4948, y: 112.4948}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7898391886923527090
@@ -546,7 +546,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 267.2, y: 215.7}
+  m_AnchoredPosition: {x: 275.49976, y: -29.099781}
   m_SizeDelta: {x: 367.0625, y: 6.2731}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1097552066139575178
@@ -756,7 +756,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -162.34036, y: -126.09975}
+  m_AnchoredPosition: {x: -166.14041, y: 118.90022}
   m_SizeDelta: {x: 112.4948, y: 112.4948}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4372384561692049168
@@ -942,6 +942,7 @@ GameObject:
   - component: {fileID: 2812218462884042531}
   - component: {fileID: 2748760619553816657}
   - component: {fileID: 5908952957335114372}
+  - component: {fileID: 6340170571206540645}
   m_Layer: 5
   m_Name: SpeakIcon
   m_TagString: Untagged
@@ -965,7 +966,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -154.1, y: 105.7}
+  m_AnchoredPosition: {x: -120.2, y: 25.3}
   m_SizeDelta: {x: 61.5642, y: 61.5642}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2748760619553816657
@@ -1006,6 +1007,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6340170571206540645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2371439288647922542}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
+  m_EffectDistance: {x: -4.37, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &2409865024154493797
 GameObject:
   m_ObjectHideFlags: 0
@@ -1116,7 +1132,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -162.34016, y: -126.09993}
+  m_AnchoredPosition: {x: -166.14021, y: 118.90004}
   m_SizeDelta: {x: 112.4948, y: 112.4948}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &902265396809707297
@@ -2096,7 +2112,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -162.5, y: -122.9}
+  m_AnchoredPosition: {x: -166.3, y: 122.1}
   m_SizeDelta: {x: 123.7695, y: 133.8536}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4653050121410734873
@@ -2753,6 +2769,7 @@ GameObject:
   - component: {fileID: 492590499065383984}
   - component: {fileID: 7475727251000932696}
   - component: {fileID: 4012968987314411152}
+  - component: {fileID: 4799335900044648034}
   m_Layer: 5
   m_Name: PlayerHUD
   m_TagString: Untagged
@@ -2857,6 +2874,72 @@ MonoBehaviour:
   _onTurnCountdownEndEvent:
     m_PersistentCalls:
       m_Calls: []
+  _onFoldingActionBoolEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  _isFoldActionEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 4799335900044648034}
+        m_TargetAssemblyTypeName: WCC.Poker.Client.FoldEffect, WCCPokerClientCore
+        m_MethodName: SetFoldEffect
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _isUnfoldActionEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 4799335900044648034}
+        m_TargetAssemblyTypeName: WCC.Poker.Client.FoldEffect, WCCPokerClientCore
+        m_MethodName: SetUnfoldEffect
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onSpectatorBoolEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  _isSpectatorEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 4799335900044648034}
+        m_TargetAssemblyTypeName: WCC.Poker.Client.FoldEffect, WCCPokerClientCore
+        m_MethodName: SetFoldEffect
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _isUnspectatorEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 4799335900044648034}
+        m_TargetAssemblyTypeName: WCC.Poker.Client.FoldEffect, WCCPokerClientCore
+        m_MethodName: SetUnfoldEffect
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &4012968987314411152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2885,6 +2968,33 @@ MonoBehaviour:
     _spriteColor: {r: 1, g: 0.2320754, b: 0.26919493, a: 1}
   - _sprite: {fileID: 503475667, guid: 4a272365605fbba4c948ee112ac9c12a, type: 3}
     _spriteColor: {r: 0.51886785, g: 0.8869893, b: 1, a: 1}
+--- !u!114 &4799335900044648034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8559483822991017710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60825f22a69a06a4a8673f6aa8400e2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _images:
+  - {fileID: 1393242364273751721}
+  - {fileID: 2849483696702030526}
+  - {fileID: 8842518168505589785}
+  - {fileID: 8340175951604677786}
+  - {fileID: 3516841264503436755}
+  - {fileID: 1163511252377638015}
+  _texts:
+  - {fileID: 3424801581101346480}
+  - {fileID: 1082170316765092587}
+  - {fileID: 906646532727824109}
+  - {fileID: 7429904353624518218}
+  _fadeDuration: 0.25
+  _foldAlpha: 0.6
+  _foldDarkenMultiplier: 0.5
 --- !u!1 &8642939253665255751
 GameObject:
   m_ObjectHideFlags: 0
@@ -2919,7 +3029,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 267.20016, y: 215.6998}
+  m_AnchoredPosition: {x: 275.5, y: -29.1}
   m_SizeDelta: {x: 367.0625, y: 6.2731}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3057762657464304524

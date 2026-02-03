@@ -93,7 +93,7 @@ public class LayoutHoverResizeDOTween :
         {
             lastClickTime = Time.unscaledTime;
         }
-        
+
     }
 
     void OnDoubleClick()

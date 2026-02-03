@@ -99,6 +99,13 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<HandResult> HandResultReceived;
     public event Action<StackUpdate> StackUpdateReceived;
     public event Action<TipResponse> TipResponseReceived;
+    public event Action<ChatBroadcast> ChatBroadcastReceived;
+    public event Action<VipRoomCreateResponse> VipRoomCreateResponseReceived;
+    public event Action<VipRoomJoinResponse> VipRoomJoinResponseReceived;
+    public event Action<VipRoomStartResponse> VipRoomStartResponseReceived;
+    public event Action<VipRoomPauseResponse> VipRoomPauseResponseReceived;
+    public event Action<VipRoomCloseResponse> VipRoomCloseResponseReceived;
+    public event Action<VipRoomStateNotice> VipRoomStateNoticeReceived;
     public event Action<JoinTableResponse> JoinTableResponseReceived;
     public event Action<LeaveTableResponse> LeaveTableResponseReceived;
     public event Action<BuyInResponse> BuyInResponseReceived;
@@ -187,6 +194,48 @@ public sealed class GameServerClient : MonoBehaviour
     {
         add => Instance.TipResponseReceived += value;
         remove { if (_instance != null) _instance.TipResponseReceived -= value; }
+    }
+
+    public static event Action<ChatBroadcast> ChatBroadcastReceivedStatic
+    {
+        add => Instance.ChatBroadcastReceived += value;
+        remove { if (_instance != null) _instance.ChatBroadcastReceived -= value; }
+    }
+
+    public static event Action<VipRoomCreateResponse> VipRoomCreateResponseReceivedStatic
+    {
+        add => Instance.VipRoomCreateResponseReceived += value;
+        remove { if (_instance != null) _instance.VipRoomCreateResponseReceived -= value; }
+    }
+
+    public static event Action<VipRoomJoinResponse> VipRoomJoinResponseReceivedStatic
+    {
+        add => Instance.VipRoomJoinResponseReceived += value;
+        remove { if (_instance != null) _instance.VipRoomJoinResponseReceived -= value; }
+    }
+
+    public static event Action<VipRoomStartResponse> VipRoomStartResponseReceivedStatic
+    {
+        add => Instance.VipRoomStartResponseReceived += value;
+        remove { if (_instance != null) _instance.VipRoomStartResponseReceived -= value; }
+    }
+
+    public static event Action<VipRoomPauseResponse> VipRoomPauseResponseReceivedStatic
+    {
+        add => Instance.VipRoomPauseResponseReceived += value;
+        remove { if (_instance != null) _instance.VipRoomPauseResponseReceived -= value; }
+    }
+
+    public static event Action<VipRoomCloseResponse> VipRoomCloseResponseReceivedStatic
+    {
+        add => Instance.VipRoomCloseResponseReceived += value;
+        remove { if (_instance != null) _instance.VipRoomCloseResponseReceived -= value; }
+    }
+
+    public static event Action<VipRoomStateNotice> VipRoomStateNoticeReceivedStatic
+    {
+        add => Instance.VipRoomStateNoticeReceived += value;
+        remove { if (_instance != null) _instance.VipRoomStateNoticeReceived -= value; }
     }
 
     public static event Action<RejoinResponse> RejoinResponseReceivedStatic
@@ -378,6 +427,46 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendTip(tableIdValue, amount);
     }
 
+    public static void SendChatStatic(string message)
+    {
+        Instance.SendChat(null, message);
+    }
+
+    public static void SendChatStatic(string tableIdValue, string message)
+    {
+        Instance.SendChat(tableIdValue, message);
+    }
+
+    public static void SendVipRoomCreateStatic(string tableCode, string tableName, int smallBlind, int bigBlind, int maxPlayers, int minPlayersToStart, bool manualStart, bool joinAsPlayer)
+    {
+        Instance.SendVipRoomCreate(tableCode, tableName, smallBlind, bigBlind, maxPlayers, minPlayersToStart, manualStart, joinAsPlayer, 0);
+    }
+
+    public static void SendVipRoomCreateStatic(string tableCode, string tableName, int smallBlind, int bigBlind, int maxPlayers, int minPlayersToStart, bool manualStart, bool joinAsPlayer, int tableLayout)
+    {
+        Instance.SendVipRoomCreate(tableCode, tableName, smallBlind, bigBlind, maxPlayers, minPlayersToStart, manualStart, joinAsPlayer, tableLayout);
+    }
+
+    public static void SendVipRoomJoinStatic(string accessKey, bool spectateOnly)
+    {
+        Instance.SendVipRoomJoin(accessKey, spectateOnly);
+    }
+
+    public static void SendVipRoomStartStatic(string matchIdValue)
+    {
+        Instance.SendVipRoomStart(matchIdValue);
+    }
+
+    public static void SendVipRoomPauseStatic(string matchIdValue, bool pause)
+    {
+        Instance.SendVipRoomPause(matchIdValue, pause);
+    }
+
+    public static void SendVipRoomCloseStatic(string matchIdValue)
+    {
+        Instance.SendVipRoomClose(matchIdValue);
+    }
+
     public static void SendWaitVoteResponseStatic(string tableIdValue, string targetPlayerId, bool wait)
     {
         Instance.SendWaitVoteResponse(tableIdValue, targetPlayerId, wait);
@@ -458,6 +547,65 @@ public sealed class GameServerClient : MonoBehaviour
             Amount = amount
         };
         SendPacket(MsgType.TipRequest, req);
+    }
+
+    public void SendChat(string tableIdValue, string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return;
+        if (string.IsNullOrWhiteSpace(tableIdValue))
+            tableIdValue = tableId;
+        var req = new ChatRequest
+        {
+            TableId = tableIdValue ?? "",
+            Message = message
+        };
+        SendPacket(MsgType.ChatRequest, req);
+    }
+
+    public void SendVipRoomCreate(string tableCode, string tableName, int smallBlind, int bigBlind, int maxPlayers, int minPlayersToStart, bool manualStart, bool joinAsPlayer, int tableLayout)
+    {
+        var req = new VipRoomCreateRequest
+        {
+            TableCode = tableCode ?? "",
+            TableName = tableName ?? "",
+            SmallBlind = smallBlind,
+            BigBlind = bigBlind,
+            MaxPlayers = maxPlayers,
+            MinPlayersToStart = minPlayersToStart,
+            ManualStart = manualStart,
+            JoinAsPlayer = joinAsPlayer,
+            TableLayout = tableLayout
+        };
+        SendPacket(MsgType.VipRoomCreateRequest, req);
+    }
+
+    public void SendVipRoomJoin(string accessKey, bool spectateOnly)
+    {
+        var req = new VipRoomJoinRequest
+        {
+            AccessKey = accessKey ?? "",
+            SpectateOnly = spectateOnly
+        };
+        SendPacket(MsgType.VipRoomJoinRequest, req);
+    }
+
+    public void SendVipRoomStart(string matchIdValue)
+    {
+        var req = new VipRoomStartRequest { MatchId = matchIdValue ?? "" };
+        SendPacket(MsgType.VipRoomStartRequest, req);
+    }
+
+    public void SendVipRoomPause(string matchIdValue, bool pause)
+    {
+        var req = new VipRoomPauseRequest { MatchId = matchIdValue ?? "", Pause = pause };
+        SendPacket(MsgType.VipRoomPauseRequest, req);
+    }
+
+    public void SendVipRoomClose(string matchIdValue)
+    {
+        var req = new VipRoomCloseRequest { MatchId = matchIdValue ?? "" };
+        SendPacket(MsgType.VipRoomCloseRequest, req);
     }
 
     public void SendSpectate(string tableIdValue)
@@ -740,14 +888,17 @@ public sealed class GameServerClient : MonoBehaviour
                         Debug.Log(playerId + " Credit: " + credits);
                         ArtGameManager.Instance.coinText.text = "Php " + credits;
 
+                        //ArtGameManager.Instance.coinText.text = "Php " + credits;
+
+                        //sharedData.myPlayerID = playerId;
                         Debug.Log($"{playerId} Credit: {credits}");
                         Debug.Log("myPlayerID:" + playerId);
-                        if (ArtGameManager.Instance != null)
-                        {
-                            ArtGameManager.Instance.playerID = playerId;
-                            if (ArtGameManager.Instance.coinText != null)
-                                ArtGameManager.Instance.coinText.text = "Php " + credits;
-                        }
+                        //if (ArtGameManager.Instance != null)
+                        //{
+                        //    ArtGameManager.Instance.playerID = playerId;
+                        //    if (ArtGameManager.Instance.coinText != null)
+                        //        ArtGameManager.Instance.coinText.text = "Php " + credits;
+                        //}
                         // RENDER: update player HUD (player id, session, credits, protocol).
                         // Example:
                         // - show connect success toast
@@ -776,8 +927,8 @@ public sealed class GameServerClient : MonoBehaviour
                         TableListReceived?.Invoke(tableList);
                         MessageReceived?.Invoke(msgType, tableList);
                         Debug.Log("Recieved table list with " + tableList.Tables.Count + " tables.");
-                        if (ArtGameManager.Instance != null)
-                            ArtGameManager.Instance.GenerateTable(tableList);
+                        //if (ArtGameManager.Instance != null)
+                        //    ArtGameManager.Instance.GenerateTable(tableList);
 
                         // RENDER: build table list UI.
                         // Example:
@@ -987,6 +1138,82 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         TipResponseReceived?.Invoke(tipResp);
                         MessageReceived?.Invoke(msgType, tipResp);
+                    });
+                }
+                break;
+            case MsgType.ChatBroadcast:
+                if (TryParsePayload(payload, ChatBroadcast.Parser, out var chat))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        ChatBroadcastReceived?.Invoke(chat);
+                        MessageReceived?.Invoke(msgType, chat);
+                    });
+                }
+                break;
+            case MsgType.VipRoomCreateResponse:
+                if (TryParsePayload(payload, VipRoomCreateResponse.Parser, out var vipCreate))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        if (vipCreate.Success && !string.IsNullOrWhiteSpace(vipCreate.MatchId))
+                            tableId = vipCreate.MatchId;
+                        VipRoomCreateResponseReceived?.Invoke(vipCreate);
+                        MessageReceived?.Invoke(msgType, vipCreate);
+                    });
+                }
+                break;
+            case MsgType.VipRoomJoinResponse:
+                if (TryParsePayload(payload, VipRoomJoinResponse.Parser, out var vipJoin))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        if (vipJoin.Success && !string.IsNullOrWhiteSpace(vipJoin.MatchId) && vipJoin.Seat > 0)
+                            tableId = vipJoin.MatchId;
+                        VipRoomJoinResponseReceived?.Invoke(vipJoin);
+                        MessageReceived?.Invoke(msgType, vipJoin);
+                    });
+                }
+                break;
+            case MsgType.VipRoomStartResponse:
+                if (TryParsePayload(payload, VipRoomStartResponse.Parser, out var vipStart))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        VipRoomStartResponseReceived?.Invoke(vipStart);
+                        MessageReceived?.Invoke(msgType, vipStart);
+                    });
+                }
+                break;
+            case MsgType.VipRoomPauseResponse:
+                if (TryParsePayload(payload, VipRoomPauseResponse.Parser, out var vipPause))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        VipRoomPauseResponseReceived?.Invoke(vipPause);
+                        MessageReceived?.Invoke(msgType, vipPause);
+                    });
+                }
+                break;
+            case MsgType.VipRoomCloseResponse:
+                if (TryParsePayload(payload, VipRoomCloseResponse.Parser, out var vipClose))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        if (vipClose.Success)
+                            tableId = string.Empty;
+                        VipRoomCloseResponseReceived?.Invoke(vipClose);
+                        MessageReceived?.Invoke(msgType, vipClose);
+                    });
+                }
+                break;
+            case MsgType.VipRoomStateNotice:
+                if (TryParsePayload(payload, VipRoomStateNotice.Parser, out var vipState))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        VipRoomStateNoticeReceived?.Invoke(vipState);
+                        MessageReceived?.Invoke(msgType, vipState);
                     });
                 }
                 break;

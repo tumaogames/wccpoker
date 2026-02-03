@@ -24,6 +24,7 @@ public class ModalPopupAnimator : MonoBehaviour
     {
         shownPos = popupRoot.anchoredPosition;
         //popupRoot.anchoredPosition = shownPos + hiddenOffset;
+        popupRoot.anchoredPosition = shownPos + hiddenOffset;
         popupRoot.localScale = Vector3.one * 0.85f;
 
         overlay.alpha = 0;

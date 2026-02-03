@@ -7,6 +7,7 @@ using Com.poker.Core;
 using Google.Protobuf;
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.Events;
 
 
 namespace WCC.Poker.Client
@@ -14,7 +15,8 @@ namespace WCC.Poker.Client
     public class PlayerActionController : MonoBehaviour
     {
         [SerializeField] BaseAnimation _userButtonActions;
-        [SerializeField] ChipsUIVolume _chipsValueVolume;
+        [SerializeField] ChipsUIVolume _raise_chipsValueVolume;
+        [SerializeField] ChipsUIVolume _bet_chipsValueVolume;
 
         [Header("[ACTION-BUTTONS]")]
         [SerializeField] GameObject _foldButton;
@@ -25,6 +27,7 @@ namespace WCC.Poker.Client
         [SerializeField] GameObject _allInButton;
 
         GameServerClient client;
+        int _currentBet;
 
         void OnEnable()
         {
@@ -49,7 +52,9 @@ namespace WCC.Poker.Client
                         //m.MinRaise
                         //r = CurrentBet + MinRaise
 
-                        _chipsValueVolume.SetMinMaxChips((int)m.CurrentBet + (int)m.MinRaise);
+                        _currentBet = (int)m.CurrentBet;
+                        _raise_chipsValueVolume.SetMinMaxChips((int)m.CurrentBet + (int)m.MinRaise);
+                        _bet_chipsValueVolume.SetMinMaxChips(1);
 
                         break;
                     }
@@ -79,9 +84,24 @@ namespace WCC.Poker.Client
             NetworkDebugLogger.LogSend("Action", "Check");
             GameServerClient.SendCheckStatic();
         }
+        public void SetCheckAction_Button() => CloseActionButtons(() => GameServerClient.SendCheckStatic());
 
         [Button]
-        public void SetRaiseAction_Button()
+        public void SetRaiseAction_Button() => CloseActionButtons(() => GameServerClient.SendRaiseStatic(_raise_chipsValueVolume.ChipsValue));
+
+        [Button]
+        public void SetCallAction_Button() => CloseActionButtons(() => GameServerClient.SendCallStatic(_currentBet));
+
+        [Button]
+        public void SetFoldAction_Button() => CloseActionButtons(() => GameServerClient.SendFoldStatic());
+
+        [Button]
+        public void SetAllInAction_Button() => CloseActionButtons(() => GameServerClient.SendAllInStatic(200));
+
+        [Button]
+        public void SetBetAction_Button() => CloseActionButtons(() => GameServerClient.SendBetStatic(_bet_chipsValueVolume.ChipsValue));
+
+        void CloseActionButtons(UnityAction callback)
         {
             NetworkDebugLogger.LogSend("Action", $"Raise amount={_chipsValueVolume.ChipsValue}");
             GameServerClient.SendRaiseStatic(_chipsValueVolume.ChipsValue);
@@ -115,5 +135,8 @@ namespace WCC.Poker.Client
             NetworkDebugLogger.LogSend("Action", "Bet amount=60");
             GameServerClient.SendBetStatic(60);
         }
+        _userButtonActions.PlayAnimation("PlayActionButtonGoDown");
+            callback();
     }
+}
 }

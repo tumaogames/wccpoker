@@ -10,6 +10,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using Com.Poker.Core;
+using WCC.Core;
 
 public class PokerNetConnect : MonoBehaviour
 {
@@ -31,11 +32,25 @@ public class PokerNetConnect : MonoBehaviour
     int _pendingJoinMatchSizeId;
     bool _awaitingRoundReset;
 
-    void Awake()
+    void Awake() => Application.runInBackground = true;
+
+    void Start()
     {
-        Application.runInBackground = true;
+        if (!HasConnection())
+            return;
+
+        var isVault = IsVautActive();
+        if (!isVault && !_netInfo.AutoConnectOnStart)
+            return;
+
+        ConfigureGame(
+            isVault ? PokerSharedVault.LaunchToken : _netInfo.LaunchToken,
+            isVault ? PokerSharedVault.ServerURL : _netInfo.ServerUrl,
+            isVault ? PokerSharedVault.OperatorPublicID : _netInfo.OperatorPublicId
+        );
     }
 
+    #region LISTENERS
     void OnEnable()
     {
         GameServerClient.MessageReceivedStatic += OnMessage;
@@ -77,6 +92,13 @@ public class PokerNetConnect : MonoBehaviour
         GameServerClient.JoinTableResponseReceivedStatic -= OnJoinConnect;
         GameServerClient.RejoinResponseReceivedStatic -= OnRejoin;
         GameServerClient.BuyInResponseReceivedStatic -= OnBuyIn;
+    }
+    #endregion LISTENERS
+
+    void ConfigureGame(string launchToken, string serverURL, string operatorPublicID)
+    {
+        GameServerClient.Configure(serverURL);
+        GameServerClient.ConnectWithLaunchToken(launchToken, operatorPublicID);
     }
 
     void OnConnect(ConnectResponse resp)
@@ -249,8 +271,40 @@ public class PokerNetConnect : MonoBehaviour
 
         if (!_joinRequested)
             Debug.LogWarning("[PokerNetConnect] Join skipped (no session after timeout).");
+
+        ConnectToTable();
     }
 
+    void ConnectToTable()
+    {
+        if (IsVautActive())
+        {
+            var sampleTestMatchSizeId = 3;
+            var localTableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
+            var vaultTBCode = PokerSharedVault.TableCode ?? localTableCode;
+            var matchSizeID = PokerSharedVault.MatchSizeId >= 0 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;
+            GameServerClient.SendJoinTableStatic(vaultTBCode, matchSizeID);
+            return;
+        }
+
+        if (!_netInfo.AutoSpectateOnConnect)
+            return;
+
+        var tableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
+        if (string.IsNullOrWhiteSpace(tableCode))
+        {
+            Debug.LogWarning("[BotDump] table code is empty. Auto-join skipped.");
+            return;
+        }
+
+        GameServerClient.SendJoinTableStatic(tableCode, 3);
+    }
+
+    bool IsVautActive()
+        => PokerSharedVault.TableCode != "?" &&
+           PokerSharedVault.LaunchToken != "?" &&
+           PokerSharedVault.ServerURL != "?" &&
+           PokerSharedVault.OperatorPublicID != "?";
 
     void OnMessage(MsgType type, IMessage msg)
     {
@@ -355,5 +409,33 @@ public class PokerNetConnect : MonoBehaviour
         };
         string s = c.Suit switch { 0 => "C", 1 => "D", 2 => "H", 3 => "S", _ => "?" };
         return r + "_" + s;
+    }
+
+    bool HasConnection()
+    {
+        if (IsVautActive())
+        {
+            if (string.IsNullOrWhiteSpace(PokerSharedVault.ServerURL) ||
+                string.IsNullOrWhiteSpace(PokerSharedVault.LaunchToken) ||
+                string.IsNullOrWhiteSpace(PokerSharedVault.OperatorPublicID))
+            {
+                Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
+                return false;
+            }
+            return true;
+        }
+
+        if (!_netInfo.AutoConnectOnStart)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(_netInfo.ServerUrl) ||
+            string.IsNullOrWhiteSpace(_netInfo.LaunchToken) ||
+            string.IsNullOrWhiteSpace(_netInfo.OperatorPublicId))
+        {
+            Debug.LogError("[BotDump] Missing serverUrl/launchToken/operatorPublicId. Auto-connect skipped.");
+            return false;
+        }
+
+        return true;
     }
 }

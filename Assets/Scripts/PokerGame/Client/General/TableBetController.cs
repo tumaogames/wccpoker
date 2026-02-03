@@ -25,7 +25,6 @@ namespace WCC.Poker.Client
         [SerializeField] GameObject _betValuePlusEffectPrefab;
         [SerializeField] Transform _betGroupContainer;
         [SerializeField] Transform[] _playersBetHolderPositions;
-      
 
         [Header("[POT-GROUP]")]
         [SerializeField] GameObject _bigPotPrefab;
@@ -185,7 +184,6 @@ namespace WCC.Poker.Client
                 AudioManager.main.PlayAudio("Chips_Pot", 0);
                 Destroy(Instance);
                 OnPotChipsMovedToWinner?.Invoke(playerID);
-
             });
         }
 

@@ -66,6 +66,22 @@ public class SceneLoader : MonoBehaviour
                 tokenPopup.SetActive(true);
             return;
         }
+    private bool tokenConfirmed;
+
+
+    void Start()
+    {
+        if (tokenPopup != null)
+        {
+            tokenPopup.SetActive(true);
+        }
+        StartCoroutine(WaitForTokenThenLoad());
+    }
+
+    IEnumerator WaitForTokenThenLoad()
+    {
+        // Wait until token is confirmed
+        yield return new WaitUntil(() => tokenConfirmed);
 
         if (tokenPopup != null)
         {
@@ -114,6 +130,7 @@ public class SceneLoader : MonoBehaviour
         _displayProgress = 0f;
         _velocity = 0f;
         _lastPercent = -1;
+        float timer = 0f;
 
         loadOp = SceneManager.LoadSceneAsync(mainSceneName);
         loadOp.allowSceneActivation = false;
@@ -124,11 +141,21 @@ public class SceneLoader : MonoBehaviour
 
             _targetProgress = Mathf.Clamp01(loadOp.progress / 0.9f);
             UpdateVisuals();
+            if (loadingSlider != null)
+            {
+                float progress = Mathf.Clamp01(loadOp.progress / 0.9f);
+                loadingSlider.fillAmount = progress;
+            }
 
             yield return null;
         }
 
         _targetProgress = 1f;
+        // Force 100%
+        if (loadingSlider != null)
+        {
+            loadingSlider.fillAmount = 1f;
+        }
 
         // Ensure minimum load time
         while (timer < minLoadTime)
@@ -167,19 +194,26 @@ public class SceneLoader : MonoBehaviour
         }
     }
 
-    public void ConfirmToken(string token)
-    {
-        token = token?.Trim();
-        if (string.IsNullOrEmpty(token))
-        {
-            Debug.LogError("ConfirmToken called with empty token.");
-            return;
+    yield return null;
         }
 
-        Debug.Log("SceneLoader confirmed token: " + token);
-        TokenManager.EnsureInstance();
-        TokenManager.Instance.SetToken(token);
-        TryBeginLoad("confirm");
+loadOp.allowSceneActivation = true;
     }
+
+    public void ConfirmToken(string token)
+{
+    token = token?.Trim();
+    if (string.IsNullOrEmpty(token))
+    {
+        Debug.LogError("ConfirmToken called with empty token.");
+        return;
+    }
+
+    Debug.Log("SceneLoader confirmed token: " + token);
+    TokenManager.EnsureInstance();
+    TokenManager.Instance.SetToken(token);
+    TryBeginLoad("confirm");
+    tokenConfirmed = true;
+}
 }
 

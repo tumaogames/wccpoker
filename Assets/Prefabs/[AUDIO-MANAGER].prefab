@@ -42,9 +42,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 24300002, guid: 01a3fe985ca9cec42b2788ab33acb8de, type: 2}
-  m_audioClip: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: ce3f85b8c4ba9da4f86e556e93e6c5c7, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.25
+  m_Volume: 0.12
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -176,7 +176,7 @@ MonoBehaviour:
   _audioMixerGroup: {fileID: 24300002, guid: 01a3fe985ca9cec42b2788ab33acb8de, type: 2}
   m_Settings:
     OptimizeBurst: 1
-    IndependentAudio: 0
+    IndependentAudio: 1
     FollowCameraOffset:
       X: 0
       Y: 0

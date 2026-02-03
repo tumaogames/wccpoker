@@ -6,15 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Prototype/PokerGame_Test_Loader.unity
+    guid: fd1fb2abac163fd43a9a46f07166f138
+  - enabled: 1
+    path: Assets/Scenes/PokerGameScenes/PokerGame.unity
+    guid: c9320f97f76906346a0514bd86c1992a
+  - enabled: 1
     path: Assets/Scenes/LoadingScene.unity
     guid: 950fdda96a6e36d4fa702ebbc239d99d
   - enabled: 1
     path: Assets/Scenes/MainScene.unity
     guid: cffd0c2f21612884586d7097c0027af1
-  - enabled: 1
-    path: Assets/Scenes/PokerGameScenes/PokerGame.unity
-    guid: c9320f97f76906346a0514bd86c1992a
-  - enabled: 0
-    path: Assets/Scenes/Prototype/SampleScene.unity
-    guid: 2cda990e2423bbf4892e6590ba056729
   m_configObjects: {}

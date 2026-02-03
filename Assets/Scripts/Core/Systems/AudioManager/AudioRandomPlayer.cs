@@ -18,26 +18,17 @@ namespace WCC.Core.Audio
 
         AudioSource _audioSource;
 
-        bool _isDoneParenting = false;
-
         public void PlayRandomAudio()
         {
-            if (_audioSource == null)
-            {
-                (var g, var audios) = AudioManager.main.PlayRandomAudio(_audioKey, transform.localPosition, _audioSettings);
-                if (audios != null) _audioSource = audios;
-            }
-            else if (_audioSource != null && !_audioSource.isPlaying)
-            {
-                _audioSource.Play();
-            }
+            (var g, var audios) = AudioManager.main.PlayRandomAudio(_audioKey, transform.localPosition, _audioSettings);
+            if (audios == null) return;
 
+            _audioSource = audios;
 
-            if (_audioSource != null && _isParent && !_isDoneParenting)
+            if (_isParent && _audioSource.transform.parent != transform)
             {
                 _audioSource.transform.SetParent(transform);
                 _audioSource.transform.localPosition = new Vector3(0f, 0f, -10f);
-                _isDoneParenting = true;
             }
         }
 

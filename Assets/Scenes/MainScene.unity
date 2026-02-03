@@ -1063,9 +1063,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1857262737}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 317, y: -79.29999}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -643, y: -559.3}
   m_SizeDelta: {x: 564.9728, y: 564.9722}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &304577126
@@ -1265,7 +1265,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3689379908243726149}
         m_TargetAssemblyTypeName: ArtGameManager, Assembly-CSharp
-        m_MethodName: PlaySelectedChildTable
+        m_MethodName: PlayPopUpSelectPlayer
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1508,9 +1508,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73821792c4b82814a94d21101fe0e222, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resetOnContentChange: 1
-  snapOnFirstContentChangeOnly: 1
-  useEndOfFrame: 1
 --- !u!1 &473185105
 GameObject:
   m_ObjectHideFlags: 0
@@ -1694,10 +1691,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1857262737}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -337.77002, y: 128}
-  m_SizeDelta: {x: 556.37524, y: 154.85059}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 622.23, y: -401}
+  m_SizeDelta: {x: 556.3752, y: 154.8506}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &498239118
 MonoBehaviour:
@@ -1745,7 +1742,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3689379908243726149}
         m_TargetAssemblyTypeName: ArtGameManager, Assembly-CSharp
-        m_MethodName: SelectNow
+        m_MethodName: PopUpSelectPlayer
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2439,8 +2436,8 @@ MonoBehaviour:
   m_Padding:
     m_Left: 80
     m_Right: 80
-    m_Top: 20
-    m_Bottom: 10
+    m_Top: 0
+    m_Bottom: 0
   m_ChildAlignment: 4
   m_Spacing: 40
   m_ChildForceExpandWidth: 0
@@ -2608,9 +2605,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73821792c4b82814a94d21101fe0e222, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resetOnContentChange: 1
-  snapOnFirstContentChangeOnly: 1
-  useEndOfFrame: 1
 --- !u!1 &1013837839
 GameObject:
   m_ObjectHideFlags: 0
@@ -4849,9 +4843,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectedTableID: 
   selectedTableCode: 
-  selectedMaxSizeID: 0
-  selectedMinBuyIn: 0
-  selectedMaxBuyIn: 0
   selectedTable: 
   playerID: 
   GameLoader: {fileID: 6872535763684849316}
@@ -4866,8 +4857,6 @@ MonoBehaviour:
   currentScore: 0
   coinText: {fileID: 1220422535}
   isInitialized: 0
-  usePooling: 1
-  clearTablesOnRefresh: 1
 --- !u!1 &3836256113133397478
 GameObject:
   m_ObjectHideFlags: 0
