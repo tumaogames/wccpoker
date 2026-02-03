@@ -525,7 +525,7 @@ namespace WCC.Poker.Client
 
             AudioManager.main.PlayAudio("Cards", 1);
             List<CardView> _cardList = new();
-            var isLocal = playerID == PokerNetConnect.OwnerPlayerID;
+            var isLocal = IsOwnerId(playerID);
             if (_logHandSummary)
                 Debug.Log($"DealHoleCards player={playerID} seat={seat} cards={PokerNetConnect.FormatCards(playerCards)} local={isLocal}");
             for (int j = 0; j < playerCards.Count; j++)
@@ -685,6 +685,17 @@ namespace WCC.Poker.Client
                 return;
 
             if (!_playerCardsRecords.TryGetValue(ownerId, out var pack) || pack?.CardViewUI == null)
+            {
+                foreach (var kvp in _playerCardsRecords)
+                {
+                    if (!IsOwnerId(kvp.Key))
+                        continue;
+                    pack = kvp.Value;
+                    break;
+                }
+            }
+
+            if (pack?.CardViewUI == null)
                 return;
 
             if (pack.IsPlaceholder)
@@ -695,6 +706,16 @@ namespace WCC.Poker.Client
                 if (cv == null) continue;
                 cv.SetOpenCard();
             }
+        }
+
+        static bool IsOwnerId(string playerId)
+        {
+            if (string.IsNullOrEmpty(playerId))
+                return false;
+            var ownerId = PokerNetConnect.OwnerPlayerID;
+            if (string.IsNullOrEmpty(ownerId))
+                return false;
+            return string.Equals(playerId, ownerId, StringComparison.OrdinalIgnoreCase);
         }
 
         void RefreshPlayerCardPositions()

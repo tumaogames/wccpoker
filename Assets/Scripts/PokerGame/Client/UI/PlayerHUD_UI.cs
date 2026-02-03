@@ -23,6 +23,7 @@ namespace WCC.Poker.Client
         [SerializeField] TMP_Text _levelText;
         [SerializeField] TMP_Text _actionText;
         [SerializeField] GameObject _actionHolder;
+        [SerializeField] PlayerEmojiUI _playerEmoji;
 
         [Header("[TURN]")]
         [SerializeField] GameObject _turnGroupGO;
@@ -254,6 +255,12 @@ namespace WCC.Poker.Client
             actEvent?.Invoke();
 
             print($"<color=blue>SetSpectatorState at PlayerHUD_UI.cs</color>");
+        }
+
+        public void SetEmoji(Sprite icon)
+        {
+            _playerEmoji.SetPlayerEmoji(icon);
+            print($"[PlayerHUD_UI] SetEmoji");
         }
     }
 }

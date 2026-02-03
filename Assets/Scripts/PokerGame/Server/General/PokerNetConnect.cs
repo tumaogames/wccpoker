@@ -67,7 +67,7 @@ public class PokerNetConnect : MonoBehaviour
     {
         if (IsVautActive())
         {
-            var sampleTestMatchSizeId = 3;
+            var sampleTestMatchSizeId = 4;
             var localTableCode = _netInfo.IsPlayerEnable ? _netInfo.PlayerTableCode : _netInfo.BotsTableCode;
             var vaultTBCode = PokerSharedVault.TableCode ?? localTableCode;
             var matchSizeID = PokerSharedVault.MatchSizeId >= 0 ? PokerSharedVault.MatchSizeId : sampleTestMatchSizeId;

@@ -99,6 +99,7 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<StackUpdate> StackUpdateReceived;
     public event Action<TipResponse> TipResponseReceived;
     public event Action<ChatBroadcast> ChatBroadcastReceived;
+    public event Action<EmojiBroadcast> EmojiBroadcastReceived;
     public event Action<VipRoomCreateResponse> VipRoomCreateResponseReceived;
     public event Action<VipRoomJoinResponse> VipRoomJoinResponseReceived;
     public event Action<VipRoomStartResponse> VipRoomStartResponseReceived;
@@ -199,6 +200,12 @@ public sealed class GameServerClient : MonoBehaviour
     {
         add => Instance.ChatBroadcastReceived += value;
         remove { if (_instance != null) _instance.ChatBroadcastReceived -= value; }
+    }
+
+    public static event Action<EmojiBroadcast> EmojiBroadcastReceivedStatic
+    {
+        add => Instance.EmojiBroadcastReceived += value;
+        remove { if (_instance != null) _instance.EmojiBroadcastReceived -= value; }
     }
 
     public static event Action<VipRoomCreateResponse> VipRoomCreateResponseReceivedStatic
@@ -436,6 +443,16 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendChat(tableIdValue, message);
     }
 
+    public static void SendEmojiStatic(int emojiType, string targetPlayerId)
+    {
+        Instance.SendEmoji(null, emojiType, targetPlayerId);
+    }
+
+    public static void SendEmojiStatic(string tableIdValue, int emojiType, string targetPlayerId)
+    {
+        Instance.SendEmoji(tableIdValue, emojiType, targetPlayerId);
+    }
+
     public static void SendVipRoomCreateStatic(string tableCode, string tableName, int smallBlind, int bigBlind, int maxPlayers, int minPlayersToStart, bool manualStart, bool joinAsPlayer)
     {
         Instance.SendVipRoomCreate(tableCode, tableName, smallBlind, bigBlind, maxPlayers, minPlayersToStart, manualStart, joinAsPlayer, 0);
@@ -554,6 +571,19 @@ public sealed class GameServerClient : MonoBehaviour
             Message = message
         };
         SendPacket(MsgType.ChatRequest, req);
+    }
+
+    public void SendEmoji(string tableIdValue, int emojiType, string targetPlayerId)
+    {
+        if (string.IsNullOrWhiteSpace(tableIdValue))
+            tableIdValue = tableId;
+        var req = new EmojiRequest
+        {
+            TableId = tableIdValue ?? "",
+            EmojiType = emojiType,
+            TargetPlayerId = targetPlayerId ?? ""
+        };
+        SendPacket(MsgType.EmojiRequest, req);
     }
 
     public void SendVipRoomCreate(string tableCode, string tableName, int smallBlind, int bigBlind, int maxPlayers, int minPlayersToStart, bool manualStart, bool joinAsPlayer, int tableLayout)
@@ -1140,6 +1170,16 @@ public sealed class GameServerClient : MonoBehaviour
                     {
                         ChatBroadcastReceived?.Invoke(chat);
                         MessageReceived?.Invoke(msgType, chat);
+                    });
+                }
+                break;
+            case MsgType.EmojiBroadcast:
+                if (TryParsePayload(payload, EmojiBroadcast.Parser, out var emoji))
+                {
+                    EnqueueMainThread(() =>
+                    {
+                        EmojiBroadcastReceived?.Invoke(emoji);
+                        MessageReceived?.Invoke(msgType, emoji);
                     });
                 }
                 break;

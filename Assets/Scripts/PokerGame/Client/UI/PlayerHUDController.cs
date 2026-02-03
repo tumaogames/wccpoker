@@ -404,5 +404,11 @@ namespace WCC.Poker.Client
             var mapped = ((seat - 1 + offset) % total + total) % total;
             return mapped;
         }
+
+        public void SendEmoji(string playerID, Sprite sprite)
+        {
+            print($"[PlayerHUDController] PId: {playerID}");
+            _inGamePlayersRecords[playerID].SetEmoji(sprite);
+        }
     }
 }
