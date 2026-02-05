@@ -19,8 +19,6 @@ public class ArtGameManager : MonoBehaviour
     [SerializeField] public string selectedMinBuyIn = string.Empty;
     [SerializeField] public string selectedMaxBuyIn = string.Empty;
 
-    
-
     [Header("Runtime Injected Data")]
     public string gameTokenID;
     public bool enableSound;
