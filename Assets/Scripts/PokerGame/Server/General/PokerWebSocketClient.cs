@@ -492,7 +492,6 @@ public sealed class PokerWebSocketClient : MonoBehaviour
                             tableId = joinTableResponse.TableId;
                         JoinTableResponseReceived?.Invoke(joinTableResponse);
                         MessageReceived?.Invoke(msgType, joinTableResponse);
-
                     });
                     Debug.Log("JoinTableResponse received:" + joinTableResponse.Success);
                 }

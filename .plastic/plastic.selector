@@ -1,3 +1,0 @@
-repository "WCC Poker@local"
-  path "/"
-    smartbranch "/main/task001"

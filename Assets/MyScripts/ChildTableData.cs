@@ -1,11 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class ChildTableData : MonoBehaviour
 {
     public string childTableCode;
+    public int matchSizeId;
+    public long minBuyIn;
+    public long maxBuyIn;
     public int minPlayers;
     public int maxPlayers;
 
@@ -13,21 +14,11 @@ public class ChildTableData : MonoBehaviour
     public TMP_Text minPlayersTxt;
     public TMP_Text maxPlayersTxt;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void ChildSetText()
     {
-        minPlayersTxt.text = "Minimum players:" + minPlayers.ToString();
-        maxPlayersTxt.text = "Maximum players:" + maxPlayers.ToString();
+        if (minPlayersTxt != null)
+            minPlayersTxt.text = "Minimum players: " + minPlayers;
+        if (maxPlayersTxt != null)
+            maxPlayersTxt.text = "Maximum players: " + maxPlayers;
     }
 }

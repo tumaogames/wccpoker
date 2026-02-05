@@ -299,6 +299,7 @@ namespace Com.poker.Core {
     #endregion
 
   }
+
   #region Enums
   public enum MsgType {
     [pbr::OriginalName("MSG_TYPE_UNSPECIFIED")] Unspecified = 0,
@@ -9936,6 +9937,8 @@ namespace Com.poker.Core {
     #endif
 
   }
+
+
 
   public sealed partial class TipResponse : pb::IMessage<TipResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE

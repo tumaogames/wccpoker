@@ -128,14 +128,14 @@ namespace WCC.Poker.Client
             var betHolder = Instantiate(prefab, _betGroupContainer);
             AudioManager.main.PlayRandomAudio("Chips_Bet", Vector2.zero);
             betHolder.transform.position = startPosition;
-            if (GameServerClient.Instance.IsCatchingUp)
+            /*if (GameServerClient.Instance.IsCatchingUp)
             {
                 betHolder.transform.position = destination;
                 betHolder.transform.localScale = Vector2.one;
                 betHolder.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 isReachedCallback?.Invoke(betHolder);
                 return;
-            }
+            }*/
 
             betHolder.transform.DOMove(destination, moveDuration)
             .SetEase(Ease.InOutSine)

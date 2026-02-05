@@ -3,7 +3,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
 using Com.Poker.Core;
-using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(LayoutElement))]
 public class ChildLayoutHoverResizeDOTween :
@@ -75,7 +74,12 @@ public class ChildLayoutHoverResizeDOTween :
     public void OnPointerClick(PointerEventData eventData)
     {
         Select();
-        ArtGameManager.Instance.currentSelectedChildTable = GetComponent<ChildLayoutHoverResizeDOTween>().gameObject;
+        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
+        ArtGameManager.Instance.selectedMaxSizeID = GetComponent<ChildTableData>().matchSizeId;
+        ArtGameManager.Instance.selectedMinBuyIn = GetComponent<ChildTableData>().minBuyIn;
+        ArtGameManager.Instance.selectedMaxBuyIn = GetComponent<ChildTableData>().maxBuyIn;
+        GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
+        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
         eventData.Use(); // ⛔ prevents background click
         var client = GameServerClient.Instance;
         if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
@@ -103,19 +107,27 @@ public class ChildLayoutHoverResizeDOTween :
         Debug.Log("DOUBLE CLICK!");
         ArtGameManager.Instance.PopUpSelectPlayer();
         SetGlobalSharedData();
-        //GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
+        var matchSizeId = GlobalSharedData.MySelectedMatchSizeID > 0
+            ? GlobalSharedData.MySelectedMatchSizeID
+            : ArtGameManager.Instance.selectedMaxSizeID;
+        if (matchSizeId <= 0)
+        {
+            Debug.LogWarning("MatchSizeId is invalid. Join skipped.");
+            return;
+        }
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId={matchSizeId} (pre-game)");
+        GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, matchSizeId);
+        ArtGameManager.Instance.PlayPopUpSelectPlayer();
     }
 
     public void SetGlobalSharedData()
     {
-        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
-        ArtGameManager.Instance.selectedMatchSizeID = GetComponent<ChildTableData>().maxPlayers;
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.gameTokenID;
         GlobalSharedData.MyPlayerID = ArtGameManager.Instance.playerID;
         GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
+        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
         GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
         GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
-        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMatchSizeID;
         GlobalSharedData.MyOperatorGameID = ArtGameManager.Instance.GameLoader.opId;
         Debug.Log(
         $"[GlobalSharedData SET]\n" +
@@ -124,8 +136,7 @@ public class ChildLayoutHoverResizeDOTween :
         $"MySelectedTableCode: {GlobalSharedData.MySelectedTableCode}\n" +
         $"MyWebsocketUrl: {GlobalSharedData.MyWebsocketUrl}\n" +
         $"MyOperatorGameID: {GlobalSharedData.MyOperatorGameID}"
-        );
-        SceneManager.LoadScene("PokerGame");
+    );
     }
 
     // =====================
@@ -158,6 +169,22 @@ public class ChildLayoutHoverResizeDOTween :
         currentSelected.Deselect();
         currentSelected = null;
         ArtGameManager.Instance.selectedTable = null;
+    }
+
+    public static bool TryConfirmSelected()
+    {
+        if (currentSelected == null)
+            return false;
+
+        var client = GameServerClient.Instance;
+        if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
+        {
+            Debug.LogWarning("Not connected yet.");
+            return false;
+        }
+
+        currentSelected.OnDoubleClick();
+        return true;
     }
 
     // =====================

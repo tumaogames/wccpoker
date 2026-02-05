@@ -101,6 +101,7 @@ public class LayoutHoverResizeDOTween :
         Debug.Log("DOUBLE CLICK!");
         ArtGameManager.Instance.PopUpSelectPlayer();
         ArtGameManager.Instance.selectedTableCode = GetComponent<TableData>().tableCode;
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId=0 (request match sizes)");
         GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
     }
 
@@ -134,6 +135,22 @@ public class LayoutHoverResizeDOTween :
         currentSelected.Deselect();
         currentSelected = null;
         ArtGameManager.Instance.selectedTable = null;
+    }
+
+    public static bool TryConfirmSelected()
+    {
+        if (currentSelected == null)
+            return false;
+
+        var client = GameServerClient.Instance;
+        if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
+        {
+            Debug.LogWarning("Not connected yet.");
+            return false;
+        }
+
+        currentSelected.OnDoubleClick();
+        return true;
     }
 
     // =====================

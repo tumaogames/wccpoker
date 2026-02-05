@@ -155,6 +155,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   childTableCode: 
+  matchSizeId: 0
+  minBuyIn: 0
+  maxBuyIn: 0
   minPlayers: 0
   maxPlayers: 0
   minPlayersTxt: {fileID: 5145181004530706952}
@@ -194,7 +197,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1694325509644404786
 RectTransform:
   m_ObjectHideFlags: 0
@@ -211,8 +214,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 2.0782928, y: 8.33783}
-  m_SizeDelta: {x: 39.9683, y: 21.6933}
+  m_AnchoredPosition: {x: 2.0782928, y: 1.5931015}
+  m_SizeDelta: {x: 39.9683, y: 43.7669}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6927002875238278968
 CanvasRenderer:
@@ -242,7 +245,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b2d78a7feaa849842a2a88e9d2589486, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d2a0b84abeab02b46b526d1a96e2012f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

@@ -5,7 +5,7 @@
 
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NetData", menuName = "WCC/NET/Data")]
+/*[CreateAssetMenu(fileName = "NetData", menuName = "WCC/NET/Data")]
 public class PokerNetData : ScriptableObject
 {
     [Header("[TOKEN]")]
@@ -23,4 +23,4 @@ public class PokerNetData : ScriptableObject
     public bool IsPlayerEnable = true;
     public string PlayerTableCode = "WCC-TBL-POKER-001";
     public string BotsTableCode = "DEV-BOT-TABLE";
-}
+}*/

@@ -6,9 +6,11 @@ using UnityEngine.UI;
 public class TokenPopup : MonoBehaviour
 {
     public TMP_InputField tokenInput;
+    public TMP_Text percentTxt;
     public SceneLoader sceneLoader;
     public Button confirmButton;
     public GameObject popupRoot;
+    bool _wired;
 
     private void Awake()
     {
@@ -17,7 +19,8 @@ public class TokenPopup : MonoBehaviour
 
     private void OnEnable()
     {
-        WireReferences();
+        if (!_wired)
+            WireReferences();
     }
 
     private void WireReferences()
@@ -41,6 +44,24 @@ public class TokenPopup : MonoBehaviour
             else
             {
                 tokenInput = GetComponentInChildren<TMP_InputField>(true);
+            }
+        }
+
+        if (percentTxt == null)
+        {
+            TMP_Text[] texts;
+            if (popupRoot != null)
+                texts = popupRoot.GetComponentsInChildren<TMP_Text>(true);
+            else
+                texts = GetComponentsInChildren<TMP_Text>(true);
+
+            for (int i = 0; i < texts.Length; i++)
+            {
+                if (texts[i].gameObject.name == "PercentText")
+                {
+                    percentTxt = texts[i];
+                    break;
+                }
             }
         }
 
@@ -85,25 +106,36 @@ public class TokenPopup : MonoBehaviour
         {
             Debug.LogError("TokenPopup could not find a confirm Button to wire.");
         }
+
+        if (sceneLoader != null && sceneLoader.loadingText == null && percentTxt != null)
+            sceneLoader.loadingText = percentTxt;
+
+        _wired = tokenInput != null && confirmButton != null;
     }
 
     public void Confirm()
     {
-        if (sceneLoader == null || tokenInput == null)
+        if (tokenInput == null)
         {
-            Debug.LogError("TokenPopup missing references (sceneLoader or tokenInput).");
+            Debug.LogError("TokenPopup missing tokenInput.");
             return;
         }
 
         var token = tokenInput.text.Trim();
         Debug.Log("TokenPopup Confirm clicked. Token length: " + token.Length);
 
-        TokenManager.EnsureInstance();
-        TokenManager.Instance.SetToken(token);
-        sceneLoader.ConfirmToken(token);
+        if (sceneLoader != null)
+        {
+            sceneLoader.ConfirmToken(token);
+        }
+        else
+        {
+            TokenManager.EnsureInstance();
+            TokenManager.Instance.SetToken(token);
+        }
 
         // Hide the popup UI (not the TokenManager object).
-        if (sceneLoader.tokenPopup != null)
+        if (sceneLoader != null && sceneLoader.tokenPopup != null)
         {
             sceneLoader.tokenPopup.SetActive(false);
         }

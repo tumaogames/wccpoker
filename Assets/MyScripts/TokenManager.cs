@@ -66,14 +66,6 @@ public class TokenManager : MonoBehaviour
         hasToken = true;
         Debug.Log("TokenManager stored token: " + token);
         TokenSet?.Invoke(gameTokenID);
-
-        // If the game manager already exists, push the token immediately.
-        if (ArtGameManager.Instance != null)
-        {
-            ArtGameManager.Instance.gameTokenID = gameTokenID;
-            ArtGameManager.Instance.isInitialized = true;
-            Debug.Log("TokenManager pushed token to ArtGameManager.");
-        }
     }
 
     public static bool HasToken()
