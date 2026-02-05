@@ -17,20 +17,30 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent _onJoinTableEvent;
         [SerializeField] UnityEvent _onNotYetJoinTableEvent;
 
-        private void OnEnable() => GameServerClient.JoinTableResponseReceivedStatic += OnJoinTableResponse;
+        private void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
 
-        private void OnDisable() => GameServerClient.JoinTableResponseReceivedStatic -= OnJoinTableResponse;
-
-        void OnJoinTableResponse(JoinTableResponse r)
+        void OnMessage(MsgType type, IMessage msg)
         {
-            var isOnTable = r.Success;
+            switch (type)
+            {
 
-            _onJoinTableBoolEvent?.Invoke(isOnTable);
+                case MsgType.TableSnapshot:
+                    {
+                        var m = (TableSnapshot)msg;
+                        //m.CurrentBet
+                        //m.MinRaise
+                        //r = CurrentBet + MinRaise
+                        var isTurnStarted = m.State != TableState.Reset || m.State != TableState.Waiting;
 
-            var fEvent = isOnTable ? _onJoinTableEvent : _onNotYetJoinTableEvent;
-            fEvent?.Invoke();
+                        _onJoinTableBoolEvent?.Invoke(isTurnStarted);
 
+                        var fEvent = isTurnStarted ? _onJoinTableEvent : _onNotYetJoinTableEvent;
+                        fEvent?.Invoke();
+
+                        break;
+                    }
+
+            }
         }
-
     }
 }
