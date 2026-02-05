@@ -97,7 +97,28 @@ public class SceneLoader : MonoBehaviour
         }
 
         if (fallback != null)
+        {
             loadingText = fallback;
+            return;
+        }
+
+        // Scene fallback: Loading UI text is not necessarily a child of SceneLoader.
+        var sceneTexts = FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        TMP_Text sceneFallback = null;
+        for (int i = 0; i < sceneTexts.Length; i++)
+        {
+            var name = sceneTexts[i].gameObject.name;
+            if (name == "PercentText")
+            {
+                loadingText = sceneTexts[i];
+                return;
+            }
+            if (sceneFallback == null && name == "LoadingText")
+                sceneFallback = sceneTexts[i];
+        }
+
+        if (sceneFallback != null)
+            loadingText = sceneFallback;
     }
 
     IEnumerator LoadMainScene(string reason)
@@ -146,6 +167,9 @@ public class SceneLoader : MonoBehaviour
 
     void UpdateVisuals(bool force = false)
     {
+        if (loadingText == null)
+            AutoWire();
+
         _displayProgress = Mathf.SmoothDamp(
             _displayProgress,
             _targetProgress,

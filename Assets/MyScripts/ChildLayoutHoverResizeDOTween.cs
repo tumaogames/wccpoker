@@ -2,7 +2,6 @@
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
-using Com.Poker.Core;
 
 [RequireComponent(typeof(LayoutElement))]
 public class ChildLayoutHoverResizeDOTween :
@@ -74,12 +73,13 @@ public class ChildLayoutHoverResizeDOTween :
     public void OnPointerClick(PointerEventData eventData)
     {
         Select();
-        ArtGameManager.Instance.selectedTableCode = GetComponent<ChildTableData>().childTableCode;
-        ArtGameManager.Instance.selectedMaxSizeID = GetComponent<ChildTableData>().matchSizeId;
-        ArtGameManager.Instance.selectedMinBuyIn = GetComponent<ChildTableData>().minBuyIn;
-        ArtGameManager.Instance.selectedMaxBuyIn = GetComponent<ChildTableData>().maxBuyIn;
-        GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
-        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
+        var manager = ArtGameManager.Instance;
+        var data = GetComponent<ChildTableData>();
+        manager.selectedTableCode = data.childTableCode;
+        manager.selectedMatchSizeID = data.matchSizeId;
+        manager.selectedMinBuyIn = data.minBuyIn.ToString();
+        manager.selectedMaxBuyIn = data.maxBuyIn.ToString();
+        manager.pendingMatchSizeTableCode = string.Empty;
         eventData.Use(); // ⛔ prevents background click
         var client = GameServerClient.Instance;
         if (!client.IsConnected || string.IsNullOrEmpty(client.SessionId))
@@ -105,37 +105,46 @@ public class ChildLayoutHoverResizeDOTween :
     public void OnDoubleClick()
     {
         Debug.Log("DOUBLE CLICK!");
-        ArtGameManager.Instance.PopUpSelectPlayer();
-        SetGlobalSharedData();
-        var matchSizeId = GlobalSharedData.MySelectedMatchSizeID > 0
-            ? GlobalSharedData.MySelectedMatchSizeID
-            : ArtGameManager.Instance.selectedMaxSizeID;
+        var manager = ArtGameManager.Instance;
+        manager.PopUpSelectPlayer();
+        SyncManagerState();
+        var matchSizeId = manager.selectedMatchSizeID;
         if (matchSizeId <= 0)
         {
             Debug.LogWarning("MatchSizeId is invalid. Join skipped.");
             return;
         }
-        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId={matchSizeId} (pre-game)");
-        GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, matchSizeId);
-        ArtGameManager.Instance.PlayPopUpSelectPlayer();
+        var data = GetComponent<ChildTableData>();
+        if (data != null)
+        {
+            var buyInAmount = data.minBuyIn > 0 ? data.minBuyIn : data.maxBuyIn;
+            if (buyInAmount > 0)
+                GameServerClient.SetPendingBuyIn(data.childTableCode, buyInAmount);
+        }
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={manager.selectedTableCode} matchSizeId={matchSizeId} (pre-game)");
+        GameServerClient.SendJoinTableStatic(manager.selectedTableCode, matchSizeId);
+        manager.PlayPopUpSelectPlayer();
     }
 
-    public void SetGlobalSharedData()
+    public void SyncManagerState()
     {
-        GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.gameTokenID;
-        GlobalSharedData.MyPlayerID = ArtGameManager.Instance.playerID;
-        GlobalSharedData.MySelectedTableCode = ArtGameManager.Instance.selectedTableCode;
-        GlobalSharedData.MySelectedMatchSizeID = ArtGameManager.Instance.selectedMaxSizeID;
-        GlobalSharedData.MyLaunchToken = ArtGameManager.Instance.GameLoader.gameToken;
-        GlobalSharedData.MyWebsocketUrl = ArtGameManager.Instance.GameLoader.websocketUrl;
-        GlobalSharedData.MyOperatorGameID = ArtGameManager.Instance.GameLoader.opId;
+        var manager = ArtGameManager.Instance;
+        manager.launchToken = manager.gameTokenID;
+
+        if (manager.GameLoader != null)
+        {
+            manager.launchToken = manager.GameLoader.gameToken;
+            manager.websocketUrl = manager.GameLoader.websocketUrl;
+            manager.operatorGameID = manager.GameLoader.opId;
+        }
+
         Debug.Log(
-        $"[GlobalSharedData SET]\n" +
-        $"MyPlayerID: {GlobalSharedData.MyPlayerID}\n" +
-        $"MyLaunchToken: {GlobalSharedData.MyLaunchToken}\n" +
-        $"MySelectedTableCode: {GlobalSharedData.MySelectedTableCode}\n" +
-        $"MyWebsocketUrl: {GlobalSharedData.MyWebsocketUrl}\n" +
-        $"MyOperatorGameID: {GlobalSharedData.MyOperatorGameID}"
+        $"[ArtGameManager Sync]\n" +
+        $"playerID: {manager.playerID}\n" +
+        $"launchToken: {manager.launchToken}\n" +
+        $"selectedTableCode: {manager.selectedTableCode}\n" +
+        $"websocketUrl: {manager.websocketUrl}\n" +
+        $"operatorGameID: {manager.operatorGameID}"
     );
     }
 
@@ -168,7 +177,6 @@ public class ChildLayoutHoverResizeDOTween :
 
         currentSelected.Deselect();
         currentSelected = null;
-        ArtGameManager.Instance.selectedTable = null;
     }
 
     public static bool TryConfirmSelected()

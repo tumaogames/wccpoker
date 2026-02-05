@@ -40,6 +40,10 @@ public sealed class GameServerClient : MonoBehaviour
     [SerializeField] long lastInboundUnixMs;
     [SerializeField] long lastResumeUnixMs;
 
+    [Header("Buy-In (optional)")]
+    [SerializeField] long pendingBuyInAmount;
+    [SerializeField] string pendingBuyInTableId;
+
     [Header("Main Thread Queue")]
     [SerializeField] int _maxMainThreadActionsPerFrame = 120;
     [SerializeField] int _catchUpQueueThreshold = 240;
@@ -71,6 +75,7 @@ public sealed class GameServerClient : MonoBehaviour
     bool _reconnectPending;
     bool _shouldSendResume;
     ulong _resumeSeq;
+    bool _suppressNextReconnect;
     const int ResumeStallMs = 20000;
     const int ResumeCooldownMs = 3000;
 
@@ -408,6 +413,13 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendJoinTable(tableIdValue, matchSizeId);
     }
 
+    public static void SetPendingBuyIn(string tableIdValue, long amount)
+    {
+        var client = Instance;
+        client.pendingBuyInTableId = tableIdValue ?? string.Empty;
+        client.pendingBuyInAmount = Math.Max(0, amount);
+    }
+
     public void SendJoinTable(string tableIdValue, int matchSizeId)
     {
         var req = new JoinTableRequest
@@ -416,6 +428,28 @@ public sealed class GameServerClient : MonoBehaviour
             MatchSizeId = matchSizeId
         };
         SendPacket(MsgType.JoinTableRequest, req);
+    }
+
+    void TrySendPendingBuyIn(string joinedTableId)
+    {
+        if (pendingBuyInAmount <= 0)
+            return;
+
+        var tableIdValue = !string.IsNullOrWhiteSpace(joinedTableId)
+            ? joinedTableId
+            : pendingBuyInTableId;
+
+        if (string.IsNullOrWhiteSpace(tableIdValue))
+        {
+            Debug.LogWarning("GameServerClient: pending buy-in skipped (missing tableId).");
+            return;
+        }
+
+        NetworkDebugLogger.LogSend("BuyIn", $"tableId={tableIdValue} amount={pendingBuyInAmount}");
+        SendBuyIn(tableIdValue, pendingBuyInAmount);
+
+        pendingBuyInAmount = 0;
+        pendingBuyInTableId = string.Empty;
     }
 
     public static void SendBuyInStatic(string tableIdValue, long amount)
@@ -525,6 +559,12 @@ public sealed class GameServerClient : MonoBehaviour
         _socket = null;
         isConnected = false;
         _isConnecting = false;
+    }
+
+    public void CloseAndSuppressReconnect()
+    {
+        _suppressNextReconnect = true;
+        Close();
     }
 
     public void SendJoinTable(string tableIdValue)
@@ -896,6 +936,8 @@ public sealed class GameServerClient : MonoBehaviour
                     EnqueueMainThread(() =>
                     {
                         playerId = connectResponse.PlayerId;
+                        if (!string.IsNullOrWhiteSpace(playerId))
+                            PokerNetConnect.OwnerPlayerID = playerId;
                         sessionId = connectResponse.SessionId;
                         credits = connectResponse.Credits;
                         resumeWindowSec = connectResponse.ResumeWindowSec;
@@ -909,17 +951,8 @@ public sealed class GameServerClient : MonoBehaviour
                         ConnectResponseReceived?.Invoke(connectResponse);
                         MessageReceived?.Invoke(msgType, connectResponse);
                         Debug.Log(playerId + " Credit: " + credits);
-                        //ArtGameManager.Instance.coinText.text = "Php " + credits;
-
-                        //sharedData.myPlayerID = playerId;
                         Debug.Log($"{playerId} Credit: {credits}");
                         Debug.Log("myPlayerID:" + playerId);
-                        //if (ArtGameManager.Instance != null)
-                        //{
-                        //    ArtGameManager.Instance.playerID = playerId;
-                        //    if (ArtGameManager.Instance.coinText != null)
-                        //        ArtGameManager.Instance.coinText.text = "Php " + credits;
-                        //}
                         // RENDER: update player HUD (player id, session, credits, protocol).
                         // Example:
                         // - show connect success toast
@@ -948,8 +981,6 @@ public sealed class GameServerClient : MonoBehaviour
                         TableListReceived?.Invoke(tableList);
                         MessageReceived?.Invoke(msgType, tableList);
                         Debug.Log("Recieved table list with " + tableList.Tables.Count + " tables.");
-                        //if (ArtGameManager.Instance != null)
-                        //    ArtGameManager.Instance.GenerateTable(tableList);
 
                         // RENDER: build table list UI.
                         // Example:
@@ -1259,6 +1290,8 @@ public sealed class GameServerClient : MonoBehaviour
                             tableId = joinTableResponse.TableId;
                         JoinTableResponseReceived?.Invoke(joinTableResponse);
                         MessageReceived?.Invoke(msgType, joinTableResponse);
+                        if (joinTableResponse.Success)
+                            TrySendPendingBuyIn(joinTableResponse.TableId);
 
                         // RENDER: show join result + seat assignment.
                         // Example:
@@ -1462,6 +1495,12 @@ public sealed class GameServerClient : MonoBehaviour
 
     void ScheduleReconnect(string reason)
     {
+        if (_suppressNextReconnect)
+        {
+            _suppressNextReconnect = false;
+            return;
+        }
+
         if (!autoReconnect)
             return;
 

@@ -75,6 +75,13 @@ public class gameLoader : MonoBehaviour
 
     IEnumerator ConnectWithTokenRoutine(string token, string reason)
     {
+        if (ArtGameManager.Instance != null)
+        {
+            ArtGameManager.Instance.launchToken = token;
+            ArtGameManager.Instance.websocketUrl = websocketUrl;
+            ArtGameManager.Instance.operatorGameID = opId;
+        }
+
         var client = GameServerClient.Instance;
         if (client != null && client.IsConnected && !string.IsNullOrEmpty(client.SessionId))
         {
@@ -95,5 +102,4 @@ public class gameLoader : MonoBehaviour
         GameServerClient.ForceConnectWithLaunchToken(token, opId);
         Debug.Log($"[gameLoader] Connecting ({reason}) token={token}");
     }
-
 }

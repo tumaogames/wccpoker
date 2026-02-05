@@ -99,10 +99,13 @@ public class LayoutHoverResizeDOTween :
     void OnDoubleClick()
     {
         Debug.Log("DOUBLE CLICK!");
-        ArtGameManager.Instance.PopUpSelectPlayer();
-        ArtGameManager.Instance.selectedTableCode = GetComponent<TableData>().tableCode;
-        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={ArtGameManager.Instance.selectedTableCode} matchSizeId=0 (request match sizes)");
-        GameServerClient.SendJoinTableStatic(ArtGameManager.Instance.selectedTableCode, 0);
+        var manager = ArtGameManager.Instance;
+        manager.PopUpSelectPlayer();
+        manager.selectedTableCode = GetComponent<TableData>().tableCode;
+        manager.pendingMatchSizeTableCode = manager.selectedTableCode;
+        manager.selectedMatchSizeID = 0;
+        NetworkDebugLogger.LogSend("JoinTable", $"tableCode={manager.selectedTableCode} matchSizeId=0 (request match sizes)");
+        GameServerClient.SendJoinTableStatic(manager.selectedTableCode, 0);
     }
 
     // =====================
@@ -134,7 +137,6 @@ public class LayoutHoverResizeDOTween :
 
         currentSelected.Deselect();
         currentSelected = null;
-        ArtGameManager.Instance.selectedTable = null;
     }
 
     public static bool TryConfirmSelected()

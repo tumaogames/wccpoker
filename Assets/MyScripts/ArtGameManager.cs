@@ -4,74 +4,82 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Com.poker.Core;
-using Com.Poker.Core;
-using Google.Protobuf;
 using UnityEngine.UI;
 
 public class ArtGameManager : MonoBehaviour
 {
-    public string selectedTableID;
-    public string selectedTableCode;
-    public int selectedMaxSizeID;
-    public long selectedMinBuyIn;
-    public long selectedMaxBuyIn;
-    public string selectedTable;
-    public string playerID;
-    public static ArtGameManager Instance;
-    public gameLoader GameLoader;
-    public bool end;
+    [Header("Shared Runtime Data (Inspector)")]
+    [SerializeField] public string playerID = string.Empty;
+    [SerializeField] public string launchToken = string.Empty;
+    [SerializeField] public string selectedTableCode = string.Empty;
+    [SerializeField] public int selectedMatchSizeID = 0;
+    [SerializeField] public string pendingMatchSizeTableCode = string.Empty;
+    [SerializeField] public string websocketUrl = string.Empty;
+    [SerializeField] public string operatorGameID = string.Empty;
+    [SerializeField] public string selectedMinBuyIn = string.Empty;
+    [SerializeField] public string selectedMaxBuyIn = string.Empty;
+
+    
+
     [Header("Runtime Injected Data")]
     public string gameTokenID;
     public bool enableSound;
     public GameObject selecPlayerNow;
-    public RectTransform imageParentContainer;   // Image RectTransform
+    public RectTransform imageParentContainer;
     public RectTransform imageSelectContainer;
-    public GameObject tablePrefab;          // UI prefab (must have RectTransform)
+    public GameObject tablePrefab;
     public GameObject selectTablePrefab;
-    public enum GameState { MainMenu, Playing, Paused, GameOver }
-    public GameState CurrentState { get; private set; }
     public int currentScore;
     public TMP_Text coinText;
     public bool isInitialized;
+    public static ArtGameManager Instance;
+    public gameLoader GameLoader;
+    public bool end;
     string _lastToken;
+
     [Header("Performance")]
     [SerializeField] bool usePooling = true;
     [SerializeField] bool clearTablesOnRefresh = true;
+
     readonly List<GameObject> _activeTables = new List<GameObject>();
     readonly List<GameObject> _activeSelectTables = new List<GameObject>();
     readonly Dictionary<GameObject, Queue<GameObject>> _pool = new Dictionary<GameObject, Queue<GameObject>>();
     Transform _poolRoot;
+
     public int CurrentScore
     {
         get { return currentScore; }
-        set
-        {
-            currentScore = value;
-        }
+        set { currentScore = value; }
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
         TokenManager.TokenSet += OnTokenSet;
+        GameServerClient.ConnectResponseReceivedStatic += OnConnectResponse;
+        GameServerClient.TableListReceivedStatic += OnTableListReceived;
+        SyncManagerState();
+        TrySyncPlayerIdentityFromClient();
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
         TokenManager.TokenSet -= OnTokenSet;
+        GameServerClient.ConnectResponseReceivedStatic -= OnConnectResponse;
+        GameServerClient.TableListReceivedStatic -= OnTableListReceived;
     }
 
-    private void OnTokenSet(string token)
+    void OnTokenSet(string token)
     {
         ApplyToken(token, "event");
     }
 
-    private void Awake()
+    void Awake()
     {
-        // Singleton setup
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SyncManagerState();
         }
         else
         {
@@ -79,19 +87,14 @@ public class ArtGameManager : MonoBehaviour
         }
     }
 
-    private void Start()
+    void Start()
     {
-
         Debug.LogWarning(" GameManager waiting for token...");
-
-
-        ChangeState(GameState.MainMenu);
         StartCoroutine(WaitForToken());
     }
 
     IEnumerator WaitForToken()
     {
-        // Safety net: if token arrives after Start or OnEnable missed it, pull once here.
         while (!isInitialized)
         {
             if (TokenManager.HasToken())
@@ -113,43 +116,99 @@ public class ArtGameManager : MonoBehaviour
             return;
 
         _lastToken = token;
+        launchToken = token;
         gameTokenID = token;
         isInitialized = true;
         Debug.Log($"[ArtGameManager] Token set ({reason}).");
     }
 
-
-    public void ChangeState(GameState newState)
+    void OnConnectResponse(ConnectResponse resp)
     {
-        CurrentState = newState;
+        if (resp == null)
+            return;
 
-        switch (newState)
-        {
-            case GameState.MainMenu:
-                Time.timeScale = 1f;
-                break;
-            case GameState.Playing:
-                Time.timeScale = 1f;
-                break;
-            case GameState.Paused:
-                Time.timeScale = 0f;
-                break;
-            case GameState.GameOver:
-                Time.timeScale = 1f;
-                break;
-        }
+        SetPlayerIdentity(resp.PlayerId);
 
-        Debug.Log("Game State changed to: " + newState);
+        if (coinText != null)
+            coinText.text = "Php " + resp.Credits;
     }
-    public void RestartGame()
+
+    void OnTableListReceived(PokerTableList tableList)
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        ChangeState(GameState.Playing);
+        GenerateTable(tableList);
+    }
+
+    void TrySyncPlayerIdentityFromClient()
+    {
+        var client = GameServerClient.Instance;
+        if (client == null)
+            return;
+
+        SetPlayerIdentity(client.PlayerId);
+    }
+
+    void SetPlayerIdentity(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            return;
+
+        playerID = id;
+    }
+
+    void SyncManagerState()
+    {
+        playerID = FirstNonEmpty(playerID);
+
+        var token = FirstNonEmpty(launchToken, gameTokenID);
+        launchToken = token;
+        gameTokenID = token;
+
+        selectedTableCode = FirstNonEmpty(selectedTableCode);
+        pendingMatchSizeTableCode = FirstNonEmpty(pendingMatchSizeTableCode);
+        websocketUrl = FirstNonEmpty(websocketUrl);
+        operatorGameID = FirstNonEmpty(operatorGameID);
+
+        selectedMatchSizeID = Mathf.Max(0, selectedMatchSizeID);
+
+        if (GameLoader != null)
+        {
+            if (string.IsNullOrWhiteSpace(launchToken) && !string.IsNullOrWhiteSpace(GameLoader.gameToken))
+            {
+                launchToken = GameLoader.gameToken;
+                gameTokenID = GameLoader.gameToken;
+            }
+
+            if (string.IsNullOrWhiteSpace(websocketUrl) && !string.IsNullOrWhiteSpace(GameLoader.websocketUrl))
+                websocketUrl = GameLoader.websocketUrl;
+
+            if (string.IsNullOrWhiteSpace(operatorGameID) && !string.IsNullOrWhiteSpace(GameLoader.opId))
+                operatorGameID = GameLoader.opId;
+        }
+    }
+
+    static string FirstNonEmpty(params string[] values)
+    {
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(values[i]))
+                return values[i];
+        }
+        return string.Empty;
+    }
+
+    void OnValidate()
+    {
+        SyncManagerState();
     }
 
     public void StartMusic()
     {
         //AudioManager.Instance.PlayMusic("BGM");
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GenerateTable(PokerTableList tableInfo)
@@ -159,19 +218,15 @@ public class ArtGameManager : MonoBehaviour
 
         if (IsMatchSizeList(tableInfo))
         {
-            //Eto yong part na mag gegenerate ng match size options sa UI
-            //Debug.Log($"[LobbySample] MatchSize list for table={selectedTableCode} count={tableInfo.Tables.Count}");
             ChildClear(imageSelectContainer);
             foreach (var t in tableInfo.Tables)
             {
                 Debug.Log($"  matchSizeId={t.TableId} maxPlayers={t.MaxPlayers} minStart={t.MinPlayersToStart}");
-                //dito mo add yung UI spawn code for match size options
                 SelectSpawn(t);
             }
         }
         else
         {
-            //Eto yong part na mag gegenreate ng table sa UI
             if (clearTablesOnRefresh)
                 ClearTables();
             foreach (var item in tableInfo.Tables)
@@ -180,10 +235,11 @@ public class ArtGameManager : MonoBehaviour
             }
         }
     }
+
     static bool IsMatchSizeList(PokerTableList list)
     {
         if (list == null || list.Tables == null || list.Tables.Count == 0)
-         return false;
+            return false;
 
         var code = list.Tables[0].TableCode;
         foreach (var t in list.Tables)
@@ -409,28 +465,25 @@ public class ArtGameManager : MonoBehaviour
             return false;
         }
 
-        matchSizeId = selectedMaxSizeID;
-        if (matchSizeId <= 0)
-            matchSizeId = GlobalSharedData.MySelectedMatchSizeID;
-
+        matchSizeId = selectedMatchSizeID;
         return matchSizeId > 0;
     }
 
     void ApplyGlobalSelection(string tableCode, int matchSizeId)
     {
-        GlobalSharedData.MyPlayerID = playerID;
-        GlobalSharedData.MySelectedTableCode = tableCode;
-        GlobalSharedData.MySelectedMatchSizeID = matchSizeId;
+        selectedTableCode = tableCode ?? string.Empty;
+        selectedMatchSizeID = Mathf.Max(0, matchSizeId);
 
         if (GameLoader != null)
         {
-            GlobalSharedData.MyLaunchToken = GameLoader.gameToken;
-            GlobalSharedData.MyWebsocketUrl = GameLoader.websocketUrl;
-            GlobalSharedData.MyOperatorGameID = GameLoader.opId;
+            launchToken = GameLoader.gameToken;
+            websocketUrl = GameLoader.websocketUrl;
+            operatorGameID = GameLoader.opId;
+            gameTokenID = launchToken;
         }
         else
         {
-            GlobalSharedData.MyLaunchToken = gameTokenID;
+            launchToken = gameTokenID;
         }
     }
 }
