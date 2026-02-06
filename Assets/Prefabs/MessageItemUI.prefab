@@ -33,9 +33,9 @@ RectTransform:
   - {fileID: 5494292121780271116}
   m_Father: {fileID: 3470968560735462679}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 44.7, y: -0.0000009536743}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 44.699997, y: -41}
   m_SizeDelta: {x: 71.8569, y: 71.8569}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6754207264516671118
@@ -198,10 +198,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3470968560735462679}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 42.514557, y: 27.217083}
-  m_SizeDelta: {x: -85.0292, y: -65.3994}
+  m_AnchoredPosition: {x: 42.514557, y: -14.282928}
+  m_SizeDelta: {x: -85.0292, y: 17.600601}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4178066054070162788
 CanvasRenderer:
@@ -527,6 +527,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerNameText: {fileID: 5689470905725707175}
   _messageText: {fileID: 6798479420592492405}
+  _targetRect: {fileID: 3470968560735462679}
+  _minHeight: 72
+  _maxHeight: 220
+  _verticalPadding: 20
+  _keepBottomAligned: 1
 --- !u!1 &9151495222378215205
 GameObject:
   m_ObjectHideFlags: 0

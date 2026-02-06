@@ -30,7 +30,7 @@ namespace WCC.Poker.Client
                         //m.CurrentBet
                         //m.MinRaise
                         //r = CurrentBet + MinRaise
-                        var isTurnStarted = m.State != TableState.Reset || m.State != TableState.Waiting;
+                        var isTurnStarted = m.State != TableState.Reset && m.State != TableState.Waiting;
 
                         _onJoinTableBoolEvent?.Invoke(isTurnStarted);
 

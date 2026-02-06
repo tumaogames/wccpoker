@@ -6,6 +6,7 @@
 using Com.poker.Core;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 
@@ -18,6 +19,7 @@ namespace WCC.Poker.Client
         [SerializeField] Transform _messageContainer;
         [SerializeField] TMP_InputField _chatIF;
         [SerializeField] Button _chatSendButton;
+        [SerializeField] UnityEvent _onMessageRecievedEvent;
 
         private void Start() => _chatSendButton.onClick.AddListener(SendChant);
 
@@ -36,6 +38,7 @@ namespace WCC.Poker.Client
             //Debug.Log($"[CHAT] {msg.FromDisplayName}({msg.FromPlayerId}) seat={msg.Seat} => {msg.Message}");
 
             CreateMessageInstance(msg);
+            _onMessageRecievedEvent?.Invoke();
         }
 
         void SendChant()
