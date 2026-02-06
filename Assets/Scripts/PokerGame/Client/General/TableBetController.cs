@@ -8,6 +8,7 @@ using DG.Tweening;
 using Google.Protobuf;
 using NaughtyAttributes;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -22,10 +23,12 @@ namespace WCC.Poker.Client
 {
     public class TableBetController : MonoBehaviour
     {
+        public static TableBetController Instance { get; private set; }
         [SerializeField] BetValueUIText _betValueUITextPrefab;
         [SerializeField] GameObject _betValuePlusEffectPrefab;
         [SerializeField] Transform _betGroupContainer;
         [SerializeField] Transform[] _playersBetHolderPositions;
+        [SerializeField] float _betMoveToPotDuration = 0.35f;
 
         [Header("[POT-GROUP]")]
         [SerializeField] GameObject _bigPotPrefab;
@@ -36,12 +39,23 @@ namespace WCC.Poker.Client
         readonly ConcurrentDictionary<string, (PlayerHUD_UI, int)> _playerHUDRecords = new();
 
         int _currentTotalPotValue = 0;
+        int _pendingMoveToPot = 0;
+        bool _isMovingToPot = false;
 
         TableState _currentTableState;
 
         public static event Action<string> OnPotChipsMovedToWinner;
 
-        private void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+            PokerNetConnect.OnMessageEvent += OnMessage;
+        }
 
         private void Start()
         {
@@ -155,20 +169,58 @@ namespace WCC.Poker.Client
         public void MoveAllBetsToPot()
         {
             if (_playerBetDictionary.Count == 0) return;
+            StartCoroutine(MoveAllBetsToPotRoutine());
+        }
+
+        public IEnumerator MoveAllBetsToPotRoutine()
+        {
+            if (_playerBetDictionary.Count == 0)
+                yield break;
+
+            _isMovingToPot = true;
             if(!_potHolder.activeInHierarchy) _potHolder.SetActive(true);
+            _pendingMoveToPot = _playerBetDictionary.Count;
+            var movingBets = new List<GameObject>(_pendingMoveToPot);
+
             foreach (var bet in _playerBetDictionary)
             {
                 bet.Value.SetEnableValueHolder(false);
-                bet.Value.transform.DOMove(_potHolder.transform.position, 0.15f)
+                movingBets.Add(bet.Value.gameObject);
+                bet.Value.transform.DOMove(_potHolder.transform.position, _betMoveToPotDuration)
                 .SetEase(Ease.InOutSine)
                 .OnComplete(() =>
                 {
                     AudioManager.main.PlayAudio("Chips_Pot", 0);
                     _potValueText.text = FormatChips(_currentTotalPotValue);
                     Destroy(bet.Value.gameObject);
+                    _pendingMoveToPot--;
                 });
             }
             _playerBetDictionary.Clear();
+
+            yield return new WaitUntil(() => _pendingMoveToPot <= 0);
+            yield return new WaitUntil(() =>
+            {
+                for (int i = 0; i < movingBets.Count; i++)
+                {
+                    if (movingBets[i] != null)
+                        return false;
+                }
+                return true;
+            });
+            _isMovingToPot = false;
+        }
+
+        public IEnumerator WaitForBetsToPot()
+        {
+            if (_isMovingToPot)
+            {
+                yield return new WaitUntil(() => !_isMovingToPot);
+                yield break;
+            }
+
+            if (_playerBetDictionary.Count > 0)
+                yield return MoveAllBetsToPotRoutine();
         }
 
         void MoveAllPotChipsToWinners(IReadOnlyList<string> playerIds)
@@ -237,16 +289,20 @@ namespace WCC.Poker.Client
 
         void OnActionBroadcast(ActionBroadcast m)
         {
-            if (m.Action == PokerActionType.Bet || m.Action == PokerActionType.AllIn || m.Action == PokerActionType.Call)
+            if (m.Action == PokerActionType.Bet ||
+                m.Action == PokerActionType.AllIn ||
+                m.Action == PokerActionType.Call ||
+                m.Action == PokerActionType.Raise)
+            {
                 SetBetPlayer((int)m.CurrentBet, m.PlayerId);
+            }
         }
 
         async void OnTableSnapshot(TableSnapshot m)
         {
             if (_currentTableState != m.State)
             {
-                await Task.Delay(1000);
-
+                //await Task.Delay(300);
                 MoveAllBetsToPot();
 
                 _currentTableState = m.State;

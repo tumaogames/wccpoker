@@ -28,6 +28,9 @@ namespace WCC.Poker.Client
 
         GameServerClient client;
         int _currentBet;
+        int _currentStack;
+        int _minRaise;
+        int _maxRaise;
 
         void OnEnable()
         {
@@ -53,12 +56,20 @@ namespace WCC.Poker.Client
                         //r = CurrentBet + MinRaise
 
                         _currentBet = (int)m.CurrentBet;
-                        _raise_chipsValueVolume.SetMinMaxChips((int)m.CurrentBet + (int)m.MinRaise);
-                        _bet_chipsValueVolume.SetMinMaxChips(1);
+                        var snapshotMinRaise = (int)m.CurrentBet + (int)m.MinRaise;
+                        ApplyChipsLimits(snapshotMinRaise, _maxRaise);
 
                         break;
                     }
-
+                case MsgType.TurnUpdate:
+                    {
+                        var m = (TurnUpdate)msg;
+                        _currentStack = (int)m.Stack;
+                        _minRaise = (int)m.MinRaise;
+                        _maxRaise = (int)m.MaxRaise;
+                        ApplyChipsLimits(_minRaise, _maxRaise);
+                        break;
+                    }
             }
         }
 
@@ -91,7 +102,7 @@ namespace WCC.Poker.Client
         public void SetFoldAction_Button() => CloseActionButtons(()=> GameServerClient.SendFoldStatic());
 
         [Button]
-        public void SetAllInAction_Button() => CloseActionButtons(()=> GameServerClient.SendAllInStatic(200));
+        public void SetAllInAction_Button() => CloseActionButtons(()=> GameServerClient.SendAllInStatic(_currentStack));
 
         [Button]
         public void SetBetAction_Button() => CloseActionButtons(() => GameServerClient.SendBetStatic(_bet_chipsValueVolume.ChipsValue));
@@ -100,6 +111,19 @@ namespace WCC.Poker.Client
         {
             _userButtonActions.PlayAnimation("PlayActionButtonGoDown");
             callback();
+        }
+
+        void ApplyChipsLimits(int minRaise, int maxRaise)
+        {
+            var stack = Mathf.Max(0, _currentStack);
+
+            var min = Mathf.Clamp(minRaise, 0, stack);
+            var max = maxRaise > 0 ? Mathf.Clamp(maxRaise, min, stack) : stack;
+
+            _raise_chipsValueVolume.SetMinMaxChips(min, max);
+
+            var betMin = Mathf.Clamp(_currentBet, 0, stack);
+            _bet_chipsValueVolume.SetMinMaxChips(betMin, stack);
         }
     }
 }

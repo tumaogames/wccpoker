@@ -30,6 +30,7 @@ namespace WCC.Poker.Client
         [SerializeField] float _cardSize = 0.56f;
         [SerializeField] Transform[] _commCardsPosition;
         [SerializeField] float _faceDownDealDurationSec = 5f;
+        [SerializeField] float _communityDealDelaySec = 0.5f;
 
         [Header("[CONTAINERS]")]
         [SerializeField] Transform _deckTableGroup;
@@ -48,6 +49,7 @@ namespace WCC.Poker.Client
         readonly ConcurrentDictionary<string, int> _playerSeatRecords = new();
         readonly ConcurrentDictionary<string, PlayerCardsPack> _playerCardsRecords = new();
         readonly List<(string playerId, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> cards)> _pendingDeals = new();
+        int _dealAnimRefCount = 0;
         Coroutine _dealFaceDownCoroutine;
         TableState _lastTableState = TableState.Unspecified;
         bool _inShowdown = false;
@@ -95,26 +97,6 @@ namespace WCC.Poker.Client
             _ownerSeat = -1;
             _lastOwnerSeat = -1;
         }
-
-        #region DEBUG
-        [Space(20)]
-        public int Debug_communityCardsRecords;
-        public int Debug_playerSeatRecords;
-        public int Debug_playerCardsRecords;
-
-        public int Debug_cardViewList_onPlayers;
-        public int Debug_cardViewList_onCommunity;
-
-        private void Update()
-        {
-            Debug_communityCardsRecords = _communityCardsRecords.Count;
-            Debug_playerSeatRecords = _playerSeatRecords.Count;
-            Debug_playerCardsRecords = _playerCardsRecords.Count;
-
-            Debug_cardViewList_onPlayers = _cardViewList_onPlayers.Count;
-            Debug_cardViewList_onCommunity = _cardViewList_onCommunity.Count;
-        }
-        #endregion DEBUG
 
         /// <summary>
         /// This coroutine rereturns lahat ng cards sa banker
@@ -265,7 +247,8 @@ namespace WCC.Poker.Client
             if (m.State == TableState.PreFlop && _communityCardsRecords.Count > 0)
                 ClearAllCardsImmediate();
 
-            if (m.CommunityCards != null && m.CommunityCards.Count > 0)
+            if (m.CommunityCards != null && m.CommunityCards.Count > 0 &&
+                (m.State == TableState.Flop || m.State == TableState.Turn || m.State == TableState.River))
             {
                 StartCoroutine(DealCardsForCommunity(m.CommunityCards));
             }
@@ -302,7 +285,7 @@ namespace WCC.Poker.Client
                 {
                     StopCoroutine(_dealFaceDownCoroutine);
                     _dealFaceDownCoroutine = null;
-                    BankerAnimController.main.StopDealsCardAnimation();
+                    StopDealAnimation();
                 }
 
                 _dealFaceDownCoroutine = StartCoroutine(DealFaceDownRoundRobin(m.Players));
@@ -313,7 +296,7 @@ namespace WCC.Poker.Client
                     _pendingClearAfterShowdown = true;
                 else
                     ClearAllCardsImmediate();
-                BankerAnimController.main.StopDealsCardAnimation();
+                StopDealAnimation();
                 _requestedRejoinThisHand = false;
             }
             if (m.State == TableState.Reset)
@@ -322,7 +305,7 @@ namespace WCC.Poker.Client
                     _pendingClearAfterShowdown = true;
                 else
                     ClearAllCardsImmediate();
-                BankerAnimController.main.StopDealsCardAnimation();
+                StopDealAnimation();
                 _requestedRejoinThisHand = false;
             }
 
@@ -354,8 +337,19 @@ namespace WCC.Poker.Client
             {
                 if (_logHandSummary)
                     Debug.Log($"CommunityCards ({m.Street}): {PokerNetConnect.FormatCards(m.Cards)}");
-                StartCoroutine(DealCardsForCommunity(m.Cards));
+                StartCoroutine(DealCommunityAfterBets(m.Cards));
             }
+        }
+
+        IEnumerator DealCommunityAfterBets(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> cards)
+        {
+            if (TableBetController.Instance != null)
+                yield return TableBetController.Instance.WaitForBetsToPot();
+
+            if (_communityDealDelaySec > 0f)
+                yield return new WaitForSeconds(_communityDealDelaySec);
+
+            yield return DealCardsForCommunity(cards);
         }
 
         void OnDealHoleCards(DealHoleCards m)
@@ -512,7 +506,10 @@ namespace WCC.Poker.Client
 
         IEnumerator DealCardsForCommunity(Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> infoList)
         {
-            BankerAnimController.main.PlayDealsCardAnimation();
+            if (_communityDealDelaySec > 0f)
+                yield return new WaitForSeconds(_communityDealDelaySec);
+
+            StartDealAnimation();
             for (int i = 0; i < infoList.Count; i++)
             {
                 var key = CardKey(infoList[i]);
@@ -538,7 +535,7 @@ namespace WCC.Poker.Client
                 }
                 yield return null;
             }
-            BankerAnimController.main.StopDealsCardAnimation();
+            StopDealAnimation();
         }
 
 
@@ -568,7 +565,7 @@ namespace WCC.Poker.Client
                 }
             }
 
-            BankerAnimController.main.PlayDealsCardAnimation();
+            StartDealAnimation();
 
             AudioManager.main.PlayAudio("Cards", 1);
             List<CardView> _cardList = new();
@@ -597,10 +594,12 @@ namespace WCC.Poker.Client
                 IsPlaceholder = false,
             });
             RebuildPlayerLayout(_playerTablePositions[seat]);
+            if (IsOwnerId(playerID))
+                EnsureOwnerCardsOpen();
 
             await Task.Delay(500);
 
-            BankerAnimController.main.StopDealsCardAnimation();
+            StopDealAnimation();
         }
 
         void DealFaceDownCards(string playerID, int seat, int count)
@@ -665,7 +664,7 @@ namespace WCC.Poker.Client
             var delay = totalCards > 0 ? _faceDownDealDurationSec / totalCards : 0f;
             delay = Mathf.Clamp(delay, 0.02f, 1f);
 
-            BankerAnimController.main.PlayDealsCardAnimation();
+            StartDealAnimation();
             try
             {
                 for (int round = 0; round < 2; round++)
@@ -680,7 +679,7 @@ namespace WCC.Poker.Client
             }
             finally
             {
-                BankerAnimController.main.StopDealsCardAnimation();
+                StopDealAnimation();
             }
         }
 
@@ -784,6 +783,25 @@ namespace WCC.Poker.Client
             _playerCardsRecords.Clear();
             _pendingDeals.Clear();
             _playerServerSeats.Clear();
+            StopDealAnimation();
+        }
+
+        void StartDealAnimation()
+        {
+            _dealAnimRefCount++;
+            if (_dealAnimRefCount == 1 && BankerAnimController.main != null)
+                BankerAnimController.main.PlayDealsCardAnimation();
+        }
+
+        void StopDealAnimation()
+        {
+            _dealAnimRefCount--;
+            if (_dealAnimRefCount <= 0)
+            {
+                _dealAnimRefCount = 0;
+                if (BankerAnimController.main != null)
+                    BankerAnimController.main.StopDealsCardAnimation();
+            }
         }
 
         void SetWinners(IEnumerable<string> playerIds)

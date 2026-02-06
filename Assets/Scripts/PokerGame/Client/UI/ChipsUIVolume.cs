@@ -35,6 +35,12 @@ namespace WCC.Poker.Client
             _minimumChips = min;
         }
 
+        public void SetMinMaxChips(int min, int max)
+        {
+            _minimumChips = min;
+            _maximumChips = max;
+        }
+
         private void OnEnable()
         {
             if (_betSlider != null)

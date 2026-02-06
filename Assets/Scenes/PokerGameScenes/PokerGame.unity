@@ -10567,6 +10567,7 @@ MonoBehaviour:
   - {fileID: 120851463}
   - {fileID: 2088558708}
   - {fileID: 610728399}
+  _betMoveToPotDuration: 0.35
   _bigPotPrefab: {fileID: 372859107937285492, guid: da270587ce889ca4ea0270ca77487d0d, type: 3}
   _potValueText: {fileID: 2011289085}
   _potHolder: {fileID: 341386809}
@@ -10606,6 +10607,7 @@ MonoBehaviour:
   - {fileID: 381683634}
   - {fileID: 1201181986}
   _faceDownDealDurationSec: 1
+  _communityDealDelaySec: 0.5
   _deckTableGroup: {fileID: 244342986}
   _bankerPosition: {fileID: 988483952}
   _communityTableContainer: {fileID: 1743183865}
@@ -10623,11 +10625,6 @@ MonoBehaviour:
   _logDealWarnings: 1
   _logHandSummary: 0
   _logStateTransitions: 0
-  Debug_communityCardsRecords: 0
-  Debug_playerSeatRecords: 0
-  Debug_playerCardsRecords: 0
-  Debug_cardViewList_onPlayers: 0
-  Debug_cardViewList_onCommunity: 0
 --- !u!114 &841922923
 MonoBehaviour:
   m_ObjectHideFlags: 0
