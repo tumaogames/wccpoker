@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Com.poker.Core;
 using UnityEngine.UI;
+using WCC.Core;
 
 public class ArtGameManager : MonoBehaviour
 {
@@ -443,6 +444,7 @@ public class ArtGameManager : MonoBehaviour
         }
 
         ApplyGlobalSelection(tableCode, matchSizeId);
+        SyncVaultFromSelection();
         SceneManager.LoadScene("PokerGame");
     }
 
@@ -483,6 +485,26 @@ public class ArtGameManager : MonoBehaviour
         {
             launchToken = gameTokenID;
         }
+    }
+
+    void SyncVaultFromSelection()
+    {
+        // Populate PokerSharedVault so PokerNetConnect can use the lobby selection.
+        var token = !string.IsNullOrWhiteSpace(launchToken) ? launchToken : gameTokenID;
+        if (!string.IsNullOrWhiteSpace(token))
+            PokerSharedVault.LaunchToken = token;
+
+        if (!string.IsNullOrWhiteSpace(websocketUrl))
+            PokerSharedVault.ServerURL = websocketUrl;
+
+        if (!string.IsNullOrWhiteSpace(operatorGameID))
+            PokerSharedVault.OperatorPublicID = operatorGameID;
+
+        if (!string.IsNullOrWhiteSpace(selectedTableCode))
+            PokerSharedVault.TableCode = selectedTableCode;
+
+        if (selectedMatchSizeID > 0)
+            PokerSharedVault.MatchSizeId = selectedMatchSizeID;
     }
 }
 
