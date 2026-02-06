@@ -16,12 +16,15 @@ namespace WCC.Poker.Client
         [SerializeField] TMP_Text _tableNameText;
         [SerializeField] Button _tableButton;
         [SerializeField] Image _tableImage;
-        UnityAction<Sprite> _onClickFallback;
+        UnityAction<int, Sprite> _onClickFallback;
+        [SerializeField] GameObject _checkIcon;
 
         Sprite _tableSprite;
+        int _tableIndex;
 
-        public void InitializeTableTemplateButton(TableTemplateData.TableDesigns template, UnityAction<Sprite> _Callback)
+        public void InitializeTableTemplateButton(int index, TableTemplateData.TableDesigns template, UnityAction<int, Sprite> _Callback)
         {
+            _tableIndex = index;
             _tableNameText.text = template.TableName;
             _tableImage.sprite = template.TableSprite;
             _tableSprite = template.TableSprite;
@@ -29,6 +32,8 @@ namespace WCC.Poker.Client
             _tableButton.onClick.AddListener(OnClick);
         }
 
-        void OnClick() => _onClickFallback?.Invoke(_tableSprite);
+        void OnClick() => _onClickFallback?.Invoke(_tableIndex, _tableSprite);
+
+        public void SetCheckEnable(bool isEnableCheck) => _checkIcon.SetActive(isEnableCheck);
     }
 }

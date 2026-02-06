@@ -9,6 +9,7 @@ using Google.Protobuf;
 using NaughtyAttributes;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using TMPro;
@@ -44,8 +45,9 @@ namespace WCC.Poker.Client
 
         private void Start()
         {
+            _potHolder.SetActive(false);
             PlayerHUDController.main.PlayerHUDListListenerEvent += LoadPlayerHUDList;
-            DeckCardsController.OnWinnerEvent += MoveAllPotChipsToWinner;
+            DeckCardsController.OnWinnerEvent += MoveAllPotChipsToWinners;
         }
 
         #region DEBUG
@@ -169,22 +171,47 @@ namespace WCC.Poker.Client
             _playerBetDictionary.Clear();
         }
 
-        void MoveAllPotChipsToWinner(string playerID)
+        void MoveAllPotChipsToWinners(IReadOnlyList<string> playerIds)
         {
-            if(!_playerHUDRecords.ContainsKey(playerID)) return;
-            InstantiateBet(_bigPotPrefab, 
-                _potHolder.transform.position,
-                _playerHUDRecords[playerID].Item1.transform.position,
-                0.8f,
-                Instance =>
+            if (playerIds == null || playerIds.Count == 0)
+                return;
+
+            if (!_potHolder.activeInHierarchy)
+                _potHolder.SetActive(true);
+
+            int pending = 0;
+            foreach (var playerID in playerIds)
+            {
+                if (string.IsNullOrEmpty(playerID))
+                    continue;
+                if (!_playerHUDRecords.ContainsKey(playerID))
+                    continue;
+
+                pending++;
+                InstantiateBet(_bigPotPrefab,
+                    _potHolder.transform.position,
+                    _playerHUDRecords[playerID].Item1.transform.position,
+                    0.8f,
+                    Instance =>
+                {
+                    AudioManager.main.PlayAudio("Chips_Pot", 0);
+                    Destroy(Instance);
+                    OnPotChipsMovedToWinner?.Invoke(playerID);
+
+                    pending--;
+                    if (pending <= 0)
+                    {
+                        _potHolder.SetActive(false);
+                        _potValueText.text = string.Empty;
+                    }
+                });
+            }
+
+            if (pending == 0)
             {
                 _potHolder.SetActive(false);
                 _potValueText.text = string.Empty;
-
-                AudioManager.main.PlayAudio("Chips_Pot", 0);
-                Destroy(Instance);
-                OnPotChipsMovedToWinner?.Invoke(playerID);
-            });
+            }
         }
 
         string FormatChips(int value)

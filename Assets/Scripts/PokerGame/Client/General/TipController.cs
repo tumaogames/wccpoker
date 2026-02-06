@@ -72,8 +72,9 @@ namespace WCC.Poker.Client
 
         void OnClickSendTipButton()
         {
-            GameServerClient.SendTipStatic(GameServerClient.Instance.TableId, int.Parse(_tipIF.text));
-            print("OnClickSendTipButton");
+            var amount = int.Parse(_tipIF.text);
+            GameServerClient.SendTipStatic(GameServerClient.Instance.TableId, amount);
+            print($"[OnClickSendTipButton] TableID: {GameServerClient.Instance.TableId} | Amount: {amount}");
         }
 
         void OnChangeListener(string change) => _confirmButton.interactable = change != string.Empty;

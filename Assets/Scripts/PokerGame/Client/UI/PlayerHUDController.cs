@@ -57,6 +57,9 @@ namespace WCC.Poker.Client
         static long _serverTimeOffsetMs;
         const long ServerOffsetSnapThresholdMs = 2000;
         int _ownerSeat = -1;
+        int _pendingOwnerSeat = -1;
+        int _tableMaxPlayers = 0;
+        int _tablePlayerCount = 0;
 
         #region EDITOR
         private void OnValidate()
@@ -73,18 +76,31 @@ namespace WCC.Poker.Client
 
         private async void Start()
         {
-            DeckCardsController.OnWinnerEvent += async playerID =>
+            DeckCardsController.OnWinnerEvent += async winnerIds =>
             {
-                Debug.Log($"<color=green>WINNER-ID: {playerID} </color>");
-                if (!_inGamePlayersRecords.ContainsKey(playerID)) return;
-                var p = _inGamePlayersRecords[playerID];
+                if (winnerIds == null || winnerIds.Count == 0)
+                    return;
 
-                p.SetEnableWinner(true);
+                var winnerHUDs = new List<PlayerHUD_UI>();
+                foreach (var id in winnerIds)
+                {
+                    Debug.Log($"<color=green>WINNER-ID: {id} </color>");
+                    if (_inGamePlayersRecords.TryGetValue(id, out var hud))
+                        winnerHUDs.Add(hud);
+                }
+
+                if (winnerHUDs.Count == 0)
+                    return;
+
+                foreach (var hud in winnerHUDs)
+                    hud.SetEnableWinner(true);
+
                 AudioManager.main.PlayRandomAudio("Winner", Vector2.zero);
 
                 await Task.Delay(3000);
 
-                p.SetEnableWinner(false);
+                foreach (var hud in winnerHUDs)
+                    hud.SetEnableWinner(false);
             };
 
             TableBetController.OnPotChipsMovedToWinner += OnPotChipsMovedToWinner;
@@ -124,6 +140,8 @@ namespace WCC.Poker.Client
 
         void OnTableSnapshot(TableSnapshot m)
         {
+            _tableMaxPlayers = m.MaxPlayers;
+            _tablePlayerCount = m.Players != null ? m.Players.Count : 0;
             var dealerId = "?";
             var sbId = "?";
             var bbId = "?";
@@ -133,7 +151,10 @@ namespace WCC.Poker.Client
             {
                 _playerServerSeats[p.PlayerId] = p.Seat;
                 if (!string.IsNullOrEmpty(ownerId) && p.PlayerId == ownerId)
+                {
                     _ownerSeat = p.Seat;
+                    _pendingOwnerSeat = _ownerSeat;
+                }
                 if (p.Seat == m.DealerSeat)
                 {
                     if (_inGamePlayersRecords.ContainsKey(_last_dealerId))
@@ -192,6 +213,7 @@ namespace WCC.Poker.Client
 
             RefreshPlayerPositions();
             PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
+            ApplyFoldStatesFromSnapshot(m);
 
             if (m.State == TableState.Reset)
             {
@@ -320,6 +342,9 @@ namespace WCC.Poker.Client
             if (!m.Success)
                 return;
 
+            _pendingOwnerSeat = -1;
+            if (_inGamePlayersRecords.Count > 0)
+                RefreshPlayerPositions();
             _isSpectatorMode = true;
             UpdateOwnerSpectatorState();
         }
@@ -328,6 +353,11 @@ namespace WCC.Poker.Client
         {
             if (!m.Success)
                 return;
+
+            if (m.Seat > 0)
+                _pendingOwnerSeat = m.Seat;
+            if (_inGamePlayersRecords.Count > 0)
+                RefreshPlayerPositions();
 
             _isSpectatorMode = false;
             UpdateOwnerSpectatorState();
@@ -338,6 +368,9 @@ namespace WCC.Poker.Client
             if (!m.Success)
                 return;
 
+            _pendingOwnerSeat = -1;
+            if (_inGamePlayersRecords.Count > 0)
+                RefreshPlayerPositions();
             _isSpectatorMode = true;
             UpdateOwnerSpectatorState();
         }
@@ -390,6 +423,31 @@ namespace WCC.Poker.Client
             }
         }
 
+        void ApplyFoldStatesFromSnapshot(TableSnapshot snapshot)
+        {
+            if (snapshot == null)
+                return;
+
+            if (snapshot.State == TableState.Reset || snapshot.State == TableState.Waiting)
+                return;
+
+            foreach (var p in snapshot.Players)
+            {
+                if (!_inGamePlayersRecords.TryGetValue(p.PlayerId, out var hud))
+                    continue;
+
+                var isFolded = ShouldShowFoldVisual(p.Status);
+                hud.SetFoldedState(isFolded);
+            }
+        }
+
+        static bool ShouldShowFoldVisual(PlayerStatus status)
+        {
+            return status == PlayerStatus.Folded ||
+                   status == PlayerStatus.SittingOut ||
+                   status == PlayerStatus.Disconnected;
+        }
+
         int MapSeatToIndex(int seat)
         {
             var total = _playersTablePositions.Length;
@@ -397,12 +455,22 @@ namespace WCC.Poker.Client
                 return 0;
 
             var ownerIndex = Mathf.Clamp(_ownerSeatIndex, 0, total - 1);
-            if (_ownerSeat <= 0)
+            var effectiveOwnerSeat = _ownerSeat > 0 ? _ownerSeat : (ShouldReserveOwnerSeat() ? _pendingOwnerSeat : -1);
+            if (effectiveOwnerSeat <= 0)
                 return Mathf.Clamp(seat - 1, 0, total - 1);
 
-            var offset = ownerIndex - (_ownerSeat - 1);
+            var offset = ownerIndex - (effectiveOwnerSeat - 1);
             var mapped = ((seat - 1 + offset) % total + total) % total;
             return mapped;
+        }
+
+        bool ShouldReserveOwnerSeat()
+        {
+            if (_pendingOwnerSeat <= 0)
+                return false;
+            if (_tableMaxPlayers <= 0)
+                return false;
+            return _tablePlayerCount < _tableMaxPlayers;
         }
 
         public void SendEmoji(string playerID, Sprite sprite)

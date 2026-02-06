@@ -64,6 +64,8 @@ namespace WCC.Poker.Client
         {
             _cardOutline.SetActive(show);
             _flipAnimation.SetBloomCard();
+            if (show)
+                SetSleepCard(false);
         }
 
         public void SetSleepCard(bool e) => _cardSleepImage.SetActive(e);

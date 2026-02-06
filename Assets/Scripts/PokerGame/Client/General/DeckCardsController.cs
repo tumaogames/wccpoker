@@ -52,6 +52,9 @@ namespace WCC.Poker.Client
         bool _pendingClearAfterShowdown = false;
         int _ownerSeat = -1;
         int _lastOwnerSeat = -1;
+        int _pendingOwnerSeat = -1;
+        int _tableMaxPlayers = 0;
+        int _tablePlayerCount = 0;
         bool _requestedRejoinThisHand = false;
 
         //DEBUG TEXT
@@ -59,7 +62,7 @@ namespace WCC.Poker.Client
         [SerializeField] bool _logHandSummary = false;
         [SerializeField] bool _logStateTransitions = false;
 
-        public static event Action<string> OnWinnerEvent;
+        public static event Action<IReadOnlyList<string>> OnWinnerEvent;
         
         [Serializable]
         class PlayerCardsPack
@@ -86,6 +89,9 @@ namespace WCC.Poker.Client
             _inShowdown = false;
             _pendingClearAfterShowdown = false;
             _requestedRejoinThisHand = false;
+            _pendingOwnerSeat = -1;
+            _ownerSeat = -1;
+            _lastOwnerSeat = -1;
         }
 
         #region DEBUG
@@ -205,6 +211,9 @@ namespace WCC.Poker.Client
                 case MsgType.SpectatorHoleCards: OnSpectatorHoleCards((SpectatorHoleCards)msg); break;
                 case MsgType.ActionBroadcast: OnActionBroadcast((ActionBroadcast)msg); break;
                 case MsgType.HandResult: OnHandResult((HandResult)msg); break;
+                case MsgType.JoinTableResponse: OnJoinTableResponse((JoinTableResponse)msg); break;
+                case MsgType.SpectateResponse: OnSpectateResponse((SpectateResponse)msg); break;
+                case MsgType.LeaveTableResponse: OnLeaveTableResponse((LeaveTableResponse)msg); break;
             }
         }
 
@@ -216,8 +225,38 @@ namespace WCC.Poker.Client
             SetPlayerCardsSleep(m.PlayerId, true);
         }
 
+        void OnJoinTableResponse(JoinTableResponse m)
+        {
+            if (!m.Success)
+                return;
+
+            if (m.Seat > 0)
+                _pendingOwnerSeat = m.Seat;
+            RefreshPlayerCardPositions();
+        }
+
+        void OnSpectateResponse(SpectateResponse m)
+        {
+            if (!m.Success)
+                return;
+
+            _pendingOwnerSeat = -1;
+            RefreshPlayerCardPositions();
+        }
+
+        void OnLeaveTableResponse(LeaveTableResponse m)
+        {
+            if (!m.Success)
+                return;
+
+            _pendingOwnerSeat = -1;
+            RefreshPlayerCardPositions();
+        }
+
         void OnTableSnapshot(TableSnapshot m)
         {
+            _tableMaxPlayers = m.MaxPlayers;
+            _tablePlayerCount = m.Players != null ? m.Players.Count : 0;
             if (_logStateTransitions && _lastTableState != m.State)
                 Debug.Log($"TableState transition: {_lastTableState} -> {m.State}");
 
@@ -234,16 +273,20 @@ namespace WCC.Poker.Client
             for (int i = 0; i < m.Players.Count; i++)
             {
                 if (!string.IsNullOrEmpty(ownerId) && m.Players[i].PlayerId == ownerId)
+                {
                     _ownerSeat = m.Players[i].Seat;
+                    _pendingOwnerSeat = _ownerSeat;
+                }
             }
             for (int i = 0; i < m.Players.Count; i++)
             {
                 _playerServerSeats[m.Players[i].PlayerId] = m.Players[i].Seat;
                 _playerSeatRecords[m.Players[i].PlayerId] = MapSeatToIndex(m.Players[i].Seat);
             }
-            if (_ownerSeat != _lastOwnerSeat)
+            var effectiveOwnerSeat = GetEffectiveOwnerSeat();
+            if (effectiveOwnerSeat != _lastOwnerSeat)
             {
-                _lastOwnerSeat = _ownerSeat;
+                _lastOwnerSeat = effectiveOwnerSeat;
                 RefreshPlayerCardPositions();
             }
 
@@ -255,10 +298,6 @@ namespace WCC.Poker.Client
             {
                 foreach (var p in m.Players)
                 {
-                    if (p.Status == PlayerStatus.SittingOut ||
-                        p.Status == PlayerStatus.Disconnected)
-                        continue;
-
                     if (_playerCardsRecords.ContainsKey(p.PlayerId))
                         continue;
 
@@ -301,6 +340,8 @@ namespace WCC.Poker.Client
                     _pendingDeals.RemoveAt(i);
                 }
             }
+
+            ApplyFoldSleepFromSnapshot(m);
         }
 
         void OnCommunityCards(CommunityCards m)
@@ -385,7 +426,7 @@ namespace WCC.Poker.Client
             foreach (var comCard in _communityCardsRecords)
                 comCard.Value.SetSleepCard(!_requestedRejoinThisHand);
 
-            string winnerP_ID = string.Empty;
+            var winnerIds = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var w in m.Winners)
             {
@@ -402,7 +443,7 @@ namespace WCC.Poker.Client
                         {
                             listOfCards.CardViewUI[i].SetSleepCard(false);
                             listOfCards.CardViewUI[i].SetShowOutline(true);
-                            winnerP_ID = w.PlayerId;
+                            winnerIds.Add(w.PlayerId);
                         }
                     }
 
@@ -419,7 +460,7 @@ namespace WCC.Poker.Client
 
             await Task.Delay(3000);
 
-            if (winnerP_ID != string.Empty) SetWinner(winnerP_ID);
+            if (winnerIds.Count > 0) SetWinners(winnerIds);
 
             await Task.Delay(5000);
 
@@ -446,6 +487,7 @@ namespace WCC.Poker.Client
                 card.transform.localScale = new Vector2(cardSize, cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
+                RebuildPlayerLayout(cardViewParent);
                 isReachedCallback();
                 return;
             }
@@ -459,6 +501,7 @@ namespace WCC.Poker.Client
                 card.transform.localScale = new Vector2(cardSize, cardSize);
                 card.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 if (isOpenCard) card.SetOpenCard();
+                RebuildPlayerLayout(cardViewParent);
                 isReachedCallback();
             });
         }
@@ -647,7 +690,25 @@ namespace WCC.Poker.Client
             _playerServerSeats.Clear();
         }
 
-        void SetWinner(string playerID) => OnWinnerEvent?.Invoke(playerID);
+        void SetWinners(IEnumerable<string> playerIds)
+        {
+            if (playerIds == null)
+                return;
+
+            var list = new List<string>();
+            foreach (var id in playerIds)
+            {
+                if (string.IsNullOrEmpty(id))
+                    continue;
+                if (!list.Contains(id))
+                    list.Add(id);
+            }
+
+            if (list.Count == 0)
+                return;
+
+            OnWinnerEvent?.Invoke(list);
+        }
 
         static int CardKey(Com.poker.Core.Card card) => (card.Rank << 2) | (card.Suit & 0x3);
 
@@ -663,6 +724,28 @@ namespace WCC.Poker.Client
             }
         }
 
+        void ApplyFoldSleepFromSnapshot(TableSnapshot snapshot)
+        {
+            if (snapshot == null)
+                return;
+
+            if (snapshot.State == TableState.Reset || snapshot.State == TableState.Waiting)
+                return;
+
+            foreach (var p in snapshot.Players)
+            {
+                var isFolded = ShouldShowFoldVisual(p.Status);
+                SetPlayerCardsSleep(p.PlayerId, isFolded);
+            }
+        }
+
+        static bool ShouldShowFoldVisual(PlayerStatus status)
+        {
+            return status == PlayerStatus.Folded ||
+                   status == PlayerStatus.SittingOut ||
+                   status == PlayerStatus.Disconnected;
+        }
+
         int MapSeatToIndex(int seat)
         {
             var total = _playerTablePositions.Length;
@@ -670,12 +753,24 @@ namespace WCC.Poker.Client
                 return 0;
 
             var ownerIndex = Mathf.Clamp(_ownerSeatIndex, 0, total - 1);
-            if (_ownerSeat <= 0)
+            var effectiveOwnerSeat = GetEffectiveOwnerSeat();
+            if (effectiveOwnerSeat <= 0)
                 return Mathf.Clamp(seat - 1, 0, total - 1);
 
-            var offset = ownerIndex - (_ownerSeat - 1);
+            var offset = ownerIndex - (effectiveOwnerSeat - 1);
             var mapped = ((seat - 1 + offset) % total + total) % total;
             return mapped;
+        }
+
+        int GetEffectiveOwnerSeat()
+        {
+            if (_ownerSeat > 0)
+                return _ownerSeat;
+            if (_pendingOwnerSeat <= 0)
+                return -1;
+            if (_tableMaxPlayers <= 0)
+                return -1;
+            return _tablePlayerCount < _tableMaxPlayers ? _pendingOwnerSeat : -1;
         }
 
         void EnsureOwnerCardsOpen()
