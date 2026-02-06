@@ -6,7 +6,6 @@
 using Com.poker.Core;
 using DG.Tweening;
 using Google.Protobuf;
-using NaughtyAttributes;
 using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
@@ -39,15 +38,19 @@ namespace WCC.Poker.Client
         [SerializeField] UnityEvent _onTipRecievedEvent;
 
         long _maxStack;
+        string _tableID;
 
         private void Awake() => PokerNetConnect.OnMessageEvent += OnMessage;
 
         private void Start()
         {
+            _tableID = GameServerClient.Instance.TableId;
             _tipButton.interactable = false;
+
             _confirmButton.onClick.AddListener(OnClickSendTipButton);
             _tipIF.onValueChanged.AddListener(OnChangeListener);
         }
+
         void OnEnable() => GameServerClient.TipResponseReceivedStatic += OnTipResponse;
 
         void OnDisable() => GameServerClient.TipResponseReceivedStatic -= OnTipResponse;
@@ -73,8 +76,7 @@ namespace WCC.Poker.Client
         void OnClickSendTipButton()
         {
             var amount = int.Parse(_tipIF.text);
-            GameServerClient.SendTipStatic(GameServerClient.Instance.TableId, amount);
-            print($"[OnClickSendTipButton] TableID: {GameServerClient.Instance.TableId} | Amount: {amount}");
+            GameServerClient.SendTipStatic(_tableID, amount);
         }
 
         void OnChangeListener(string change) => _confirmButton.interactable = change != string.Empty;
