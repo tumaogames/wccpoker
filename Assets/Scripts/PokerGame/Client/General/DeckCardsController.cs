@@ -29,6 +29,7 @@ namespace WCC.Poker.Client
         [Header("[CARD]")]
         [SerializeField] float _cardSize = 0.56f;
         [SerializeField] Transform[] _commCardsPosition;
+        [SerializeField] float _faceDownDealDurationSec = 5f;
 
         [Header("[CONTAINERS]")]
         [SerializeField] Transform _deckTableGroup;
@@ -47,6 +48,7 @@ namespace WCC.Poker.Client
         readonly ConcurrentDictionary<string, int> _playerSeatRecords = new();
         readonly ConcurrentDictionary<string, PlayerCardsPack> _playerCardsRecords = new();
         readonly List<(string playerId, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> cards)> _pendingDeals = new();
+        Coroutine _dealFaceDownCoroutine;
         TableState _lastTableState = TableState.Unspecified;
         bool _inShowdown = false;
         bool _pendingClearAfterShowdown = false;
@@ -296,14 +298,14 @@ namespace WCC.Poker.Client
                  m.State == TableState.River) &&
                 (_lastTableState != m.State || _playerCardsRecords.Count == 0))
             {
-                foreach (var p in m.Players)
+                if (_dealFaceDownCoroutine != null)
                 {
-                    if (_playerCardsRecords.ContainsKey(p.PlayerId))
-                        continue;
-
-                    if (_playerSeatRecords.TryGetValue(p.PlayerId, out var seat))
-                        DealFaceDownCards(p.PlayerId, seat, 2);
+                    StopCoroutine(_dealFaceDownCoroutine);
+                    _dealFaceDownCoroutine = null;
+                    BankerAnimController.main.StopDealsCardAnimation();
                 }
+
+                _dealFaceDownCoroutine = StartCoroutine(DealFaceDownRoundRobin(m.Players));
             }
             if (_lastTableState != m.State && m.State == TableState.Waiting)
             {
@@ -311,6 +313,7 @@ namespace WCC.Poker.Client
                     _pendingClearAfterShowdown = true;
                 else
                     ClearAllCardsImmediate();
+                BankerAnimController.main.StopDealsCardAnimation();
                 _requestedRejoinThisHand = false;
             }
             if (m.State == TableState.Reset)
@@ -319,6 +322,7 @@ namespace WCC.Poker.Client
                     _pendingClearAfterShowdown = true;
                 else
                     ClearAllCardsImmediate();
+                BankerAnimController.main.StopDealsCardAnimation();
                 _requestedRejoinThisHand = false;
             }
 
@@ -633,6 +637,98 @@ namespace WCC.Poker.Client
                 CardViewUI = _cardList,
                 IsPlaceholder = true,
             };
+            RebuildPlayerLayout(_playerTablePositions[seat]);
+        }
+
+        IEnumerator DealFaceDownRoundRobin(Google.Protobuf.Collections.RepeatedField<PlayerState> players)
+        {
+            if (players == null || players.Count == 0)
+                yield break;
+
+            var targets = new List<(string playerId, int seatIndex)>();
+            foreach (var p in players)
+            {
+                if (string.IsNullOrEmpty(p.PlayerId))
+                    continue;
+                if (_playerCardsRecords.ContainsKey(p.PlayerId))
+                    continue;
+                if (_playerSeatRecords.TryGetValue(p.PlayerId, out var seat))
+                    targets.Add((p.PlayerId, seat));
+            }
+
+            if (targets.Count == 0)
+                yield break;
+
+            targets.Sort((a, b) => a.seatIndex.CompareTo(b.seatIndex));
+
+            var totalCards = targets.Count * 2;
+            var delay = totalCards > 0 ? _faceDownDealDurationSec / totalCards : 0f;
+            delay = Mathf.Clamp(delay, 0.02f, 1f);
+
+            BankerAnimController.main.PlayDealsCardAnimation();
+            try
+            {
+                for (int round = 0; round < 2; round++)
+                {
+                    foreach (var t in targets)
+                    {
+                        DealFaceDownCardSingle(t.playerId, t.seatIndex, null);
+                        if (delay > 0f)
+                            yield return new WaitForSeconds(delay);
+                    }
+                }
+            }
+            finally
+            {
+                BankerAnimController.main.StopDealsCardAnimation();
+            }
+        }
+
+        void DealFaceDownCardSingle(string playerID, int seat, UnityAction onReached)
+        {
+            if (seat < 0 || seat >= _playerTablePositions.Length)
+            {
+                if (_logDealWarnings)
+                    Debug.LogWarning($"Invalid seat index {seat} for player {playerID}. Cards not dealt.");
+                return;
+            }
+
+            if (_playerCardsRecords.TryGetValue(playerID, out var existing) && existing != null && !existing.IsPlaceholder)
+                return;
+
+            var pack = existing ?? new PlayerCardsPack
+            {
+                Cards = new Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card>(),
+                CardViewUI = new List<CardView>(),
+                IsPlaceholder = true
+            };
+
+            if (pack.Cards.Count >= 2)
+                return;
+
+            AudioManager.main.PlayAudio("Cards", 1);
+
+            var dummyCards = CreatePlaceholderCards(1);
+            var dummy = dummyCards[0];
+
+            var reachedCallback = onReached ?? (() => { });
+
+            InstantiateCard(false,
+                true,
+                GlobalHawk.TranslateCardRank(dummy.Rank),
+                (GlobalHawk.Suit)dummy.Suit,
+                _playerTablePositions[seat],
+                out var cardView,
+                _cardSize,
+                reachedCallback);
+
+            _cardViewList_onPlayers.Add(cardView);
+            if (pack.CardViewUI == null)
+                pack.CardViewUI = new List<CardView>();
+            pack.CardViewUI.Add(cardView);
+            pack.Cards.Add(dummy);
+            pack.IsPlaceholder = true;
+            _playerCardsRecords[playerID] = pack;
             RebuildPlayerLayout(_playerTablePositions[seat]);
         }
 

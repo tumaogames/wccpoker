@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dad1b98ff9759d4bba7e3b8d90d62d7, type: 3}
   m_Name: NetData
   m_EditorClassIdentifier: 
-  LaunchToken: 2efeafbc-dff6-4236-b67e-f99484e65681
+  LaunchToken: d823931e-24e3-4502-ad1b-d177db4c9f71
   AutoConnectOnStart: 1
-  ServerUrl: ws://51.79.160.227:26001/ws
+  ServerUrl: ws://51.79.160.227:26002/ws
   OperatorPublicId: cde5ce9f-8df7-f011-ace1-b2b431609323
   AutoSpectateOnConnect: 1
   IsPlayerEnable: 1

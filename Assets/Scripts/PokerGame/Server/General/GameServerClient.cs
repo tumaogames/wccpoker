@@ -87,6 +87,7 @@ public sealed class GameServerClient : MonoBehaviour
     public event Action<ResumeResponse> ResumeResponseReceived;
     public event Action<TableSnapshot> TableSnapshotReceived;
     public event Action<PokerTableList> TableListReceived;
+    public event Action<PokerTableList> MatchSizeListReceived;
     public event Action<DealHoleCards> DealHoleCardsReceived;
     public event Action<CommunityCards> CommunityCardsReceived;
     public event Action<ActionRequest> ActionRequestReceived;
@@ -140,6 +141,12 @@ public sealed class GameServerClient : MonoBehaviour
     {
         add => Instance.TableListReceived += value;
         remove { if (_instance != null) _instance.TableListReceived -= value; }
+    }
+
+    public static event Action<PokerTableList> MatchSizeListReceivedStatic
+    {
+        add => Instance.MatchSizeListReceived += value;
+        remove { if (_instance != null) _instance.MatchSizeListReceived -= value; }
     }
 
     public static event Action<JoinTableResponse> JoinTableResponseReceivedStatic
@@ -408,6 +415,16 @@ public sealed class GameServerClient : MonoBehaviour
         Instance.SendJoinTable(tableIdValue, matchSizeId);
     }
 
+    public static void SendMatchSizeListRequestStatic(string tableIdValue)
+    {
+        Instance.SendMatchSizeListRequest(tableIdValue);
+    }
+
+    public static void SendShowTableMatchSizeListStatic(string tableIdValue)
+    {
+        Instance.SendMatchSizeListRequest(tableIdValue);
+    }
+
     public void SendJoinTable(string tableIdValue, int matchSizeId)
     {
         var req = new JoinTableRequest
@@ -416,6 +433,12 @@ public sealed class GameServerClient : MonoBehaviour
             MatchSizeId = matchSizeId
         };
         SendPacket(MsgType.JoinTableRequest, req);
+    }
+
+    public void SendMatchSizeListRequest(string tableIdValue)
+    {
+        var req = new JoinTableRequest { TableId = tableIdValue ?? "" };
+        SendPacket(MsgType.MatchSizeListRequest, req);
     }
 
     public static void SendBuyInStatic(string tableIdValue, long amount)
@@ -914,6 +937,7 @@ public sealed class GameServerClient : MonoBehaviour
                         //sharedData.myPlayerID = playerId;
                         Debug.Log($"{playerId} Credit: {credits}");
                         Debug.Log("myPlayerID:" + playerId);
+                        //Debug.Log("myPlayerID:" + sharedData.myPlayerID + ", is VIP:" + connectResponse.IsVip + ", VIP type:" + connectResponse.VipLevel + ", stack:");
                         //if (ArtGameManager.Instance != null)
                         //{
                         //    ArtGameManager.Instance.playerID = playerId;
@@ -962,9 +986,21 @@ public sealed class GameServerClient : MonoBehaviour
                             var maxPlayers = table.MaxPlayers;
                             var minBuyIn = table.MinBuyIn;
                             var maxBuyIn = table.MaxBuyIn;
+                            var rakePercent = table.RakePercent;
+                            var rakeCap = table.RakeCap;
 
                             // render a table card/button using these fields
+                            Debug.Log("Rake for table " + name + " is " + rakePercent + "% up to " + rakeCap);
                         }
+                    });
+                break;
+            case MsgType.MatchSizeList:
+                if (TryParsePayload(payload, PokerTableList.Parser, out var matchSizeList))
+                    EnqueueMainThread(() =>
+                    {
+                        MatchSizeListReceived?.Invoke(matchSizeList);
+                        MessageReceived?.Invoke(msgType, matchSizeList);
+                        Debug.Log("Recieved match size list with " + matchSizeList.Tables.Count + " entries.");
                     });
                 break;
             case MsgType.TableSnapshot:

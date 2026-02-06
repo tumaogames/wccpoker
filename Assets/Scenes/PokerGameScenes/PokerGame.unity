@@ -4030,7 +4030,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &341386810
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10605,6 +10605,7 @@ MonoBehaviour:
   - {fileID: 1870367153}
   - {fileID: 381683634}
   - {fileID: 1201181986}
+  _faceDownDealDurationSec: 1
   _deckTableGroup: {fileID: 244342986}
   _bankerPosition: {fileID: 988483952}
   _communityTableContainer: {fileID: 1743183865}

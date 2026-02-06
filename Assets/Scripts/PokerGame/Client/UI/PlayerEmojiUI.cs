@@ -14,7 +14,7 @@ namespace WCC.Poker.Client
     {
         [SerializeField] Image _emojiImage;
 
-        public async Task SetPlayerEmoji(Sprite emojiIcon)
+        public async void SetPlayerEmoji(Sprite emojiIcon)
         {
             _emojiImage.gameObject.SetActive(true);
             _emojiImage.sprite = emojiIcon;

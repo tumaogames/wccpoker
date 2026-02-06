@@ -235,9 +235,16 @@ namespace WCC.Poker.Client
         {
             var remainingMs = GetRemainingTurnMs(m.DeadlineUnixMs);
 
-            _inGamePlayersRecords[m.PlayerId].UpdateChipsAmount((int)m.Stack);
+            if (!_inGamePlayersRecords.TryGetValue(m.PlayerId, out var hud))
+                return;
+
+            var hasActions = m.AllowedActions != null && m.AllowedActions.Count > 0;
+            if (m.PlayerId == PokerNetConnect.OwnerPlayerID && hasActions)
+                hud.SetTurnWarningSuppressed(true);
+
+            hud.UpdateChipsAmount((int)m.Stack);
             _displayStacks[m.PlayerId] = (int)m.Stack;
-            _inGamePlayersRecords[m.PlayerId].SetTurn(remainingMs);
+            hud.SetTurn(remainingMs);
 
             if (m.PlayerId == PokerNetConnect.OwnerPlayerID && m.Seat != _ownerSeat)
             {

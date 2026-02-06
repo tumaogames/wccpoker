@@ -60,6 +60,7 @@ namespace WCC.Poker.Client
         public int SeatIndex => _seatIndex;
 
         Coroutine _timerCoroutine;
+        bool _suppressTurnWarning;
 
         /// <summary>
         /// This function ay para sa initialize ng player
@@ -153,6 +154,16 @@ namespace WCC.Poker.Client
             _turnWarningImage.color = c;
         }
 
+        public void SetTurnWarningSuppressed(bool suppress)
+        {
+            _suppressTurnWarning = suppress;
+            if (suppress)
+            {
+                _onTurnWarningBoolEvent?.Invoke(false);
+                ChangeTheWarningImageAlpha(0f);
+            }
+        }
+
         /// <summary>
         /// This function ay para sa effects lamang
         /// </summary>
@@ -203,7 +214,10 @@ namespace WCC.Poker.Client
                 {
                     triggered30 = true;
                     _turnLoadingImgFill.color = Color.red;
-                    _onTurnWarningBoolEvent?.Invoke(true);
+                    if (!_suppressTurnWarning)
+                        _onTurnWarningBoolEvent?.Invoke(true);
+                    else
+                        ChangeTheWarningImageAlpha(0f);
                 }
 
                 yield return null;
