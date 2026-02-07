@@ -45,6 +45,7 @@ namespace WCC.Poker.Client
         readonly ConcurrentDictionary<string, int> _betThisRound = new();
         readonly ConcurrentDictionary<string, int> _pendingWinAmounts = new();
         readonly ConcurrentDictionary<string, int> _playerServerSeats = new();
+        readonly Dictionary<int, int> _seatDisplayMap = new();
         bool _isSpectatorMode;
 
         TableState _currentTableState;
@@ -175,6 +176,8 @@ namespace WCC.Poker.Client
                 }
             }
 
+            RebuildSeatDisplayMap(m.Players);
+
             if (_inGamePlayersRecords.Count != 0)
             {
                 if (_inGamePlayersRecords.ContainsKey(dealerId))
@@ -250,6 +253,7 @@ namespace WCC.Poker.Client
             {
                 _ownerSeat = m.Seat;
                 _playerServerSeats[m.PlayerId] = m.Seat;
+                RebuildSeatDisplayMap();
                 RefreshPlayerPositions();
                 PlayerHUDListListenerEvent?.Invoke(_inGamePlayersRecords);
             }
@@ -418,6 +422,7 @@ namespace WCC.Poker.Client
 
         void RefreshPlayerPositions()
         {
+            RebuildSeatDisplayMap();
             foreach (var kvp in _inGamePlayersRecords)
             {
                 var playerId = kvp.Key;
@@ -457,18 +462,26 @@ namespace WCC.Poker.Client
 
         int MapSeatToIndex(int seat)
         {
+            if (_seatDisplayMap.TryGetValue(seat, out var mappedIndex))
+                return mappedIndex;
+
             var total = _playersTablePositions.Length;
             if (total == 0)
                 return 0;
 
             var ownerIndex = Mathf.Clamp(_ownerSeatIndex, 0, total - 1);
-            var effectiveOwnerSeat = _ownerSeat > 0 ? _ownerSeat : (ShouldReserveOwnerSeat() ? _pendingOwnerSeat : -1);
+            var effectiveOwnerSeat = GetEffectiveOwnerSeat();
             if (effectiveOwnerSeat <= 0)
                 return Mathf.Clamp(seat - 1, 0, total - 1);
 
             var offset = ownerIndex - (effectiveOwnerSeat - 1);
             var mapped = ((seat - 1 + offset) % total + total) % total;
             return mapped;
+        }
+
+        int GetEffectiveOwnerSeat()
+        {
+            return _ownerSeat > 0 ? _ownerSeat : (ShouldReserveOwnerSeat() ? _pendingOwnerSeat : -1);
         }
 
         bool ShouldReserveOwnerSeat()
@@ -478,6 +491,108 @@ namespace WCC.Poker.Client
             if (_tableMaxPlayers <= 0)
                 return false;
             return _tablePlayerCount < _tableMaxPlayers;
+        }
+
+        void RebuildSeatDisplayMap(IList<PlayerState> players = null)
+        {
+            _seatDisplayMap.Clear();
+
+            var total = _playersTablePositions.Length;
+            if (total <= 0)
+                return;
+
+            var playerCount = players != null ? players.Count : _tablePlayerCount;
+            if (playerCount <= 0)
+                return;
+
+            var ownerIndex = Mathf.Clamp(_ownerSeatIndex, 0, total - 1);
+            var layoutSlots = BuildLayoutSlots(playerCount, total, ownerIndex);
+            if (layoutSlots.Count == 0)
+                return;
+
+            var effectiveOwnerSeat = GetEffectiveOwnerSeat();
+            var orderedSeats = BuildOrderedSeatsClockwise(players, effectiveOwnerSeat);
+            if (orderedSeats.Count == 0)
+                return;
+
+            var mapCount = Mathf.Min(layoutSlots.Count, orderedSeats.Count);
+            for (int i = 0; i < mapCount; i++)
+                _seatDisplayMap[orderedSeats[i]] = layoutSlots[i];
+        }
+
+        List<int> BuildOrderedSeatsClockwise(IList<PlayerState> players, int effectiveOwnerSeat)
+        {
+            var seats = new List<int>();
+            if (players != null)
+            {
+                for (int i = 0; i < players.Count; i++)
+                {
+                    var seat = players[i].Seat;
+                    if (seat > 0)
+                        seats.Add(seat);
+                }
+            }
+            else
+            {
+                foreach (var kvp in _playerServerSeats)
+                {
+                    if (!_inGamePlayersRecords.ContainsKey(kvp.Key))
+                        continue;
+                    if (kvp.Value > 0)
+                        seats.Add(kvp.Value);
+                }
+            }
+
+            if (seats.Count == 0)
+                return seats;
+
+            seats.Sort();
+
+            if (effectiveOwnerSeat <= 0)
+                return seats;
+
+            var startIndex = seats.IndexOf(effectiveOwnerSeat);
+            if (startIndex < 0)
+                return seats;
+
+            var ordered = new List<int>(seats.Count);
+            for (int i = 0; i < seats.Count; i++)
+                ordered.Add(seats[(startIndex + i) % seats.Count]);
+
+            return ordered;
+        }
+
+        List<int> BuildLayoutSlots(int playerCount, int total, int ownerIndex)
+        {
+            var slots = new List<int>();
+            if (playerCount <= 0 || total <= 0)
+                return slots;
+
+            if (total < 9)
+            {
+                var count = Mathf.Min(playerCount, total);
+                for (int i = 0; i < count; i++)
+                    slots.Add((ownerIndex + i) % total);
+                return slots;
+            }
+
+            int[] offsets;
+            if (playerCount <= 1)
+                offsets = new[] { 0 };
+            else if (playerCount == 2)
+                offsets = new[] { 0, 5 };
+            else if (playerCount == 3)
+                offsets = new[] { 0, 3, 6 };
+            else if (playerCount == 4)
+                offsets = new[] { 0, 2, 4, 6 };
+            else
+                offsets = new[] { 0, 2, 3, 5, 6, 7, 8, 1, 4 };
+
+            var max = Mathf.Min(playerCount, offsets.Length);
+            for (int i = 0; i < max; i++)
+                slots.Add((ownerIndex + offsets[i]) % total);
+
+            return slots;
         }
 
         public void SendEmoji(string playerID, Sprite sprite)

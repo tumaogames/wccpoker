@@ -49,6 +49,7 @@ namespace WCC.Poker.Client
         readonly ConcurrentDictionary<string, int> _playerSeatRecords = new();
         readonly ConcurrentDictionary<string, PlayerCardsPack> _playerCardsRecords = new();
         readonly List<(string playerId, Google.Protobuf.Collections.RepeatedField<Com.poker.Core.Card> cards)> _pendingDeals = new();
+        readonly Dictionary<int, int> _seatDisplayMap = new();
         int _dealAnimRefCount = 0;
         Coroutine _dealFaceDownCoroutine;
         TableState _lastTableState = TableState.Unspecified;
@@ -264,10 +265,12 @@ namespace WCC.Poker.Client
                 }
             }
             for (int i = 0; i < m.Players.Count; i++)
-            {
                 _playerServerSeats[m.Players[i].PlayerId] = m.Players[i].Seat;
+
+            RebuildSeatDisplayMap(m.Players);
+
+            for (int i = 0; i < m.Players.Count; i++)
                 _playerSeatRecords[m.Players[i].PlayerId] = MapSeatToIndex(m.Players[i].Seat);
-            }
             var effectiveOwnerSeat = GetEffectiveOwnerSeat();
             if (effectiveOwnerSeat != _lastOwnerSeat)
             {
@@ -862,6 +865,9 @@ namespace WCC.Poker.Client
 
         int MapSeatToIndex(int seat)
         {
+            if (_seatDisplayMap.TryGetValue(seat, out var mappedIndex))
+                return mappedIndex;
+
             var total = _playerTablePositions.Length;
             if (total == 0)
                 return 0;
@@ -929,6 +935,7 @@ namespace WCC.Poker.Client
 
         void RefreshPlayerCardPositions()
         {
+            RebuildSeatDisplayMap();
             foreach (var kvp in _playerCardsRecords)
             {
                 var playerId = kvp.Key;
@@ -966,6 +973,106 @@ namespace WCC.Poker.Client
             if (rect == null)
                 return;
             LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+        }
+
+        void RebuildSeatDisplayMap(IList<PlayerState> players = null)
+        {
+            _seatDisplayMap.Clear();
+
+            var total = _playerTablePositions.Length;
+            if (total <= 0)
+                return;
+
+            var playerCount = players != null ? players.Count : _tablePlayerCount;
+            if (playerCount <= 0)
+                return;
+
+            var ownerIndex = Mathf.Clamp(_ownerSeatIndex, 0, total - 1);
+            var layoutSlots = BuildLayoutSlots(playerCount, total, ownerIndex);
+            if (layoutSlots.Count == 0)
+                return;
+
+            var effectiveOwnerSeat = GetEffectiveOwnerSeat();
+            var orderedSeats = BuildOrderedSeatsClockwise(players, effectiveOwnerSeat);
+            if (orderedSeats.Count == 0)
+                return;
+
+            var mapCount = Mathf.Min(layoutSlots.Count, orderedSeats.Count);
+            for (int i = 0; i < mapCount; i++)
+                _seatDisplayMap[orderedSeats[i]] = layoutSlots[i];
+        }
+
+        List<int> BuildOrderedSeatsClockwise(IList<PlayerState> players, int effectiveOwnerSeat)
+        {
+            var seats = new List<int>();
+            if (players != null)
+            {
+                for (int i = 0; i < players.Count; i++)
+                {
+                    var seat = players[i].Seat;
+                    if (seat > 0)
+                        seats.Add(seat);
+                }
+            }
+            else
+            {
+                foreach (var kvp in _playerServerSeats)
+                {
+                    if (kvp.Value > 0)
+                        seats.Add(kvp.Value);
+                }
+            }
+
+            if (seats.Count == 0)
+                return seats;
+
+            seats.Sort();
+
+            if (effectiveOwnerSeat <= 0)
+                return seats;
+
+            var startIndex = seats.IndexOf(effectiveOwnerSeat);
+            if (startIndex < 0)
+                return seats;
+
+            var ordered = new List<int>(seats.Count);
+            for (int i = 0; i < seats.Count; i++)
+                ordered.Add(seats[(startIndex + i) % seats.Count]);
+
+            return ordered;
+        }
+
+        List<int> BuildLayoutSlots(int playerCount, int total, int ownerIndex)
+        {
+            var slots = new List<int>();
+            if (playerCount <= 0 || total <= 0)
+                return slots;
+
+            if (total < 9)
+            {
+                var count = Mathf.Min(playerCount, total);
+                for (int i = 0; i < count; i++)
+                    slots.Add((ownerIndex + i) % total);
+                return slots;
+            }
+
+            int[] offsets;
+            if (playerCount <= 1)
+                offsets = new[] { 0 };
+            else if (playerCount == 2)
+                offsets = new[] { 0, 5 };
+            else if (playerCount == 3)
+                offsets = new[] { 0, 3, 6 };
+            else if (playerCount == 4)
+                offsets = new[] { 0, 2, 4, 6 };
+            else
+                offsets = new[] { 0, 2, 3, 5, 6, 7, 8, 1, 4 };
+
+            var max = Mathf.Min(playerCount, offsets.Length);
+            for (int i = 0; i < max; i++)
+                slots.Add((ownerIndex + offsets[i]) % total);
+
+            return slots;
         }
 
         void TryRequestOwnerRejoin(TableSnapshot snapshot)
